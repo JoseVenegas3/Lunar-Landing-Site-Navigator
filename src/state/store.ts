@@ -119,8 +119,6 @@ export interface AppState {
   /** Weighting of the suitability index: the synthesized one only (the engineering-first and science-first variants were removed from the interface). */
   scoreMode: WeightMode;
   science: Record<ScenarioKey, ScienceInputs>;
-  /** Sub-pixel terrain (LOLA + fractal micro-relief) hazard analysis. */
-  microRelief: boolean;
   /** Mission subsystem the planner console is set to. */
   subsystem: Subsystem;
   /** Mission briefing tour. */
@@ -158,7 +156,6 @@ export interface AppState {
   setAsset: (patch: Partial<AssetConfig>) => void;
   setTipover: (patch: Partial<TipoverConfig>) => void;
   setScience: (k: ScenarioKey, id: CriterionId, value: number | null) => void;
-  setMicroRelief: (on: boolean) => void;
   setBriefing: (b: BriefingState) => void;
   setMast: (m: number) => void;
   setCursor: (hours: number) => void;
@@ -195,7 +192,6 @@ export const useApp = create<AppState>((set) => ({
   tipover: DEFAULT_TIPOVER,
   scoreMode: 'synthesized',
   science: { A: {}, B: {} },
-  microRelief: false,
   subsystem: 'overview',
   briefing: briefingDone() ? 'off' : 'offer',
   mastM: 2,
@@ -267,7 +263,6 @@ export const useApp = create<AppState>((set) => ({
     if (value === null) delete next[id]; else next[id] = value;
     return { science: { ...s.science, [k]: next } };
   }),
-  setMicroRelief: (microRelief) => set({ microRelief }),
   setBriefing: (briefing) => set(() => {
     if (briefing === 'off') { try { localStorage.setItem(BRIEFING_KEY, 'done'); } catch { /* storage unavailable */ } }
     return { briefing };

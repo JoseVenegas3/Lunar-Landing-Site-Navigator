@@ -2,14 +2,15 @@
  * Emergency triage: the lander came down somewhere unplanned. The same
  * emergency flow as the survival panel of the Terrain console (position,
  * energy, optional tilt; evaluated from now), plus the terrain source and the
- * sub-pixel hazard, around the 3-D view.
+ * sub-pixel hazard, around the 3-D view. The sub-pixel hazard is always shown:
+ * it costs under 100 ms and is deterministic, so there is nothing to choose
+ * (v2.1 change 3; the switch of v2.0 was removed).
  */
 import { SceneView } from '../3d/SceneView';
 import { EmergencyInputs, EmergencyResult, useEmergencyNow } from '../EmergencyFlow';
 import { VerdictCard } from '../VerdictCard';
 import { Timeline } from '../dashboard/Timeline';
 import { ScenarioData, useMission } from '../../state/mission';
-import { useApp } from '../../state/store';
 import { useMicroHazard } from '../../state/verdict';
 import { fmtNum, useT } from '../../lib/format';
 
@@ -33,9 +34,8 @@ export function terrainStatusText(data: ScenarioData, t: T): { text: string; ton
 export function TriageLayout() {
   const t = useT();
   const data = useMission().A;
-  const micro = useApp((s) => s.microRelief);
-  const setMicro = useApp((s) => s.setMicroRelief);
-  const hazard = useMicroHazard(data);
+  const micro = useMicroHazard(data);
+  const hazard = micro?.hazard ?? null;
   const status = terrainStatusText(data, t);
   useEmergencyNow('A');
 
@@ -47,7 +47,7 @@ export function TriageLayout() {
       </aside>
 
       <div className="tri-stage">
-        <VerdictCard data={data} />
+        <VerdictCard data={data} gloss />
         <SceneView />
         <div className="tri-time"><Timeline scenarios={[data]} simple /></div>
       </div>
@@ -58,19 +58,17 @@ export function TriageLayout() {
           extra={(
             <>
               <p className={`tri-status is-${status.tone}`} data-testid="tri-terrain" data-stream={data.stream ?? ''}>{status.text}</p>
-              <label className="check">
-                <input type="checkbox" checked={micro} onChange={(e) => setMicro(e.target.checked)} data-testid="micro-toggle" />
-                <span>{t('Sub-pixel terrain (LOLA + fractal micro-relief)', 'Terreno sub-píxel (LOLA + micro-relieve fractal)')}</span>
-              </label>
-              {hazard && (
-                <div className="stat-grid" data-testid="micro-hazard">
+              <h4 className="micro-head">{t('Hazards under the 20 m pixel', 'Peligros bajo el píxel de 20 m')}</h4>
+              {hazard ? (
+                <div className="stat-grid" data-testid="micro-hazard" data-ms={micro ? Math.round(micro.ms) : ''}>
                   <div className={`stat${hazard.index > 0.4 ? ' is-crit' : hazard.index > 0.2 ? ' is-warn' : ' is-ok'}`}><span>{t('Micro-shadow and rock hazard', 'Peligro de micro-sombra y roca')}</span><output className="mono">{fmtNum(100 * hazard.index, 0)} %</output></div>
                   <div className="stat"><span>{t('Hidden shadow traps', 'Trampas de sombra ocultas')}</span><output className="mono">{fmtNum(100 * hazard.shadowTrap, 0)} %</output></div>
                   <div className="stat"><span>{t('Footprint slope over 15°', 'Pendiente bajo las patas > 15°')}</span><output className="mono">{fmtNum(100 * hazard.slopeTrap, 0)} %</output></div>
                   <div className="stat"><span>{t('Ground inside 3–15 m craters', 'Suelo dentro de cráteres de 3–15 m')}</span><output className="mono">{fmtNum(100 * hazard.craterCover, 0)} %</output></div>
                 </div>
-              )}
-              {micro && <p className="kpi-note pad0">{t('Statistical, not a map: the model places craters and roughness the 20 m terrain cannot contain, with the same result for the same place. It says how likely a hidden trap is, not where it is.', 'Estadístico, no un mapa: el modelo sitúa cráteres y rugosidad que el terreno de 20 m no puede contener, con el mismo resultado para el mismo lugar. Dice qué tan probable es una trampa oculta, no dónde está.')}</p>}
+              ) : <p className="kpi-note pad0" data-testid="micro-wait">{t('Estimating the hazards under the pixel…', 'Estimando los peligros bajo el píxel…')}</p>}
+              <p className="kpi-note pad0">{t('Statistical, not a map: the model places craters and roughness the 20 m terrain cannot contain, with the same result for the same place. It says how likely a hidden trap is, not where it is.', 'Estadístico, no un mapa: el modelo sitúa cráteres y rugosidad que el terreno de 20 m no puede contener, con el mismo resultado para el mismo lugar. Dice qué tan probable es una trampa oculta, no dónde está.')}</p>
+              <p className="kpi-note pad0" data-testid="micro-params">{t('Fractal roughness parameters (Hurst 0.9, 2.5° RMS slope below 20 m, 3–15 m craters, 4 m footprint, 15° limit) are team parameters, not validated. The crater density follows the equilibrium of Trask (1966).', 'Los parámetros de la rugosidad fractal (Hurst 0,9, pendiente RMS de 2,5° bajo 20 m, cráteres de 3–15 m, huella de 4 m, límite de 15°) son parámetros del equipo, no validados. La densidad de cráteres sigue el equilibrio de Trask (1966).')}</p>
             </>
           )}
         />

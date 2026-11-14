@@ -17,7 +17,8 @@
     "optimise-sites": "vite-node scripts/optimise_sites.ts",
     "search-rim": "vite-node scripts/search_crater_rim.ts",
     "build-dem": "python scripts/build_lola_dem.py",
-    "compare-horizons": "vite-node scripts/compare_horizons.ts"
+    "compare-horizons": "vite-node scripts/compare_horizons.ts",
+    "measure-micro": "vite-node scripts/measure_micro_hazard.ts"
   },
   "dependencies": {
     "@astrouxds/astro-web-components": "^8.0.1",

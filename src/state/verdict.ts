@@ -50,15 +50,29 @@ export function useVerdict(data: ScenarioData): Verdict | null {
   }, [result, dem, latDeg, lonDeg, input, tipover]);
 }
 
-/** Sub-pixel hazard of the ground at the lander, when the sub-pixel terrain mode is on. */
-export function useMicroHazard(data: ScenarioData): MicroHazard | null {
-  const on = useApp((s) => s.microRelief);
+/**
+ * Sub-pixel hazard of the ground at the lander, always computed in the
+ * emergency flow (v2.1 change 3). Measured cost: 35–67 ms median, 93 ms worst
+ * over the five candidate sites (scripts/measure_micro_hazard.ts), under the
+ * 300 ms limit set for keeping it behind a switch. It is deterministic, so a
+ * switch would only hide hazards in a critical situation. It runs just after
+ * the render so the inputs stay responsive; `ms` is the time it took here.
+ */
+export function useMicroHazard(data: ScenarioData): { hazard: MicroHazard; ms: number } | null {
   const { result, dem } = data;
-  return useMemo(() => {
-    if (!on || !result || !dem) return null;
-    const obs = result.observer;
-    return microHazard(dem, obs.x, obs.y, obs.lonDeg, sunlitDirections(result, 6));
-  }, [on, result, dem]);
+  const [out, setOut] = useState<{ hazard: MicroHazard; ms: number } | null>(null);
+  useEffect(() => {
+    setOut(null);
+    if (!result || !dem) return;
+    const id = setTimeout(() => {
+      const t0 = performance.now();
+      const obs = result.observer;
+      const hazard = microHazard(dem, obs.x, obs.y, obs.lonDeg, sunlitDirections(result, 6));
+      setOut({ hazard, ms: performance.now() - t0 });
+    }, 0);
+    return () => clearTimeout(id);
+  }, [result, dem]);
+  return out;
 }
 
 const RESCUE_SEARCH_DAYS = 60;
