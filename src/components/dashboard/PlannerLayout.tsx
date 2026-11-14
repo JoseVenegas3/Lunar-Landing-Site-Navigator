@@ -27,6 +27,7 @@ import { Readout } from './Readout';
 import { HardwarePanel, SitesPanel } from './ScenarioPanel';
 import { ScorePanel } from './ScorePanel';
 import { SurvivalPanel } from './SurvivalPanel';
+import { EmergencyFlow } from '../EmergencyFlow';
 import { ThermalChart } from './ThermalChart';
 import { Timeline } from './Timeline';
 import { WindowsPanel } from './WindowsPanel';
@@ -43,7 +44,7 @@ function panelLabel(id: PanelId, t: T, subsystem?: string): string {
     windows: t('Landing windows', 'Ventanas de aterrizaje'),
     energy: t('Energy and survival', 'Energía y supervivencia'),
     link: t('Link budget', 'Presupuesto de enlace'),
-    survival: t('Dispersion and escape', 'Dispersión y escape'),
+    survival: t('Emergency: survival', 'Emergencia: supervivencia'),
     score: t('Suitability index', 'Índice de aptitud'),
     engineering: t('Engineering view', 'Vista de ingeniería'),
     timeline: t('Mission windows', 'Ventanas de misión'),
@@ -61,7 +62,7 @@ function panelHint(id: PanelId, t: T): string {
     windows: t('Which landing dates work, what rules out the others, and the comparison with a second site or date.', 'Qué fechas de alunizaje sirven, qué descarta a las demás y la comparación con otro sitio o fecha.'),
     energy: t('Whether the battery and the electronics get through the cold of the shadows.', 'Si la batería y la electrónica resisten el frío de las sombras.'),
     link: t('Whether the radio signal reaches the Earth: power, distance, antenna, mountains in the way.', 'Si la señal de radio llega a la Tierra: potencia, distancia, antena y montañas en el camino.'),
-    survival: t('25 touchdown points within 200 m, the escape vector, and how much the answer depends on terrain errors.', '25 puntos de contacto a 200 m, el vector de escape y cuánto depende la respuesta del error del terreno.'),
+    survival: t('The lander is down: give its position and the energy left. From now, the panel says how long it has and where to move within 200 m. Same flow as the Emergency mode.', 'El lander está en superficie: indica su posición y la energía que queda. Desde ahora, el panel dice cuánto tiempo tiene y hacia dónde moverse a 200 m. Mismo flujo que el modo Emergencia.'),
     engineering: t('Every KPI of the mission in one table, with the detailed timeline below: one row per ground station, the relay and simultaneous operations.', 'Todos los KPI de la misión en una tabla, con la línea de tiempo detallada abajo: una fila por estación terrena, el relay y las operaciones simultáneas.'),
     score: t('A single 0–100 mark that weighs sunlight, Earth view, slope and science interest, with the orbital layers behind it.', 'Una nota de 0 a 100 que pondera luz, vista a la Tierra, pendiente e interés científico, con las capas orbitales detrás.'),
     timeline: t('Sun, Earth and both at once over the window. Green is the golden window.', 'Sol, Tierra y ambos a la vez en la ventana. El verde es la ventana de oro.'),
@@ -186,9 +187,9 @@ export function PlannerLayout() {
       case 'vitals': return <div className="panel block"><VitalCards data={active} /></div>;
       case 'engineering': return <EngineeringView />;
       case 'windows': return <WindowsPanel data={active} />;
-      case 'energy': return <SurvivalPanel data={active} part="thermal" />;
+      case 'energy': return <SurvivalPanel data={active} />;
       case 'link': return <LinkBudgetCard data={active} />;
-      case 'survival': return <SurvivalPanel data={active} part="landing" />;
+      case 'survival': return <EmergencyFlow data={active} />;
       default: return <ScorePanel />;
     }
   };

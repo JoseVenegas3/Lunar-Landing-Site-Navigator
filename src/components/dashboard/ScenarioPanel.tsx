@@ -30,7 +30,7 @@ function CommitRange({ value, min, max, step, onCommit, format, label, testId }:
   );
 }
 
-function NumberField({ label, value, min, max, step, unit, onChange, testId }: {
+export function NumberField({ label, value, min, max, step, unit, onChange, testId }: {
   label: string; value: number; min: number; max: number; step: number; unit?: string; onChange: (v: number) => void; testId?: string;
 }) {
   const [text, setText] = useState(String(value));
