@@ -4,7 +4,6 @@ import { PlannerLayout } from './components/dashboard/PlannerLayout';
 import { ExplorerLayout } from './components/explorer/ExplorerLayout';
 import { TriageLayout } from './components/triage/TriageLayout';
 import { MissionBriefingTour } from './components/MissionBriefingTour';
-import { VerificationModal } from './components/dashboard/VerificationModal';
 import { ensureRegional } from './state/dem';
 import { loadScienceLayers } from './state/science';
 import { MissionProvider } from './state/mission';
@@ -69,7 +68,6 @@ export function App() {
         <TopBar />
         {mode === 'planner' ? <PlannerLayout /> : mode === 'triage' ? <TriageLayout /> : <ExplorerLayout />}
         {mode === 'planner' && <MissionBriefingTour />}
-        <VerificationModal />
       </div>
     </MissionProvider>
   );

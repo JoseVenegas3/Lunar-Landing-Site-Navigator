@@ -18,7 +18,6 @@ export function TopBar() {
   const setSpeed = useApp((s) => s.setSpeed);
   const setCursor = useApp((s) => s.setCursor);
   const setActive = useApp((s) => s.setActive);
-  const setVerificationOpen = useApp((s) => s.setVerificationOpen);
   const maxHours = useApp((s) => maxCursorHours(s));
   const cursor = useThrottledCursor();
   const data = useActiveScenario();
@@ -86,9 +85,6 @@ export function TopBar() {
         title={t('Relaunch the mission briefing tour', 'Relanzar el recorrido de inducción')}
       >
         {t('Mission guide', 'Guía de misión')}
-      </button>
-      <button type="button" className="btn btn-verif" onClick={() => setVerificationOpen(true)} data-testid="open-verification">
-        {t('Verification', 'Verificación')}
       </button>
 
       <div className="lang" role="group" aria-label="Language / Idioma">

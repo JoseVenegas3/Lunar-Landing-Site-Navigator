@@ -119,8 +119,6 @@ export interface AppState {
   subsystem: Subsystem;
   /** Mission briefing tour. */
   briefing: BriefingState;
-  /** INCOSE verification matrix dialog. */
-  verificationOpen: boolean;
   mastM: number;
   /** Mission elapsed time of the shared cursor, hours from each window start. */
   cursorHours: number;
@@ -153,7 +151,6 @@ export interface AppState {
   setTipover: (patch: Partial<TipoverConfig>) => void;
   setScoreMode: (m: WeightMode) => void;
   setScience: (k: ScenarioKey, id: CriterionId, value: number | null) => void;
-  setVerificationOpen: (open: boolean) => void;
   setExpert: (on: boolean) => void;
   setMicroRelief: (on: boolean) => void;
   setBriefing: (b: BriefingState) => void;
@@ -189,7 +186,6 @@ export const useApp = create<AppState>((set) => ({
   tipover: DEFAULT_TIPOVER,
   scoreMode: 'synthesized',
   science: { A: {}, B: {} },
-  verificationOpen: false,
   expert: readFlag(EXPERT_KEY),
   microRelief: false,
   subsystem: 'overview',
@@ -259,7 +255,6 @@ export const useApp = create<AppState>((set) => ({
     if (value === null) delete next[id]; else next[id] = value;
     return { science: { ...s.science, [k]: next } };
   }),
-  setVerificationOpen: (verificationOpen) => set({ verificationOpen }),
   setExpert: (expert) => set(() => { writeFlag(EXPERT_KEY, expert); return { expert }; }),
   setMicroRelief: (microRelief) => set({ microRelief }),
   setBriefing: (briefing) => set(() => {
