@@ -6,7 +6,7 @@ import {
   CANDIDATE_SITES, DEFAULT_ASSET, DEFAULT_POWER, DEFAULT_RF, DEFAULT_THERMAL, DemManifest, MissionResult, NOMINAL_ATTITUDE,
   computeSOMRandomForestSiteScore, decodeGrid, evaluateMission, latLonToXY,
 } from '../../engine';
-import { TELEMETRY_COLUMNS, buildOpsIcs, buildTelemetryCsv } from '../export';
+import { TELEMETRY_COLUMNS, buildTelemetryCsv, exportStem } from '../export';
 import { buildVerificationMatrix } from '../verification';
 
 describe('verification matrix and exports', () => {
@@ -66,14 +66,9 @@ describe('verification matrix and exports', () => {
     expect(csv).toContain('roll_deg=30');
   });
 
-  it('exports a valid operations calendar', () => {
-    const ics = buildOpsIcs(mission, { site: 'Nobile', scenario: 'A' });
-    expect(ics.startsWith('BEGIN:VCALENDAR\r\n')).toBe(true);
-    expect(ics.trimEnd().endsWith('END:VCALENDAR')).toBe(true);
-    const begins = (ics.match(/BEGIN:VEVENT/g) ?? []).length;
-    expect(begins).toBe((ics.match(/END:VEVENT/g) ?? []).length);
-    expect(begins).toBeGreaterThan(2);
-    expect(ics).toMatch(/DTSTART:2028\d{4}T\d{6}Z/);
-    expect(ics).toContain('Eclipse');
+  it('names the export after the full site name', () => {
+    expect(TELEMETRY_COLUMNS).toHaveLength(26);
+    expect(exportStem('Nobile rim / Mons Mouton', mission)).toBe('clps_nobile-rim-mons-mouton_2028-03-01_30d');
+    expect(exportStem('Cráter Shackleton', mission)).toBe('clps_crater-shackleton_2028-03-01_30d');
   });
 });

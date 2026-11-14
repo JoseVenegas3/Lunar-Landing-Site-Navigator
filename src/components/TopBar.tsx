@@ -3,6 +3,7 @@ import { HOUR_MS } from '../engine';
 import { useActiveScenario, useThrottledCursor } from '../state/mission';
 import { AppMode, maxCursorHours, useApp } from '../state/store';
 import { fmtDateTime, fmtDuration, useT } from '../lib/format';
+import { buildTelemetryCsv, downloadText, exportStem } from '../lib/export';
 
 const SPEEDS = [1, 6, 12, 24, 72];
 
@@ -85,6 +86,15 @@ export function TopBar() {
         title={t('Relaunch the mission briefing tour', 'Relanzar el recorrido de inducción')}
       >
         {t('Mission guide', 'Guía de misión')}
+      </button>
+
+      <button
+        type="button" className="btn btn-verif btn-export" data-testid="export-csv" disabled={!data.result}
+        onClick={() => { if (data.result) downloadText(`${exportStem(data.name, data.result)}_telemetry.csv`, buildTelemetryCsv(data.result, { site: data.name, scenario: data.key }), 'text/csv;charset=utf-8'); }}
+        title={t('Download the simulated telemetry of the mission on screen: CSV, 26 columns in SI units, one row per hour', 'Descarga la telemetría simulada de la misión en pantalla: CSV, 26 columnas en unidades SI, una fila por hora')}
+      >
+        <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path d="M8 2v8M4.5 6.8 8 10.3l3.5-3.5M2.5 13.5h11" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        {t('Export CSV', 'Exportar CSV')}
       </button>
 
       <div className="lang" role="group" aria-label="Language / Idioma">

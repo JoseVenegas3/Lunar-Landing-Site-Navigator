@@ -1,10 +1,8 @@
 /**
- * Exports of a mission result: a telemetry CSV in SI / engineering units for
- * the GISAT ground-station tooling, and an iCalendar file of operations.
+ * Export of a mission result: a telemetry CSV in SI / engineering units for
+ * the GISAT ground-station tooling (26 columns, one row per hour).
  */
-import {
-  HOUR_MS, MissionResult, Run, STATE_DEPLETED, STATE_DTE, STATE_RF_PHYSICAL, STATE_SUN, runsOf,
-} from '../engine';
+import { HOUR_MS, MissionResult, STATE_DEPLETED, STATE_DTE, STATE_RF_PHYSICAL, STATE_SUN } from '../engine';
 
 const iso = (ms: number): string => new Date(ms).toISOString().replace('.000Z', 'Z');
 const num = (v: number, d: number): string => (Number.isFinite(v) ? v.toFixed(d) : '');
@@ -50,61 +48,11 @@ export function buildTelemetryCsv(r: MissionResult, meta: ExportMeta): string {
   return `${lines.join('\n')}\n`;
 }
 
-const icsTime = (ms: number): string => new Date(ms).toISOString().replace(/[-:]/g, '').replace('.000', '');
-const icsText = (s: string): string => s.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
-/** Largest number of events written, so calendar clients stay responsive. */
-export const ICS_EVENT_LIMIT = 400;
-
-/** Operations calendar: downlink passes per ground station, eclipses and loss of the lander. */
-export function buildOpsIcs(r: MissionResult, meta: ExportMeta): string {
-  const at = (i: number): number => r.eph.startMs + i * r.stepHours * HOUR_MS;
-  const events: { start: number; end: number; summary: string; description: string }[] = [];
-  const stations = r.adv.contact.sites;
-  // Downlink passes: a new event whenever the link drops or the tracking station changes.
-  let open = -1, openStation = -1;
-  for (let i = 0; i <= r.count; i++) {
-    const up = i < r.count && (r.state[i] & STATE_RF_PHYSICAL) !== 0;
-    const st = up ? r.adv.contact.station[i] : -1;
-    if (open >= 0 && (!up || st !== openStation)) {
-      let gb = 0;
-      for (let k = open; k < i; k++) gb += (r.rateMbps[k] * 1e6 * r.stepHours * 3600) / 8e9;
-      events.push({
-        start: at(open), end: at(i),
-        summary: `Downlink ${stations[openStation]?.name ?? ''} (${meta.site})`,
-        description: `${r.input.rf.band}-band direct-to-Earth pass, ${gb.toFixed(2)} GB`,
-      });
-      open = -1;
-    }
-    if (up && open < 0) { open = i; openStation = st; }
-  }
-  const dark: Run[] = runsOf(r.count, (i) => (r.state[i] & STATE_SUN) === 0);
-  for (const run of dark) {
-    events.push({
-      start: at(run.start), end: at(run.end),
-      summary: `Eclipse, on battery (${meta.site})`,
-      description: `Topographic shadow for ${((run.end - run.start) * r.stepHours).toFixed(0)} h`,
-    });
-  }
-  const lost = runsOf(r.count, (i) => (r.state[i] & STATE_DEPLETED) !== 0);
-  if (lost.length > 0) {
-    const death = r.adv.thermal && r.adv.thermal.thermalDeathIndex >= 0;
-    events.push({
-      start: at(lost[0].start), end: at(lost[0].start + 1),
-      summary: `${death ? 'CRITICAL THERMAL DEATH' : 'Battery depleted'} (${meta.site})`,
-      description: death ? 'Bus below -20 degC: battery frozen' : 'No stored energy and no array power',
-    });
-  }
-  events.sort((a, b) => a.start - b.start);
-  const out = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//GISAT UdeC//CLPS Lunar Mission Browser//EN', 'CALSCALE:GREGORIAN'];
-  events.slice(0, ICS_EVENT_LIMIT).forEach((e, k) => {
-    out.push(
-      'BEGIN:VEVENT', `UID:clps-${r.eph.startMs}-${k}@gisat.udec`, `DTSTAMP:${icsTime(r.eph.startMs)}`,
-      `DTSTART:${icsTime(e.start)}`, `DTEND:${icsTime(e.end)}`, `SUMMARY:${icsText(e.summary)}`, `DESCRIPTION:${icsText(e.description)}`,
-      'END:VEVENT',
-    );
-  });
-  out.push('END:VCALENDAR');
-  return `${out.join('\r\n')}\r\n`;
+/** File name stem of an export: site, window start and length, no abbreviations. */
+export function exportStem(siteName: string, r: MissionResult): string {
+  const slug = siteName.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const days = Math.round(((r.count - 1) * r.stepHours) / 24);
+  return `clps_${slug}_${new Date(r.eph.startMs).toISOString().slice(0, 10)}_${days}d`;
 }
 
 /** Hand a text file to the browser's download flow. */
