@@ -5,6 +5,7 @@ import { ScenarioData, useMission } from '../../state/mission';
 import { useScience } from '../../state/science';
 import { useApp } from '../../state/store';
 import { fmtNum, fmtSigned, useT } from '../../lib/format';
+import { ScenarioBadge } from '../ScenarioBadge';
 
 const INPUT_LIMIT: Partial<Record<CriterionId, { max: number; step: number }>> = {
   hydrogen: { max: 5, step: 0.01 }, geology: { max: 1, step: 0.05 },
@@ -25,7 +26,7 @@ function rawText(id: CriterionId, raw: number | null, view: SiteScoreView): stri
 function ScoreHead({ data, score }: { data: ScenarioData; score: SiteScore | null }) {
   return (
     <th>
-      <span className={`badge badge-${data.key}`}>{data.key}</span>
+      <ScenarioBadge k={data.key} />
       <div className="score-big mono" data-testid={`score-${data.key}`}>{score ? fmtNum(score.score, 1) : '···'}</div>
       <div className="kpi-cap mono" data-testid={`coverage-${data.key}`}>{data.short} · {score ? `${fmtNum(score.coveragePct, 0)} %` : ''}</div>
     </th>
@@ -43,6 +44,7 @@ export function ScorePanel() {
   const layers = useScience((s) => s.layers);
   const status = useScience((s) => s.status);
   const { A, B } = useMission();
+  const compare = useApp((s) => s.compare);
   const sa = useSiteScore(A), sb = useSiteScore(B);
   const act = active === 'A' ? sa : sb;
   const modes: { id: WeightMode; label: string }[] = [
@@ -71,7 +73,7 @@ export function ScorePanel() {
           <tr>
             <th />
             <ScoreHead data={A} score={sa.score} />
-            <ScoreHead data={B} score={sb.score} />
+            {compare && <ScoreHead data={B} score={sb.score} />}
           </tr>
         </thead>
         <tbody>
@@ -81,7 +83,7 @@ export function ScorePanel() {
                 {c.name[lang]}
                 <small className="mono">{fmtNum(100 * (sa.score?.rows[k].weight ?? 0), 1)} % · {sourceText(c)}</small>
               </th>
-              {[sa, sb].map((s, col) => {
+              {(compare ? [sa, sb] : [sa]).map((s, col) => {
                 const row = s.score?.rows[k];
                 return (
                   <td key={col} className={`kpi-val mono${row?.available ? '' : ' is-pending'}`}>
@@ -96,7 +98,7 @@ export function ScorePanel() {
       </table>
 
       <div className="score-inputs">
-        <h3><span className={`badge badge-${active}`}>{active}</span>{t('Orbital data at this site', 'Datos orbitales en este sitio')}</h3>
+        <h3><ScenarioBadge k={active} />{t('Orbital data at this site', 'Datos orbitales en este sitio')}</h3>
         {status === 'missing' && <p className="kpi-note pad0">{t('The science layers in public/science/ were not found; run scripts/fetch_science_layers.py.', 'No se hallaron las capas científicas en public/science/; ejecuta scripts/fetch_science_layers.py.')}</p>}
         {dv && psr ? (
           <dl className="link-grid mono" data-testid="orbital-data">

@@ -10,6 +10,7 @@ import {
 import { ScenarioData, cursorIndex } from '../../state/mission';
 import { C, FONT_MONO, FONT_UI, useCanvas } from '../../lib/useCanvas';
 import { cardinal, useT } from '../../lib/format';
+import { ScenarioBadge } from '../ScenarioBadge';
 
 const PAD = { l: 44, r: 12, t: 22, b: 26 };
 
@@ -51,7 +52,7 @@ export function HorizonPanorama({ data }: { data: ScenarioData }) {
   return (
     <section className="panel pano" aria-label={t('Horizon panorama', 'Panorama de horizonte')}>
       <header className="panel-head">
-        <h2><span className={`badge badge-${data.key}`}>{data.key}</span>{t('Horizon panorama', 'Panorama de horizonte')}</h2>
+        <h2><ScenarioBadge k={data.key} />{t('Horizon panorama', 'Panorama de horizonte')}</h2>
         <ul className="legend legend-inline">
           <li><i className="sw sw-sun" />{labels.sun}</li>
           <li><i className="sw sw-rf" />{labels.earth}</li>

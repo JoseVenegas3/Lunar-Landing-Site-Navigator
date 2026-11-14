@@ -7,7 +7,9 @@ import { LandingCandidate, RejectReason, REJECT_PRIORITY, candidateTimes, primar
 import { useLandingWindows } from '../../state/insights';
 import { ScenarioData } from '../../state/mission';
 import { useApp } from '../../state/store';
+import { CompareBlock } from './CompareBlock';
 import { cardinal, fmtData, fmtDate, fmtDateTime, fmtDuration, fmtMonthDay, fmtNum, useT } from '../../lib/format';
+import { ScenarioBadge } from '../ScenarioBadge';
 
 /** Month-day and hour, UTC: the year is on the axis above. */
 const short = (ms: number): string => `${fmtMonthDay(ms)} ${String(new Date(ms).getUTCHours()).padStart(2, '0')}h`;
@@ -59,7 +61,7 @@ export function WindowsPanel({ data }: { data: ScenarioData }) {
   return (
     <>
       <section className="panel block" data-testid="windows-panel">
-        <h3><span className={`badge badge-${data.key}`}>{data.key}</span>{t('When can we land?', '¿Cuándo podemos alunizar?')}</h3>
+        <h3><ScenarioBadge k={data.key} />{t('When can we land?', '¿Cuándo podemos alunizar?')}</h3>
         <p className="kpi-note pad0">
           {t('Every candidate date is flown as a full mission from touchdown. A date is accepted when the lander touches down in sunlight, the downlink closes at touchdown, it survives the mission, and the Sun is neither in front of the descent cameras nor directly behind them.', 'Cada fecha candidata se vuela como una misión completa desde el contacto. Una fecha se acepta si el lander toca la superficie con sol, la descarga cierra al contacto, sobrevive la misión, y el Sol no queda de frente a las cámaras de descenso ni justo detrás.')}
         </p>
@@ -172,6 +174,8 @@ export function WindowsPanel({ data }: { data: ScenarioData }) {
           {t(`Candidates every ${cfg.candidateStepHours} h. Ellipse: ${cfg.ellipseRadiusM} m radius on the terrain model, lit by the centre of the solar disc. The glare cone, the ±${cfg.washoutHalfDeg}° washout cone and the sunlit share are engineering assumptions of this tool, not the published requirement of a mission. The descent trajectory, the fuel and the navigation errors are not modelled: this is a surface-conditions filter, not a trajectory design.`, `Candidatas cada ${cfg.candidateStepHours} h. Elipse: radio de ${cfg.ellipseRadiusM} m sobre el modelo de terreno, iluminada según el centro del disco solar. El cono de deslumbramiento, el cono de ±${cfg.washoutHalfDeg}° sin sombras y la fracción con sol son supuestos de ingeniería de esta herramienta, no el requisito publicado de una misión. No se modela la trayectoria de descenso, el combustible ni los errores de navegación: es un filtro de condiciones en superficie, no un diseño de trayectoria.`)}
         </p>
       </section>
+
+      <CompareBlock />
     </>
   );
 }

@@ -57,29 +57,9 @@ function NumberField({ label, value, min, max, step, unit, onChange, testId }: {
   );
 }
 
-/** One scenario at a time: the A/B switch also selects which one the 3-D view shows. */
+/** The landing scenario: site, date, window and offset. A second scenario is created from the Compare block of the landing-windows panel. */
 export function SitesPanel() {
-  const t = useT();
-  const active = useApp((s) => s.active);
-  const setActive = useApp((s) => s.setActive);
-  const scenarios = useApp((s) => s.scenarios);
-  const otherKey: ScenarioKey = active === 'A' ? 'B' : 'A';
-  const other = scenarios[otherKey];
-  return (
-    <>
-      <div className="ab-switch" role="tablist" aria-label={t('Scenario', 'Escenario')}>
-        {(['A', 'B'] as const).map((k) => (
-          <button key={k} type="button" role="tab" aria-selected={active === k} className={active === k ? 'is-on' : ''} onClick={() => setActive(k)} data-testid={`tab-${k}`}>
-            <span className={`badge badge-${k}`}>{k}</span>{scenarioLatLon(scenarios[k]).short}
-          </button>
-        ))}
-      </div>
-      <ScenarioPanel k={active} />
-      <p className="ab-other mono">
-        {otherKey}: {scenarioLatLon(other).name} · {toDateInput(other.startMs)} · {other.days} d
-      </p>
-    </>
-  );
+  return <ScenarioPanel k="A" />;
 }
 
 export function ScenarioPanel({ k }: { k: ScenarioKey }) {
@@ -92,7 +72,8 @@ export function ScenarioPanel({ k }: { k: ScenarioKey }) {
   const data = useMission()[k];
   const site = ALL_SITES.find((s) => s.id === cfg.siteId);
   const nominal = scenarioLatLon(cfg);
-  const sameWindow = cfg.startMs === other.startMs && cfg.days === other.days;
+  const compare = useApp((s) => s.compare);
+  const sameWindow = !compare || (cfg.startMs === other.startMs && cfg.days === other.days);
   const briefKm = site ? (() => {
     const [x0, y0] = latLonToXY(site.latDeg, site.lonDeg);
     const [x1, y1] = latLonToXY(site.brief.latDeg, site.brief.lonDeg);

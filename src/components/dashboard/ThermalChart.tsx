@@ -7,6 +7,7 @@ import { HOUR_MS, MissionResult, T_BATTERY_DEATH_K, T_FREEZE_K } from '../../eng
 import { ScenarioData } from '../../state/mission';
 import { C, FONT_MONO, FONT_UI, useCanvas } from '../../lib/useCanvas';
 import { fmtDateTime, useT } from '../../lib/format';
+import { ScenarioBadge } from '../ScenarioBadge';
 
 const PAD = { l: 46, r: 52, t: 14, b: 22 };
 
@@ -210,7 +211,7 @@ export function ThermalChart({ data }: { data: ScenarioData }) {
   return (
     <section className="panel thermal" aria-label={t('Battery and bus temperature', 'Batería y temperatura del bus')}>
       <header className="panel-head">
-        <h2><span className={`badge badge-${data.key}`}>{data.key}</span>{t('Power, battery and bus temperature', 'Potencia, batería y temperatura del bus')}</h2>
+        <h2><ScenarioBadge k={data.key} />{t('Power, battery and bus temperature', 'Potencia, batería y temperatura del bus')}</h2>
         <ul className="legend legend-inline">
           <li><i className="sw sw-power" />{t('Array power', 'Potencia del panel')}</li>
           <li><i className="sw sw-sun" />{t('State of charge', 'Estado de carga')}</li>

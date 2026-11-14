@@ -7,6 +7,7 @@ import { CELL_MEMBERS, DISPERSION_RADIUS_M, useDispersion, useUncertainty } from
 import { ScenarioData } from '../../state/mission';
 import { useApp } from '../../state/store';
 import { cardinal, fmtDuration, fmtEnergy, fmtNum, useT } from '../../lib/format';
+import { ScenarioBadge } from '../ScenarioBadge';
 
 /** Colour of a dispersion cell: crimson when the lander is lost, emerald when it survives, by merit. */
 function cellColour(merit: number, lost: boolean): string {
@@ -46,7 +47,7 @@ export function SurvivalPanel({ data, part = 'all' }: { data: ScenarioData; part
   return (
     <>
       {part !== 'landing' && <section className="panel block" data-testid="thermal-kpis">
-        <h3><span className={`badge badge-${data.key}`}>{data.key}</span>{t('Night survival', 'Supervivencia nocturna')}</h3>
+        <h3><ScenarioBadge k={data.key} />{t('Night survival', 'Supervivencia nocturna')}</h3>
         {r && a ? (
           <>
             {a.thermalDeathH !== null && (

@@ -72,9 +72,11 @@ export function Timeline({ scenarios, simple = false }: { scenarios: ScenarioDat
         ctx.fillRect(GUTTER, y, pw, ROW_H);
       }
       ctx.textAlign = 'left';
-      ctx.font = `700 11px ${FONT_MONO}`;
-      ctx.fillStyle = lane.data.key === 'A' ? '#E6EDF7' : '#A5B4CC';
-      ctx.fillText(lane.data.key, 8, lane.top + ROW_H / 2);
+      if (lanes.length > 1) {
+        ctx.font = `700 11px ${FONT_MONO}`;
+        ctx.fillStyle = lane.data.key === 'A' ? '#E6EDF7' : '#A5B4CC';
+        ctx.fillText(lane.data.key, 8, lane.top + ROW_H / 2);
+      }
       ctx.font = `10px ${FONT_MONO}`;
       ctx.fillStyle = C.faint;
       ctx.fillText(lane.data.short, 8, lane.top + ROW_H + ROW_GAP + ROW_H / 2);
@@ -135,7 +137,7 @@ export function Timeline({ scenarios, simple = false }: { scenarios: ScenarioDat
       ctx.textAlign = 'left';
       ctx.fillText(text, tx + 5, ty + 8);
     }
-  } }, [...results, maxHours, rowLabels.join('|')]);
+  } }, [...results, maxHours, rowLabels.join('|'), scenarios.length]);
 
   const scrub = (e: React.PointerEvent<HTMLCanvasElement>): void => {
     const r = e.currentTarget.getBoundingClientRect();

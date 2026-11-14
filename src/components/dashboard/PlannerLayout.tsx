@@ -23,7 +23,6 @@ import { ContingencyPanel } from './ContingencyPanel';
 import { HorizonPanorama } from './HorizonPanorama';
 import { LinkBudgetCard } from './KpiMatrix';
 import { EngineeringView } from './EngineeringView';
-import { QuickCompare } from './QuickCompare';
 import { Readout } from './Readout';
 import { HardwarePanel, SitesPanel } from './ScenarioPanel';
 import { ScorePanel } from './ScorePanel';
@@ -41,8 +40,7 @@ function panelLabel(id: PanelId, t: T, subsystem?: string): string {
     hardware: t('Hardware', 'Equipo'),
     contingency: t('Attitude and tip-over', 'Actitud y vuelco'),
     vitals: t('Vitals', 'Signos vitales'),
-    compare: t('Compare A/B', 'Comparar A/B'),
-    windows: t('Landing dates', 'Fechas'),
+    windows: t('Landing windows', 'Ventanas de aterrizaje'),
     energy: t('Energy and survival', 'Energía y supervivencia'),
     link: t('Link budget', 'Presupuesto de enlace'),
     survival: t('Dispersion and escape', 'Dispersión y escape'),
@@ -56,12 +54,11 @@ function panelLabel(id: PanelId, t: T, subsystem?: string): string {
 
 function panelHint(id: PanelId, t: T): string {
   return {
-    sites: t('Where and when each scenario lands. A and B are compared side by side.', 'Dónde y cuándo aluniza cada escenario. A y B se comparan lado a lado.'),
+    sites: t('Where and when the lander touches down: site, date, window length and the offset from the nominal point.', 'Dónde y cuándo aluniza el lander: sitio, fecha, duración de la ventana y desplazamiento desde el punto nominal.'),
     hardware: t('Solar panels, battery, heaters, radio and relays. Bigger panels and battery survive longer shadows.', 'Paneles, batería, calefactores, radio y relays. Paneles y batería más grandes resisten sombras más largas.'),
     contingency: t('What happens if the lander ends up tilted, tips over, or lands next to another vehicle.', 'Qué pasa si el lander queda inclinado, vuelca o aluniza junto a otro vehículo.'),
     vitals: t('Hours of sunlight left, whether the Earth is reachable, and the time until the battery freezes, from the time on the clock.', 'Horas de sol restantes, si la Tierra está al alcance y el tiempo hasta que se congele la batería, desde la hora del reloj.'),
-    compare: t('The two scenarios side by side in four bars. The full table is in Science, Engineering view.', 'Los dos escenarios lado a lado en cuatro barras. La tabla completa está en Ciencia, Vista de ingeniería.'),
-    windows: t('Which landing dates work, and what rules out the others.', 'Qué fechas de alunizaje sirven y qué descarta a las demás.'),
+    windows: t('Which landing dates work, what rules out the others, and the comparison with a second site or date.', 'Qué fechas de alunizaje sirven, qué descarta a las demás y la comparación con otro sitio o fecha.'),
     energy: t('Whether the battery and the electronics get through the cold of the shadows.', 'Si la batería y la electrónica resisten el frío de las sombras.'),
     link: t('Whether the radio signal reaches the Earth: power, distance, antenna, mountains in the way.', 'Si la señal de radio llega a la Tierra: potencia, distancia, antena y montañas en el camino.'),
     survival: t('25 touchdown points within 200 m, the escape vector, and how much the answer depends on terrain errors.', '25 puntos de contacto a 200 m, el vector de escape y cuánto depende la respuesta del error del terreno.'),
@@ -136,6 +133,7 @@ function TrayHandle({ side, label, onOpen }: { side: 'left' | 'right'; label: st
 export function PlannerLayout() {
   const t = useT();
   const mission = useMission();
+  const compare = useApp((s) => s.compare);
   const active = useActiveScenario();
   const subsystem = useApp((s) => s.subsystem);
   const panels = useApp((s) => s.panels);
@@ -186,7 +184,6 @@ export function PlannerLayout() {
   const rightBody = (id: RightTab): ReactNode => {
     switch (id) {
       case 'vitals': return <div className="panel block"><VitalCards data={active} /></div>;
-      case 'compare': return <QuickCompare />;
       case 'engineering': return <EngineeringView />;
       case 'windows': return <WindowsPanel data={active} />;
       case 'energy': return <SurvivalPanel data={active} part="thermal" />;
@@ -196,7 +193,7 @@ export function PlannerLayout() {
     }
   };
   const bottomBody = (id: BottomTab): ReactNode => {
-    if (id === 'timeline') return <Timeline scenarios={[mission.A, mission.B]} simple={subsystem !== 'science'} />;
+    if (id === 'timeline') return <Timeline scenarios={compare ? [mission.A, mission.B] : [mission.A]} simple={subsystem !== 'science'} />;
     if (id === 'horizon') return <div className="pano-wrap"><HorizonPanorama data={active} /></div>;
     return <div className="pano-wrap"><ThermalChart data={active} /></div>;
   };

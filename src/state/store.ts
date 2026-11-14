@@ -11,7 +11,7 @@ export type OverlayKind = 'none' | 'insolation' | 'dte' | 'slope';
 export type ViewKind = 'orbit' | 'top' | 'eye';
 /** Workspace panels of the planner: at most one tab open per side, or none (minimised). */
 export type LeftTab = 'sites' | 'hardware' | 'contingency';
-export type RightTab = 'vitals' | 'compare' | 'windows' | 'energy' | 'link' | 'survival' | 'score' | 'engineering';
+export type RightTab = 'vitals' | 'windows' | 'energy' | 'link' | 'survival' | 'score' | 'engineering';
 export type BottomTab = 'timeline' | 'horizon' | 'thermal';
 export type PanelId = LeftTab | RightTab | BottomTab;
 
@@ -29,7 +29,7 @@ export interface SubsystemDef {
 }
 
 export const SUBSYSTEMS: Record<Subsystem, SubsystemDef> = {
-  overview: { left: ['sites'], right: ['vitals', 'compare', 'windows'], bottom: ['timeline'], overlay: 'none', accent: '#10B981' },
+  overview: { left: ['sites'], right: ['vitals', 'windows'], bottom: ['timeline'], overlay: 'none', accent: '#10B981' },
   power: { left: ['hardware'], right: ['energy'], bottom: ['thermal', 'timeline'], overlay: 'insolation', accent: '#F59E0B' },
   comms: { left: ['hardware'], right: ['link'], bottom: ['horizon', 'timeline'], overlay: 'dte', accent: '#06B6D4' },
   terrain: { left: ['contingency'], right: ['survival'], bottom: ['horizon', 'timeline'], overlay: 'slope', accent: '#E2E8F0' },
@@ -88,7 +88,9 @@ export interface AppState {
   mode: AppMode;
   lang: Lang;
   scenarios: Record<ScenarioKey, ScenarioCfg>;
-  /** Scenario shown in the 3-D view and the horizon panorama. */
+  /** A second scenario (B) is being compared with A. Off: the planner works on A alone and B is not evaluated. */
+  compare: boolean;
+  /** Scenario shown in the 3-D view and the horizon panorama (always A without a comparison). */
   active: ScenarioKey;
   power: PowerConfig;
   rf: RfConfig;
@@ -130,6 +132,8 @@ export interface AppState {
   setMode: (m: AppMode) => void;
   setLang: (l: Lang) => void;
   setActive: (k: ScenarioKey) => void;
+  /** Start a comparison (B = copy of A) or end it (B disappears). */
+  setCompare: (on: boolean) => void;
   updateScenario: (k: ScenarioKey, patch: Partial<ScenarioCfg>) => void;
   setRelocation: (k: ScenarioKey, dxM: number, dyM: number) => void;
   setPower: (patch: Partial<PowerConfig>) => void;
@@ -158,8 +162,8 @@ export const PLAYBACK_SPEEDS = [1, 24, 72] as const;
 
 const DEFAULT_START = Date.UTC(2027, 8, 1); // southern-summer approach, 2027
 
-export const maxCursorHours = (s: Pick<AppState, 'scenarios' | 'mode' | 'active'>): number =>
-  (s.mode !== 'planner' ? s.scenarios[s.active].days : Math.max(s.scenarios.A.days, s.scenarios.B.days)) * 24;
+export const maxCursorHours = (s: Pick<AppState, 'scenarios' | 'mode' | 'active' | 'compare'>): number =>
+  (s.mode === 'planner' && s.compare ? Math.max(s.scenarios.A.days, s.scenarios.B.days) : s.scenarios[s.active].days) * 24;
 
 export const useApp = create<AppState>((set) => ({
   mode: 'planner',
@@ -168,6 +172,7 @@ export const useApp = create<AppState>((set) => ({
     A: { siteId: CANDIDATE_SITES[0].id, customLat: -89.2, customLon: 140, dxM: 0, dyM: 0, startMs: DEFAULT_START, days: 60 },
     B: { siteId: CANDIDATE_SITES[1].id, customLat: -87.45, customLon: -5.12, dxM: 0, dyM: 0, startMs: DEFAULT_START, days: 60 },
   },
+  compare: false,
   active: 'A',
   power: DEFAULT_POWER,
   rf: DEFAULT_RF,
@@ -215,7 +220,10 @@ export const useApp = create<AppState>((set) => ({
 
   setMode: (mode) => set({ mode }),
   setLang: (lang) => set({ lang }),
-  setActive: (active) => set({ active }),
+  setActive: (active) => set((s) => ({ active: s.compare ? active : 'A' })),
+  setCompare: (on) => set((s) => (on
+    ? { compare: true, scenarios: { ...s.scenarios, B: { ...s.scenarios.A } }, science: { ...s.science, B: { ...s.science.A } } }
+    : { compare: false, active: 'A', cursorHours: Math.min(s.cursorHours, s.scenarios.A.days * 24) })),
   updateScenario: (k, patch) => set((s) => {
     const next = { ...s.scenarios[k], ...patch };
     // A new site starts from its nominal point.

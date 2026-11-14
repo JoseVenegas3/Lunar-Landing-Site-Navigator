@@ -6,6 +6,7 @@ type AllKpis = Kpis & AdvancedKpis;
 import { ScenarioData, useMission } from '../../state/mission';
 import { useApp } from '../../state/store';
 import { fmtData, fmtDate, fmtDuration, fmtEnergy, fmtNum, fmtRate, useT } from '../../lib/format';
+import { ScenarioBadge } from '../ScenarioBadge';
 
 interface Row {
   id: string;
@@ -76,20 +77,21 @@ function Caption({ d, startMs, days }: { d: ScenarioData; startMs: number; days:
 export function KpiMatrix() {
   const t = useT();
   const { A, B } = useMission();
+  const compare = useApp((s) => s.compare);
   const cfg = useApp((s) => s.scenarios);
   const rows = useRows();
   const ka: AllKpis | null = A.result ? { ...A.result.kpis, ...A.result.adv.kpis } : null;
-  const kb: AllKpis | null = B.result ? { ...B.result.kpis, ...B.result.adv.kpis } : null;
+  const kb: AllKpis | null = compare && B.result ? { ...B.result.kpis, ...B.result.adv.kpis } : null;
 
   return (
     <section className="panel kpis" aria-label={t('Scenario comparison', 'Comparación de escenarios')}>
-      <header className="panel-head"><h2>{t('Scenario comparison', 'Comparación de escenarios')}</h2></header>
+      <header className="panel-head"><h2>{compare ? t('Scenario comparison', 'Comparación de escenarios') : t('Mission KPIs', 'KPI de la misión')}</h2></header>
       <table className="kpi-table" data-testid="kpi-table">
         <thead>
           <tr>
             <th />
-            <th><span className="badge badge-A">A</span><Caption d={A} startMs={cfg.A.startMs} days={cfg.A.days} /></th>
-            <th><span className="badge badge-B">B</span><Caption d={B} startMs={cfg.B.startMs} days={cfg.B.days} /></th>
+            <th><ScenarioBadge k="A" /><Caption d={A} startMs={cfg.A.startMs} days={cfg.A.days} /></th>
+            {compare && <th><span className="badge badge-B">B</span><Caption d={B} startMs={cfg.B.startMs} days={cfg.B.days} /></th>}
           </tr>
         </thead>
         <tbody>
@@ -104,13 +106,13 @@ export function KpiMatrix() {
               <tr key={row.id}>
                 <th scope="row">{row.label}{row.hint && <small>{row.hint}</small>}</th>
                 <Cell row={row} k={ka} wins={win === 'A'} />
-                <Cell row={row} k={kb} wins={win === 'B'} />
+                {compare && <Cell row={row} k={kb} wins={win === 'B'} />}
               </tr>
             );
           })}
         </tbody>
       </table>
-      <p className="kpi-note">{t('The marker ▸ flags the better value of each row.', 'La marca ▸ señala el mejor valor de cada fila.')}</p>
+      {compare && <p className="kpi-note">{t('The marker ▸ flags the better value of each row.', 'La marca ▸ señala el mejor valor de cada fila.')}</p>}
     </section>
   );
 }
@@ -138,7 +140,7 @@ export function LinkBudgetCard({ data }: { data: ScenarioData }) {
   return (
     <section className="panel link" aria-label={t('DTE link budget', 'Presupuesto de enlace DTE')}>
       <header className="panel-head">
-        <h2><span className={`badge badge-${data.key}`}>{data.key}</span>{t('DTE link budget', 'Presupuesto de enlace DTE')}</h2>
+        <h2><ScenarioBadge k={data.key} />{t('DTE link budget', 'Presupuesto de enlace DTE')}</h2>
       </header>
       {l ? (
         <>

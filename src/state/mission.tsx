@@ -35,7 +35,9 @@ export interface ScenarioData {
 const MissionContext = createContext<Record<ScenarioKey, ScenarioData> | null>(null);
 
 function useScenarioData(key: ScenarioKey): ScenarioData {
-  const cfg = useApp((s) => s.scenarios[key]);
+  // Without a comparison B mirrors A (no terrain of its own to load) and is not evaluated.
+  const enabled = useApp((s) => key === 'A' || s.compare);
+  const cfg = useApp((s) => (enabled ? s.scenarios[key] : s.scenarios.A));
   const power = useApp((s) => s.power);
   const rf = useApp((s) => s.rf);
   const relay = useApp((s) => s.relay);
@@ -95,10 +97,10 @@ function useScenarioData(key: ScenarioKey): ScenarioData {
     return rec ? { ...thermal, envLitK: Math.min(400, Math.max(thermal.envDarkK + 10, rec.diviner.tMaxK)) } : thermal;
   }, [layers, latDeg, lonDeg, thermal]);
 
-  const input = useMemo<MissionInput | null>(() => (dem ? {
+  const input = useMemo<MissionInput | null>(() => (dem && enabled ? {
     latDeg, lonDeg, dxM: cfg.dxM, dyM: cfg.dyM, startMs: cfg.startMs, days: cfg.days, stepHours: 1, mastM, power, rf, relay,
     attitude, thermal: thermalOn ? siteThermal : null, asset,
-  } : null), [dem, latDeg, lonDeg, cfg.dxM, cfg.dyM, cfg.startMs, cfg.days, mastM, power, rf, relay, attitude, siteThermal, thermalOn, asset]);
+  } : null), [enabled, dem, latDeg, lonDeg, cfg.dxM, cfg.dyM, cfg.startMs, cfg.days, mastM, power, rf, relay, attitude, siteThermal, thermalOn, asset]);
 
   const result = useMemo<MissionResult | null>(() => {
     if (!dem || !horizon || !input) return null;

@@ -18,6 +18,7 @@ import { DoubleClickLand, EscapeArrow, LandmarkLabels, SunBeam } from './SceneEx
 import { Transport } from './Transport';
 import { terrainStatusText } from '../triage/TriageLayout';
 import { LiveSky, RING_ELEVATION_GAIN, dirToScene, hudTags, makeLiveSky, makeSceneFrame, updateLiveSky, useSceneUi } from './sceneMath';
+import { ScenarioBadge } from '../ScenarioBadge';
 
 declare global {
   interface Window {
@@ -216,7 +217,7 @@ function SceneHud({ data }: { data: ScenarioData }) {
     <div className="scene-hud">
       <div className="scene-tag scene-tag-crit hud-los" ref={(el) => { hudTags.los = el; }} style={{ display: 'none' }} />
       <div className="hud-block hud-tl">
-        <div className="hud-title"><span className={`badge badge-${data.key}`}>{data.key}</span>{data.name}</div>
+        <div className="hud-title"><ScenarioBadge k={data.key} />{data.name}</div>
         {r && pos && (
           <p className="hud-line mono">
             {fmtLat(pos.latDeg)} {fmtLon(pos.lonDeg)} · {fmtSigned(r.kpis.groundElevationM, 0)} m ·{' '}

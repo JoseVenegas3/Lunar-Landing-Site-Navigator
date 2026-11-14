@@ -6,6 +6,7 @@ import { Verdict, VerdictCause } from '../engine';
 import { ScenarioData } from '../state/mission';
 import { useRescue, useVerdict } from '../state/verdict';
 import { cardinal, fmtDateTime, fmtDuration, fmtNum, useT } from '../lib/format';
+import { ScenarioBadge } from './ScenarioBadge';
 
 type T = (en: string, es: string) => string;
 
@@ -66,7 +67,7 @@ export function VerdictCard({ data }: { data: ScenarioData }) {
     <div className={`verdict is-${v.level}`} data-testid="verdict" data-level={v.level} role="status" aria-live="polite">
       <span className="verdict-light" aria-hidden="true" />
       <div className="verdict-text">
-        <strong><span className={`badge badge-${data.key}`}>{data.key}</span>{verdictLabel(v, t)}</strong>
+        <strong><ScenarioBadge k={data.key} />{verdictLabel(v, t)}</strong>
         <p data-testid="verdict-sentence">{verdictSentence(v, t)}</p>
         {o && (
           <p className="verdict-after" data-testid="verdict-after">
