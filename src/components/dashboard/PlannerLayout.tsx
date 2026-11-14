@@ -12,7 +12,10 @@ import { CSSProperties, ReactNode, useEffect, useRef, useState } from 'react';
 import { SceneView } from '../3d/SceneView';
 import { useSceneUi } from '../3d/sceneMath';
 import { useActiveScenario, useMission } from '../../state/mission';
-import { BottomTab, LeftTab, PanelId, RightTab, SUBSYSTEMS, SUBSYSTEM_ORDER, Subsystem, useApp } from '../../state/store';
+import { BottomTab, LeftTab, PanelId, RightTab, SUBSYSTEMS, useApp } from '../../state/store';
+import { SubsystemCurtain, SubsystemTabs } from './SubsystemSwitch';
+
+export { subsystemLabel } from './SubsystemSwitch';
 import { useT } from '../../lib/format';
 import { VerdictCard } from '../VerdictCard';
 import { VitalCards } from '../VitalCards';
@@ -29,25 +32,6 @@ import { Timeline } from './Timeline';
 import { WindowsPanel } from './WindowsPanel';
 
 type T = (en: string, es: string) => string;
-const stroke = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.4, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
-
-const SUB_ICON: Record<Subsystem, ReactNode> = {
-  overview: <path d="M10 2.5a7.5 7.5 0 1 0 0 15 7.5 7.5 0 0 0 0-15ZM10 6v4l2.8 1.8" {...stroke} />,
-  power: <path d="M3 7h9v6H3zM5.2 7v6M7.5 7v6M9.8 7v6M12 10h2.5M16 6.5v7M14.5 10H17.5" {...stroke} />,
-  comms: <path d="M4 16 10 10M8 5.5a6.5 6.5 0 0 1 6.5 6.5M8 2.5a9.5 9.5 0 0 1 9.5 9.5M4 16h3.5M4 16v-3.5" {...stroke} />,
-  terrain: <path d="M2 15.5 7 8l3 4 2.5-3.5L18 15.5ZM2 17.5h16" {...stroke} />,
-  science: <path d="M8 2.5v5.2L3.5 15.4A1.4 1.4 0 0 0 4.7 17.5h10.6a1.4 1.4 0 0 0 1.2-2.1L12 7.7V2.5M7 2.5h6M6 12.5h8" {...stroke} />,
-};
-
-export function subsystemLabel(s: Subsystem, t: T): string {
-  return {
-    overview: t('Overview', 'Resumen'),
-    power: t('Power / thermal', 'Energía / térmico'),
-    comms: t('Comms / RF', 'Comunicaciones / RF'),
-    terrain: t('Terrain / landing', 'Terreno / alunizaje'),
-    science: t('Science', 'Ciencia'),
-  }[s];
-}
 
 function panelLabel(id: PanelId, t: T): string {
   return {
@@ -90,39 +74,24 @@ export function Hint({ text }: { text: string }) {
   return <span className="hint" tabIndex={0} role="note" aria-label={text} title={text} data-tip={text}>?</span>;
 }
 
-function SubsystemBar() {
+function ConsoleTools() {
   const t = useT();
-  const subsystem = useApp((s) => s.subsystem);
-  const setSubsystem = useApp((s) => s.setSubsystem);
   const telemetry = useApp((s) => s.panels.telemetry);
   const setPanels = useApp((s) => s.setPanels);
   const expert = useApp((s) => s.expert);
   const setExpert = useApp((s) => s.setExpert);
   return (
-    <nav className="subsys-bar" aria-label={t('Mission subsystem', 'Subsistema de misión')} data-testid="subsys-bar">
-      <div className="subsys-list" role="tablist">
-        {SUBSYSTEM_ORDER.map((s) => (
-          <button
-            key={s} type="button" role="tab" aria-selected={subsystem === s} className={`subsys-btn${subsystem === s ? ' is-on' : ''}`}
-            style={{ '--sub': SUBSYSTEMS[s].accent } as CSSProperties} onClick={() => setSubsystem(s)} data-testid={`subsys-${s}`}
-          >
-            <svg viewBox="0 0 20 20" width="17" height="17" aria-hidden="true">{SUB_ICON[s]}</svg>
-            <span>{subsystemLabel(s, t)}</span>
-          </button>
-        ))}
-      </div>
-      <div className="subsys-tools">
-        <button type="button" className={`btn btn-small${telemetry ? ' is-on' : ''}`} aria-pressed={telemetry} onClick={() => setPanels({ telemetry: !telemetry })} data-testid="dock-telemetry">
-          {t('Telemetry', 'Telemetría')}
-        </button>
-        <button
-          type="button" className={`btn btn-small${expert ? ' is-on' : ''}`} aria-pressed={expert} onClick={() => setExpert(!expert)} data-testid="expert-toggle"
-          title={t('Engineering mode: full comparison table and the detailed timeline', 'Modo ingeniería: tabla de comparación completa y línea de tiempo detallada')}
-        >
-          {expert ? t('Engineering: on', 'Ingeniería: sí') : t('Engineering: off', 'Ingeniería: no')}
-        </button>
-      </div>
-    </nav>
+    <div className="subsys-tools">
+      <button type="button" className={`btn btn-small${telemetry ? ' is-on' : ''}`} aria-pressed={telemetry} onClick={() => setPanels({ telemetry: !telemetry })} data-testid="dock-telemetry">
+        {t('Telemetry', 'Telemetría')}
+      </button>
+      <button
+        type="button" className={`btn btn-small${expert ? ' is-on' : ''}`} aria-pressed={expert} onClick={() => setExpert(!expert)} data-testid="expert-toggle"
+        title={t('Engineering mode: full comparison table and the detailed timeline', 'Modo ingeniería: tabla de comparación completa y línea de tiempo detallada')}
+      >
+        {expert ? t('Engineering: on', 'Ingeniería: sí') : t('Engineering: off', 'Ingeniería: no')}
+      </button>
+    </div>
   );
 }
 
@@ -245,7 +214,8 @@ export function PlannerLayout() {
 
   return (
     <main className="planner ws2" data-testid="planner" data-subsystem={subsystem} style={{ '--accent': def.accent } as CSSProperties}>
-      <SubsystemBar />
+      <SubsystemTabs />
+      <div className="ws2-body">
       <VerdictCard data={active} />
       <div className="deck" ref={deck} style={deckStyle} data-testid="deck">
         <SceneView />
@@ -268,11 +238,14 @@ export function PlannerLayout() {
                 </button>
               ))}
             </div>
+            <ConsoleTools />
             {bottomTab && <MinButton side="bottom" onClick={() => setPanels({ bottomTab: null })} />}
           </header>
           {panels.telemetry && <Readout data={active} />}
           {bottomTab && <div className="tray-bottom-body" key={`${subsystem}-${bottomTab}`}>{bottomBody(bottomTab)}</div>}
         </section>
+      </div>
+      <SubsystemCurtain />
       </div>
     </main>
   );

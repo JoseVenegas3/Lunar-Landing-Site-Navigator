@@ -832,3 +832,39 @@ input[type="range"] { width: 100%; accent-color: var(--rock); height: 18px; marg
 .speed-seg button.is-on { background: var(--line); color: var(--bright); }
 .hud-reloc .reloc-title { font-family: var(--ui); color: var(--dim); }
 .hud-reloc .hud-reset { pointer-events: auto; margin-left: 8px; padding: 1px 7px; }
+
+/* ================================================================ v2.0: full-width subsystem tabs and console transition */
+.subsys-bar { min-height: 58px; padding: 0; gap: 0; }
+.subsys-list { flex: 1; gap: 0; overflow: visible; }
+.subsys-btn {
+  flex: 1 1 0; justify-content: center; gap: 10px; min-height: 58px; padding: 0 12px; font-size: 14px; letter-spacing: 0.01em;
+  border-right: 1px solid var(--line); box-shadow: inset 0 -4px 0 color-mix(in srgb, var(--sub) 18%, transparent);
+}
+.subsys-btn:last-child { border-right: 0; }
+.subsys-btn svg { width: 22px; height: 22px; color: color-mix(in srgb, var(--sub) 70%, var(--dim)); }
+.subsys-btn:hover { box-shadow: inset 0 -4px 0 color-mix(in srgb, var(--sub) 55%, transparent); }
+.subsys-btn.is-on { color: var(--sub); background: color-mix(in srgb, var(--sub) 13%, transparent); box-shadow: inset 0 -4px 0 var(--sub); }
+.subsys-btn.is-on svg { color: var(--sub); }
+.ws2-body { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.ws2 .bottom-head .subsys-tools { margin-left: auto; padding-right: 4px; }
+
+.subsys-curtain { position: absolute; inset: 0; z-index: 40; background: #000; display: grid; place-items: center; pointer-events: auto; opacity: 1; }
+.subsys-curtain.is-out { animation: curtain-show var(--out-ms) ease-in both; }
+.subsys-curtain.is-in { animation: curtain-hide var(--in-ms) ease-out both; }
+@keyframes curtain-show { from { opacity: 0; } to { opacity: 1; } }
+@keyframes curtain-hide { from { opacity: 1; } to { opacity: 0; } }
+.subsys-emblem { display: grid; justify-items: center; gap: 16px; color: var(--sub); opacity: 0; transform: scale(0.84); transition: opacity 200ms ease-out, transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+.is-hold .subsys-emblem, .is-in .subsys-emblem { opacity: 1; transform: none; }
+.subsys-emblem svg { filter: drop-shadow(0 0 18px color-mix(in srgb, var(--sub) 55%, transparent)); }
+.subsys-emblem strong { font-size: 22px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--sub); }
+.subsys-emblem::after { content: ""; width: 180px; height: 4px; background: var(--sub); border-radius: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  .subsys-emblem { transition: none; }
+}
+@media (max-width: 1100px) {
+  .subsys-btn { font-size: 12.5px; gap: 7px; padding: 0 6px; }
+}
+@media (max-width: 980px) {
+  .subsys-btn span { white-space: normal; text-align: left; line-height: 1.2; }
+  .ws2-body { display: block; }
+}
