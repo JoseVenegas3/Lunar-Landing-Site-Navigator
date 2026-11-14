@@ -14,7 +14,8 @@ import { OverlayKind, ScenarioKey, ViewKind, sceneFocus, useApp } from '../../st
 import { fmtLat, fmtLon, fmtNum, fmtSigned, useT } from '../../lib/format';
 import { DteBeam, FarSkyline, HorizonRing, Lander, RelaySats, RelocationPad, SkyBodies, SunVector } from './SceneObjects';
 import { Terrain } from './Terrain';
-import { DoubleClickLand, EscapeArrow, LandmarkLabels, SunBeam } from './SceneExtras';
+import { DoubleClickLand, EscapeArrow, LandmarkLabels, SiteMarkers, SunBeam } from './SceneExtras';
+import { MISSION_SITES } from '../../engine';
 import { Transport } from './Transport';
 import { terrainStatusText } from '../triage/TriageLayout';
 import { LiveSky, RING_ELEVATION_GAIN, dirToScene, hudTags, makeLiveSky, makeSceneFrame, updateLiveSky, useSceneUi } from './sceneMath';
@@ -109,6 +110,10 @@ function SceneContents({ dem, result, overlay, scenarioKey }: { dem: DemStack; r
     create: t('Create a custom site here', 'Crear sitio propio aquí'),
     outside: t('Outside the area: only south of 80° S', 'Fuera del área: solo al sur de 80° S'),
   }), [t]);
+  const siteName = useMemo(() => (id: string, name: string, km: number): string => {
+    const approx = MISSION_SITES.find((s) => s.id === id)?.approximate ? ` · ${t('approximate coordinate', 'coordenada aproximada')}` : '';
+    return `${name} · ${km < 10 ? km.toFixed(1) : Math.round(km)} km${approx}`;
+  }, [t]);
   const grid = dem.local as Grid;
   const live = useMemo(makeLiveSky, []);
   const frame = useMemo(() => makeSceneFrame(grid), [grid]);
@@ -178,6 +183,7 @@ function SceneContents({ dem, result, overlay, scenarioKey }: { dem: DemStack; r
       <DteBeam result={result} frame={frame} live={live} dem={dem} />
       <Lander result={result} frame={frame} live={live} dem={dem} />
       <LandmarkLabels result={result} frame={frame} />
+      <SiteMarkers result={result} frame={frame} nameOf={siteName} />
       {(focus === 'triage' || focus === 'terrain') && <EscapeArrow result={result} frame={frame} dem={dem} scenarioKey={scenarioKey} />}
       {focus === 'power' && <SunBeam live={live} />}
       <DoubleClickLand result={result} frame={frame} scenarioKey={scenarioKey} text={dblText} />
@@ -242,6 +248,7 @@ function SceneHud({ data }: { data: ScenarioData }) {
         <span />
       </div>
       <div className="dbl-notice" ref={(el) => { hudTags.notice = el; }} style={{ display: 'none' }} role="status" data-testid="dbl-notice" />
+      <div className="site-tip" ref={(el) => { hudTags.site = el; }} style={{ display: 'none' }} data-testid="site-tip" aria-hidden="true" />
       <DoubleClickHint />
       <div className="hud-block hud-tl">
         <div className="hud-title"><ScenarioBadge k={data.key} /><span className="site-label" data-site-label={data.name}>{data.name}</span></div>

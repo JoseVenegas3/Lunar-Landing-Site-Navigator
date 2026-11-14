@@ -1,7 +1,7 @@
 /** Scenario and hardware configuration (left rail of the Mission Planner). */
 import { ReactNode, useEffect, useState } from 'react';
 import {
-  ALL_SITES, CANDIDATE_SITES, HISTORICAL_LANDINGS, CUSTOM_LAT_MAX, CUSTOM_LAT_MIN, DAY_MS, GROUND_STATIONS, MAX_RELAYS, MountType, RELAY_PRESETS, RELOCATION_LIMIT_M,
+  ALL_SITES, CANDIDATE_SITES, HISTORICAL_LANDINGS, MISSION_SITES, MissionSite, REFERENCE_MARKERS, CUSTOM_LAT_MAX, CUSTOM_LAT_MIN, DAY_MS, GROUND_STATIONS, MAX_RELAYS, MountType, RELAY_PRESETS, RELOCATION_LIMIT_M,
   RelayPresetId, RfBand, apoapsisAltKm, clamp, latLonToXY, orbitalPeriodS, periapsisAltKm, relayShape,
 } from '../../engine';
 import { ScenarioKey, scenarioLatLon, useApp } from '../../state/store';
@@ -96,7 +96,18 @@ export function ScenarioPanel({ k }: { k: ScenarioKey }) {
       <label className="field">
         <span className="field-label">{t('Landing site', 'Sitio de alunizaje')}</span>
         <select value={cfg.siteId} onChange={(e) => update(k, { siteId: e.target.value })} data-testid={`site-${k}`}>
-          {CANDIDATE_SITES.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+          <optgroup label={t('Candidate sites (challenge brief)', 'Sitios candidatos (enunciado)')}>
+            {CANDIDATE_SITES.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </optgroup>
+          <optgroup label={t('Artemis III/IV (NASA candidates)', 'Artemis III/IV (candidatos NASA)')}>
+            {MISSION_SITES.filter((s) => s.group === 'artemis').map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </optgroup>
+          <optgroup label={t('Other notable missions', 'Otras misiones notables')}>
+            {MISSION_SITES.filter((s) => s.group === 'other').map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+            {REFERENCE_MARKERS.map((m) => (
+              <option key={m.id} value={m.id} disabled>{m.name} · {t('outside LOLA coverage (80°–90° S)', 'fuera de cobertura LOLA (80°–90° S)')}</option>
+            ))}
+          </optgroup>
           <optgroup label={t('Real landings', 'Alunizajes reales')}>
             {HISTORICAL_LANDINGS.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
           </optgroup>
@@ -110,7 +121,10 @@ export function ScenarioPanel({ k }: { k: ScenarioKey }) {
           <NumberField label={t('Longitude (east +)', 'Longitud (este +)')} unit="°" value={cfg.customLon} min={-180} max={180} step={0.01} onChange={(v) => update(k, { customLon: v, dxM: 0, dyM: 0 })} testId={`lon-${k}`} />
         </div>
       ) : (
-        <p className="site-note">{site?.summary[lang]}</p>
+        <p className="site-note">
+          {site?.summary[lang]}
+          {site && (site as MissionSite).approximate && <span className="tag-approx" data-testid="site-approx"> {t('approximate coordinate', 'coordenada aproximada')}</span>}
+        </p>
       )}
       <p className="site-coords mono">{fmtLat(nominal.latDeg)}&nbsp;&nbsp;{fmtLon(nominal.lonDeg)}{data.loading !== null && <em> · DEM {Math.round(data.loading * 100)}%</em>}</p>
       {site && briefKm !== null && briefKm > 0.05 && (

@@ -105,7 +105,9 @@ export const hudTags: {
   cursor: HTMLDivElement | null;
   /** Short-lived message of the last double-click (outside the allowed area). */
   notice: HTMLDivElement | null;
-} = { los: null, cursor: null, notice: null };
+  /** Name of the catalogue site under the pointer (3-D site markers). */
+  site: HTMLDivElement | null;
+} = { los: null, cursor: null, notice: null, site: null };
 
 /** Radii (km) of the far-field shells drawn around the lander. */
 export const SKYLINE_RADIUS_KM = 40;

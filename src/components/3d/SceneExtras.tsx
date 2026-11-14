@@ -9,8 +9,9 @@ import {
   SpriteMaterial, Vector2, Vector3,
 } from 'three';
 import {
-  CUSTOM_LAT_MAX, DemStack, MissionResult, NAMED_LANDFORMS, RELOCATION_LIMIT_M, demHeight, latLonToXY, localAxes, xyToLatLon,
+  ALL_SITES, CUSTOM_LAT_MAX, DemStack, MissionResult, NAMED_LANDFORMS, RELOCATION_LIMIT_M, demHeight, latLonToXY, localAxes, xyToLatLon,
 } from '../../engine';
+import { siteColour } from '../PolarMap';
 import { useInsights } from '../../state/insights';
 import { ScenarioKey, useApp } from '../../state/store';
 import { BODY_DISTANCE_KM, LiveSky, SKYLINE_RADIUS_KM, SceneFrame, hudTags, mapToScene, useSceneUi } from './sceneMath';
@@ -101,6 +102,89 @@ export function LandmarkLabels({ result, frame }: { result: MissionResult; frame
     }
     return g;
   }, [obs, frame]);
+
+  useEffect(() => () => {
+    for (const o of group.children) {
+      const m = (o as Sprite).material;
+      m.map?.dispose();
+      m.dispose();
+    }
+  }, [group]);
+  return <primitive object={group} />;
+}
+
+/** Round dot of one colour, for the site markers. */
+function dotSprite(colour: string): Sprite {
+  const c = document.createElement('canvas');
+  c.width = c.height = 32;
+  const ctx = c.getContext('2d') as CanvasRenderingContext2D;
+  ctx.fillStyle = 'rgba(8,11,17,0.75)';
+  ctx.beginPath(); ctx.arc(16, 16, 11, 0, 2 * Math.PI); ctx.fill();
+  ctx.fillStyle = colour;
+  ctx.beginPath(); ctx.arc(16, 16, 7, 0, 2 * Math.PI); ctx.fill();
+  const sprite = new Sprite(new SpriteMaterial({ map: new CanvasTexture(c), transparent: true, depthTest: false, depthWrite: false }));
+  sprite.scale.set(0.55, 0.55, 1);
+  sprite.renderOrder = 6;
+  return sprite;
+}
+
+/**
+ * Every catalogue site as a dot just above the skyline, in its true bearing
+ * (colour by group, as on the polar map). With about twenty sites the names
+ * would overlap, so a name with its distance appears only under the pointer.
+ */
+export function SiteMarkers({ result, frame, nameOf }: { result: MissionResult; frame: SceneFrame; nameOf: (id: string, name: string, km: number) => string }) {
+  const { gl, camera } = useThree();
+  const obs = result.observer;
+  const { group, tags } = useMemo(() => {
+    const g = new Group();
+    const list: { sprite: Sprite; label: string }[] = [];
+    const eye = mapToScene(frame, obs.x, obs.y, obs.heightKm, new Vector3());
+    for (const s of ALL_SITES) {
+      const [x, y] = latLonToXY(s.latDeg, s.lonDeg);
+      const dx = x - obs.x, dy = y - obs.y, d = Math.hypot(dx, dy);
+      if (d < 0.3) continue; // the site the lander is on
+      const sp = dotSprite(siteColour(s.id));
+      sp.position.set(eye.x + (dx / d) * SKYLINE_RADIUS_KM * 0.9, eye.y + SKYLINE_RADIUS_KM * 0.035, eye.z - (dy / d) * SKYLINE_RADIUS_KM * 0.9);
+      g.add(sp);
+      list.push({ sprite: sp, label: nameOf(s.id, s.name, d) });
+    }
+    return { group: g, tags: list };
+  }, [obs, frame, nameOf]);
+
+  useEffect(() => {
+    const el = gl.domElement;
+    const v = new Vector3();
+    let raf = 0;
+    let last: PointerEvent | null = null;
+    const hide = (): void => { if (hudTags.site) hudTags.site.style.display = 'none'; };
+    const show = (ev: PointerEvent): void => {
+      const tip = hudTags.site;
+      if (!tip) return;
+      const r = el.getBoundingClientRect();
+      const mx = ev.clientX - r.left, my = ev.clientY - r.top;
+      let best: { label: string; x: number; y: number } | null = null, bestD = 12;
+      for (const t of tags) {
+        v.copy(t.sprite.position).project(camera);
+        if (v.z > 1) continue;
+        const x = (v.x * 0.5 + 0.5) * r.width, y = (0.5 - v.y * 0.5) * r.height;
+        const d = Math.hypot(x - mx, y - my);
+        if (d < bestD) { bestD = d; best = { label: t.label, x, y }; }
+      }
+      if (!best) { hide(); return; }
+      tip.textContent = best.label;
+      tip.style.display = 'block';
+      tip.style.transform = `translate(${Math.round(best.x)}px, ${Math.round(best.y)}px)`;
+    };
+    const onMove = (ev: PointerEvent): void => {
+      last = ev;
+      if (raf) return;
+      raf = requestAnimationFrame(() => { raf = 0; if (last) show(last); });
+    };
+    el.addEventListener('pointermove', onMove);
+    el.addEventListener('pointerleave', hide);
+    return () => { el.removeEventListener('pointermove', onMove); el.removeEventListener('pointerleave', hide); cancelAnimationFrame(raf); hide(); };
+  }, [gl, camera, tags]);
 
   useEffect(() => () => {
     for (const o of group.children) {

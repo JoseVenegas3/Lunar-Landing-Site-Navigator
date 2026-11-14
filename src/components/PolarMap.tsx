@@ -3,13 +3,22 @@
  * grid, latitude rings, named landforms and the lander. A click anywhere
  * inside 80 S puts the lander there.
  */
-import { useEffect, useMemo, useRef } from 'react';
-import { ALL_SITES, CUSTOM_LAT_MAX, DEG, NAMED_LANDFORMS, R_MOON_KM, latLonToXY, sampleGrid, xyToLatLon } from '../engine';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  ALL_SITES, CANDIDATE_SITES, CUSTOM_LAT_MAX, DEG, HISTORICAL_LANDINGS, MISSION_SITES, NAMED_LANDFORMS, R_MOON_KM, REFERENCE_MARKERS, latLonToXY, sampleGrid, xyToLatLon,
+} from '../engine';
 import { getRegional } from '../state/dem';
 import { useT } from '../lib/format';
 
 /** Half-width of the map, km: 80 S is 303 km from the pole. */
 const HALF_KM = 318;
+
+/** Dot colour of a catalogue site, by group. Names appear only under the pointer, so 20 dots never pile up into unreadable labels. */
+export function siteColour(id: string): string {
+  if (CANDIDATE_SITES.some((s) => s.id === id)) return '#10B981';
+  if (HISTORICAL_LANDINGS.some((s) => s.id === id)) return '#E6EDF7';
+  return MISSION_SITES.find((s) => s.id === id)?.group === 'artemis' ? '#F59E0B' : '#06B6D4';
+}
 /** Label offset from its landform (px) and alignment, chosen so the names around the pole do not collide. */
 const LABELS: Record<string, [number, number, CanvasTextAlign]> = {
   Shackleton: [0, 11, 'center'], 'de Gerlache': [-6, 3, 'right'], Haworth: [-6, -3, 'right'], Shoemaker: [6, -5, 'left'], Faustini: [6, 7, 'left'],
@@ -43,6 +52,7 @@ export function PolarMap({ latDeg, lonDeg, onPick, size = 356 }: { latDeg: numbe
   const t = useT();
   const ref = useRef<HTMLCanvasElement>(null);
   const relief = useMemo(() => shadedRelief(size), [size]);
+  const [hover, setHover] = useState<string | null>(null);
 
   useEffect(() => {
     const c = ref.current;
@@ -90,8 +100,35 @@ export function PolarMap({ latDeg, lonDeg, onPick, size = 356 }: { latDeg: numbe
     }
     for (const s of ALL_SITES) {
       const [x, y] = latLonToXY(s.latDeg, s.lonDeg);
-      ctx.fillStyle = '#10B981';
+      ctx.fillStyle = siteColour(s.id);
       ctx.fillRect(X(x) - 2, Y(y) - 2, 4, 4);
+    }
+    // Missions north of 80 S: an arrow on the rim in their bearing, never a point to analyse.
+    for (const m of REFERENCE_MARKERS) {
+      const [x, y] = latLonToXY(m.latDeg, m.lonDeg);
+      const d = Math.hypot(x, y), rim = R_MOON_KM * 10 * DEG;
+      const ex = X((x / d) * rim), ey = Y((y / d) * rim), a = Math.atan2(-(y / d), x / d);
+      ctx.save();
+      ctx.translate(ex, ey);
+      ctx.rotate(a);
+      ctx.fillStyle = '#94a3b8';
+      ctx.beginPath(); ctx.moveTo(9, 0); ctx.lineTo(1, -4.5); ctx.lineTo(1, 4.5); ctx.closePath(); ctx.fill();
+      ctx.restore();
+    }
+    const tip = hover ? ALL_SITES.find((s) => s.id === hover) ?? REFERENCE_MARKERS.find((m) => m.id === hover) : null;
+    if (tip) {
+      const out = REFERENCE_MARKERS.some((m) => m.id === tip.id);
+      let [x, y] = latLonToXY(tip.latDeg, tip.lonDeg);
+      if (out) { const d = Math.hypot(x, y), rim = R_MOON_KM * 10 * DEG; x = (x / d) * rim; y = (y / d) * rim; }
+      const label = out ? `${tip.name} · ${t('outside LOLA coverage (80°–90° S)', 'fuera de cobertura LOLA (80°–90° S)')}` : tip.name;
+      ctx.font = '10.5px "B612", sans-serif';
+      const w = ctx.measureText(label).width + 10;
+      const left = Math.min(size - w - 2, Math.max(2, X(x) - w / 2)), top = Y(y) > 30 ? Y(y) - 24 : Y(y) + 10;
+      ctx.fillStyle = 'rgba(8,11,17,0.9)';
+      ctx.fillRect(left, top, w, 16);
+      ctx.fillStyle = out ? '#cbd5e1' : siteColour(tip.id);
+      ctx.textAlign = 'left';
+      ctx.fillText(label, left + 5, top + 8);
     }
     const [lx, ly] = latLonToXY(latDeg, lonDeg);
     ctx.strokeStyle = '#ef4444';
@@ -101,7 +138,31 @@ export function PolarMap({ latDeg, lonDeg, onPick, size = 356 }: { latDeg: numbe
     ctx.moveTo(X(lx) - 12, Y(ly)); ctx.lineTo(X(lx) + 12, Y(ly));
     ctx.moveTo(X(lx), Y(ly) - 12); ctx.lineTo(X(lx), Y(ly) + 12);
     ctx.stroke();
-  }, [relief, size, latDeg, lonDeg, t]);
+  }, [relief, size, latDeg, lonDeg, t, hover]);
+
+  /** Catalogue site (or out-of-coverage marker) under the pointer, within 7 px. */
+  const nearest = (clientX: number, clientY: number): string | null => {
+    const c = ref.current;
+    if (!c) return null;
+    const r = c.getBoundingClientRect();
+    const k = size / r.width;
+    const mx = (clientX - r.left) * k, my = (clientY - r.top) * k;
+    const toPx = (x: number, y: number): [number, number] => [size / 2 + (x / (2 * HALF_KM)) * size, size / 2 - (y / (2 * HALF_KM)) * size];
+    let best: string | null = null, bestD = 7;
+    for (const s of ALL_SITES) {
+      const [px, py] = toPx(...latLonToXY(s.latDeg, s.lonDeg));
+      const d = Math.hypot(px - mx, py - my);
+      if (d < bestD) { bestD = d; best = s.id; }
+    }
+    for (const m of REFERENCE_MARKERS) {
+      const [x, y] = latLonToXY(m.latDeg, m.lonDeg);
+      const dd = Math.hypot(x, y), rim = R_MOON_KM * 10 * DEG;
+      const [px, py] = toPx((x / dd) * rim, (y / dd) * rim);
+      const d = Math.hypot(px - mx, py - my);
+      if (d < bestD + 3) { bestD = d; best = m.id; }
+    }
+    return best;
+  };
 
   const pick = (clientX: number, clientY: number): void => {
     const c = ref.current;
@@ -118,6 +179,9 @@ export function PolarMap({ latDeg, lonDeg, onPick, size = 356 }: { latDeg: numbe
       ref={ref} width={size} height={size} className="polar-map" data-testid="polar-map" role="img"
       aria-label={t('Map of the lunar south pole, 80° S to 90° S. Click to place the lander.', 'Mapa del polo sur lunar, 80° S a 90° S. Haz clic para situar el lander.')}
       onClick={(e) => pick(e.clientX, e.clientY)}
+      onMouseMove={(e) => { const id = nearest(e.clientX, e.clientY); if (id !== hover) setHover(id); }}
+      onMouseLeave={() => setHover(null)}
+      data-hover={hover ?? ''}
     />
   );
 }

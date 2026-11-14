@@ -887,6 +887,9 @@ input[type="range"] { width: 100%; accent-color: var(--rock); height: 18px; marg
 
 /* ================================================================ v2.0: double-click affordance on the terrain */
 .dbl-cursor { position: absolute; left: 0; top: 0; pointer-events: none; color: var(--bright); z-index: 3; }
+/* Name of the catalogue site under the pointer, above its dot on the skyline. */
+.site-tip { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 4; margin: -30px 0 0 0; translate: -50% 0; white-space: nowrap; font: 11.5px var(--ui); color: var(--bright); padding: 2px 7px; background: rgba(8, 11, 17, 0.9); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 3px; }
+.tag-approx { color: var(--sun); font-size: 11px; white-space: nowrap; }
 .dbl-cursor svg { position: absolute; left: -12px; top: -12px; filter: drop-shadow(0 0 2px #000); }
 .dbl-cursor span { position: absolute; left: 14px; top: 8px; white-space: nowrap; font: 11px var(--ui); padding: 2px 6px; background: rgba(8, 11, 17, 0.82); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 3px; }
 .dbl-cursor[data-action="move"] { color: var(--ops); }
