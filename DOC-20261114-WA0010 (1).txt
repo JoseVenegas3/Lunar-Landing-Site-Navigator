@@ -1,0 +1,6 @@
+﻿### SUBPROGRAMA ADICIONAL: Selector HUD Secuencial en Visor 3D [Cumple FR-01, FR-06 y PR-01]
+* **Modo de Parámetro Fijo (Lock Parameter):** El sistema permitirá fijar la Época UTC, la ventana de duración y la altura del activo (0.5 m a 30 m) como constantes globales de evaluación.
+* **Navegador Carrusel Superpuesto (HUD 3D):** En la esquina superior del visor gráfico 3D se integrará un selector compacto con flechas laterales (`◀ [ Ranking #N: Nombre del Lugar (Lat, Lon) | Viabilidad % ] ▶`) y soporte para teclas de dirección (Izquierda/Derecha).
+* **Iteración Secuencial Instantánea:** Al avanzar o retroceder con las flechas, el sistema cambiará de localización siguiendo el orden del Buscador de Puntos de Prioridad para esa fecha fija, actualizando en tiempo cuasi-real (< 100 ms) la malla topográfica 3D (DEM), las sombras proyectadas del Sol y la Tierra, el perfil de horizonte de 360° y las barras de Línea de Visión ininterrumpida (FR-05).
+* **Conmutador de Eje de Iteración:** Incluirá un botón de bloqueo (candado) que permita alternar entre «Fijar Fecha y recorrer Sitios con ◀ ▶» o «Fijar Sitio y recorrer Ventanas de Fechas Óptimas con ◀ ▶».
+*
