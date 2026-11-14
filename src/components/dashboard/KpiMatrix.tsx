@@ -135,8 +135,8 @@ export function LinkBudgetCard({ data }: { data: ScenarioData }) {
   const t = useT();
   const rf = useApp((s) => s.rf);
   const l = data.result?.link ?? null;
-  const [targetKbps, setTargetKbps] = useState(100);
-  const need = l && targetKbps > 0 ? requiredGroundStation(rf, l.rangeKm, targetKbps * 1000) : null;
+  const [targetKbps, setTargetKbps] = useState<number | null>(null);
+  const need = l && targetKbps !== null && targetKbps > 0 ? requiredGroundStation(rf, l.rangeKm, targetKbps * 1000) : null;
   return (
     <section className="panel link" aria-label={t('DTE link budget', 'Presupuesto de enlace DTE')}>
       <header className="panel-head">
@@ -171,10 +171,19 @@ export function LinkBudgetCard({ data }: { data: ScenarioData }) {
             <label className="field field-num">
               <span className="field-label">{t('Target data rate', 'Tasa de datos objetivo')}</span>
               <span className="num-wrap">
-                <input type="number" className="mono" min={0.1} max={100000} step={10} value={targetKbps} onChange={(e) => setTargetKbps(Math.max(0, Number(e.target.value) || 0))} data-testid="gt-target" />
+                <input
+                  type="number" className="mono" min={0.1} max={100000} step={10} placeholder="—" value={targetKbps ?? ''} data-testid="gt-target"
+                  onChange={(e) => setTargetKbps(e.target.value.trim() === '' ? null : Math.max(0, Number(e.target.value) || 0))}
+                />
                 <i>kbps</i>
               </span>
             </label>
+            <div className="rate-chips" role="group" aria-label={t('Quick values', 'Valores rápidos')}>
+              {[10, 100, 1000].map((k) => (
+                <button key={k} type="button" className={`tm-chip${targetKbps === k ? ' is-on' : ''}`} aria-pressed={targetKbps === k} onClick={() => setTargetKbps(k)} data-testid={`gt-chip-${k}`}>{k} kbps</button>
+              ))}
+            </div>
+            {targetKbps === null && <p className="kpi-note pad0">{t('Enter the data rate the mission needs, or pick one of the quick values.', 'Ingresa la tasa de datos que necesita la misión, o elige uno de los valores rápidos.')}</p>}
             {need && (
               <dl className="link-grid mono" data-testid="gt-required">
                 <div><dt>{t('Required G/T', 'G/T requerido')}</dt><dd>{fmtNum(need.gOverTDbK)} dB/K</dd></div>

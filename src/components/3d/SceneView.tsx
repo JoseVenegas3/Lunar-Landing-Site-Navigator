@@ -65,10 +65,6 @@ function CameraRig({ live, result, siteKey }: { live: LiveSky; result: MissionRe
         cam.fov = 40; cam.near = 0.01;
         cam.position.copy(live.lander).add(dir.set(1.9, 1.25, 2.3));
         c.target.copy(live.lander);
-      } else if (view === 'top') {
-        cam.fov = 40; cam.near = 0.01;
-        cam.position.copy(live.lander).add(dir.set(0, 13, 0.02));
-        c.target.copy(live.lander);
       } else {
         cam.fov = 55; cam.near = 0.0005;
         cam.position.copy(live.eye);
@@ -204,6 +200,8 @@ function Segmented<T extends string>({ value, options, onChange, label }: {
 }
 
 const DBL_HINT_KEY = 'clps.dblhint';
+/** The frame-rate read-out is a developer aid: shown only with ?debug=1 in the address. */
+const DEBUG = typeof location !== 'undefined' && new URLSearchParams(location.search).get('debug') === '1';
 
 /** Permanent, discreet reminder of what a double-click on the terrain does; can be dismissed (remembered). */
 function DoubleClickHint() {
@@ -274,7 +272,6 @@ function SceneHud({ data }: { data: ScenarioData }) {
           onChange={setView}
           options={[
             { value: 'orbit', label: t('Orbit', 'Órbita') },
-            { value: 'top', label: t('Map', 'Mapa') },
             { value: 'eye', label: t('Lander eye', 'Vista lander') },
           ]}
         />
@@ -297,7 +294,7 @@ function SceneHud({ data }: { data: ScenarioData }) {
               : <div className="ramp-labels mono"><span>0%</span><span>{progress !== null ? `${t('computing', 'calculando')} ${Math.round(progress * 100)}%` : t('of the window', 'de la ventana')}</span><span>100%</span></div>}
           </div>
         )}
-        <div className="hud-fps mono" data-testid="fps">{fps} fps</div>
+        {DEBUG && <div className="hud-fps mono" data-testid="fps">{fps} fps</div>}
       </div>
 
       <div className="hud-block hud-bl">

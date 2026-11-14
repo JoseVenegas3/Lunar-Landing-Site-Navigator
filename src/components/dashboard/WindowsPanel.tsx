@@ -81,16 +81,9 @@ export function WindowsPanel({ data }: { data: ScenarioData }) {
           <span className="field-label">{t('Approach heading (direction of flight)', 'Rumbo de aproximación (dirección de vuelo)')}<output className="mono">{cfg.approachAzDeg}° {cardinal(cfg.approachAzDeg)}</output></span>
           <input type="range" min={0} max={355} step={5} value={cfg.approachAzDeg} onChange={(e) => w.setConfig({ approachAzDeg: Number(e.target.value) })} data-testid="win-heading" />
         </label>
-        <div className="field-row">
-          <label className="field">
-            <span className="field-label">{t('Glare cone', 'Cono de deslumbramiento')}<output className="mono">±{cfg.glareHalfDeg}°</output></span>
-            <input type="range" min={0} max={60} step={5} value={cfg.glareHalfDeg} onChange={(e) => w.setConfig({ glareHalfDeg: Number(e.target.value) })} />
-          </label>
-          <label className="field">
-            <span className="field-label">{t('Ellipse sunlit, at least', 'Elipse con sol, al menos')}<output className="mono">{cfg.minEllipseLitPct} %</output></span>
-            <input type="range" min={0} max={100} step={5} value={cfg.minEllipseLitPct} onChange={(e) => w.setConfig({ minEllipseLitPct: Number(e.target.value) })} />
-          </label>
-        </div>
+        <p className="kpi-note pad0" data-testid="win-assumptions">
+          {t(`Engineering assumption thresholds: Sun not within ±${cfg.glareHalfDeg}° of the direction of flight (glare) nor ±${cfg.washoutHalfDeg}° behind it (no shadows), and at least ${cfg.minEllipseLitPct} % of the ${cfg.ellipseRadiusM} m landing ellipse in sunlight.`, `Umbrales supuestos de ingeniería: Sol fuera de ±${cfg.glareHalfDeg}° de la dirección de vuelo (deslumbramiento) y de ±${cfg.washoutHalfDeg}° detrás (sin sombras), y al menos el ${cfg.minEllipseLitPct} % de la elipse de ${cfg.ellipseRadiusM} m con sol.`)}
+        </p>
         <div className="tour-actions">
           <button type="button" className="btn btn-small" onClick={w.run} disabled={!data.result || w.progress !== null} data-testid="win-run">
             {t(`Search ${total} touchdown dates`, `Buscar en ${total} fechas de contacto`)}

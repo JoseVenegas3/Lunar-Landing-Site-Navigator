@@ -43,7 +43,7 @@ const TOUR: TourStep[] = [
       'Con el Sol tan bajo, cualquier colina proyecta una sombra de muchos kilómetros, y el fondo de los cráteres puede no ver la luz jamás. El mapa de color muestra cuánto tiempo recibe sol cada punto: claro es casi siempre, púrpura oscuro casi nunca.',
     ],
     action: ['Show the sunlight map', 'Mostrar el mapa de luz solar'],
-    apply: (s) => { s.setPlaying(false); s.setView('top'); s.setOverlay('insolation'); },
+    apply: (s) => { s.setPlaying(false); s.setView('orbit'); s.setOverlay('insolation'); },
   },
   {
     title: ['The Earth wobbles in the sky', 'La Tierra se bambolea en el cielo'],

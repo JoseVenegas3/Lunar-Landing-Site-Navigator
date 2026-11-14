@@ -1,15 +1,11 @@
 /** Multi-criteria suitability score of both scenarios (SyR-C5.1), with the orbital data behind it. */
-import { CRITERIA, Criterion, CriterionId, SiteScore, WeightMode } from '../../engine';
+import { CRITERIA, Criterion, CriterionId, SiteScore } from '../../engine';
 import { PSR_SEARCH_KM, SHADOW_SEARCH_KM, SiteScoreView, useSiteScore } from '../../state/insights';
 import { ScenarioData, useMission } from '../../state/mission';
 import { useScience } from '../../state/science';
 import { useApp } from '../../state/store';
 import { fmtNum, fmtSigned, useT } from '../../lib/format';
 import { ScenarioBadge } from '../ScenarioBadge';
-
-const INPUT_LIMIT: Partial<Record<CriterionId, { max: number; step: number }>> = {
-  hydrogen: { max: 5, step: 0.01 }, geology: { max: 1, step: 0.05 },
-};
 
 function rawText(id: CriterionId, raw: number | null, view: SiteScoreView): string {
   if (raw === null) return '—';
@@ -36,22 +32,13 @@ function ScoreHead({ data, score }: { data: ScenarioData; score: SiteScore | nul
 export function ScorePanel() {
   const t = useT();
   const lang = useApp((s) => s.lang);
-  const mode = useApp((s) => s.scoreMode);
-  const setMode = useApp((s) => s.setScoreMode);
   const active = useApp((s) => s.active);
-  const science = useApp((s) => s.science[active]);
-  const setScience = useApp((s) => s.setScience);
   const layers = useScience((s) => s.layers);
   const status = useScience((s) => s.status);
   const { A, B } = useMission();
   const compare = useApp((s) => s.compare);
   const sa = useSiteScore(A), sb = useSiteScore(B);
   const act = active === 'A' ? sa : sb;
-  const modes: { id: WeightMode; label: string }[] = [
-    { id: 'synthesized', label: t('Synthesized (balanced)', 'Sintetizado (equilibrado)') },
-    { id: 'engineering', label: t('Engineering first', 'Ingeniería primero') },
-    { id: 'science', label: t('Science first', 'Ciencia primero') },
-  ];
   const sourceText = (c: Criterion): string => {
     if (c.source === 'computed') return t('computed', 'calculado');
     if (c.source === 'input') return t('entered', 'ingresado');
@@ -63,11 +50,7 @@ export function ScorePanel() {
 
   return (
     <section className="panel score" data-testid="score-panel">
-      <div className="seg score-modes" role="group" aria-label={t('Weighting', 'Ponderación')}>
-        {modes.map((m) => (
-          <button key={m.id} type="button" className={m.id === mode ? 'is-on' : ''} aria-pressed={m.id === mode} onClick={() => setMode(m.id)} data-testid={`score-mode-${m.id}`}>{m.label}</button>
-        ))}
-      </div>
+      <p className="kpi-note score-weighting">{t('Synthesized index: sunlight, Earth view, slope and the orbital science layers, weighted as in the team\'s state-of-the-art study.', 'Índice sintetizado: luz, vista a la Tierra, pendiente y las capas científicas orbitales, ponderadas según el estudio de estado del arte del equipo.')}</p>
       <table className="kpi-table score-table">
         <thead>
           <tr>
@@ -77,8 +60,8 @@ export function ScorePanel() {
           </tr>
         </thead>
         <tbody>
-          {CRITERIA.map((c, k) => (
-            <tr key={c.id} className={c.source === 'input' ? 'is-input' : ''} data-criterion={c.id}>
+          {CRITERIA.map((c, k) => c.source === 'input' ? null : (
+            <tr key={c.id} data-criterion={c.id}>
               <th scope="row">
                 {c.name[lang]}
                 <small className="mono">{fmtNum(100 * (sa.score?.rows[k].weight ?? 0), 1)} % · {sourceText(c)}</small>
@@ -119,31 +102,9 @@ export function ScorePanel() {
           </p>
         )}
 
-        <h3>{t('Criteria without a data layer', 'Criterios sin capa de datos')}</h3>
-        <p className="kpi-note pad0">
-          {t('No gridded hydrogen map (LEND / Lunar Prospector) or geological-density layer was found in the archives used. Enter values from the literature to include them; blank criteria are left out of the score.', 'No se halló un mapa de hidrógeno en malla (LEND / Lunar Prospector) ni una capa de densidad geológica en los archivos usados. Ingresa valores de la literatura para incluirlos; los criterios en blanco quedan fuera del índice.')}
-        </p>
-        <div className="score-fields">
-          {CRITERIA.filter((c) => c.source === 'input').map((c) => (
-            <label key={c.id} className="field field-num">
-              <span className="field-label">{c.name[lang]}</span>
-              <span className="num-wrap">
-                <input
-                  type="number" className="mono" min={0} max={INPUT_LIMIT[c.id]?.max} step={INPUT_LIMIT[c.id]?.step} placeholder="—"
-                  value={science[c.id] ?? ''} data-testid={`science-${c.id}`}
-                  onChange={(e) => {
-                    const v = e.target.value.trim() === '' ? null : Number(e.target.value);
-                    setScience(active, c.id, v !== null && Number.isFinite(v) && v >= 0 ? Math.min(v, INPUT_LIMIT[c.id]?.max ?? 1) : null);
-                  }}
-                />
-                <i>{c.unit}</i>
-              </span>
-            </label>
-          ))}
-        </div>
       </div>
       <p className="kpi-note">
-        {t('Weights as listed in the team\'s state-of-the-art document (SOM / random-forest study), renormalised over the criteria with data; the percentage under each score is the share of the weight covered. The two alternative weightings double one group and are this project\'s convention, as are the normalisation ranges. FeO is one value per ~60 km pixel and the gravity anomaly is dominated by topography: both describe the region, not the landing point.', 'Pesos según el documento de estado del arte del equipo (estudio SOM / random forest), renormalizados sobre los criterios con datos; el porcentaje bajo cada índice es la parte del peso cubierta. Las dos ponderaciones alternativas duplican un grupo y son convención de este proyecto, igual que los rangos de normalización. El FeO es un valor por píxel de ~60 km y la anomalía gravitatoria está dominada por la topografía: ambos describen la región, no el punto de alunizaje.')}
+        {t('Weights as listed in the team\'s state-of-the-art document (SOM / random-forest study), renormalised over the criteria with data; the percentage under each score is the share of the weight covered. Hydrogen and geological density have no gridded layer in the archives used and are left out. The normalisation ranges are this project\'s convention. FeO is one value per ~60 km pixel and the gravity anomaly is dominated by topography: both describe the region, not the landing point.', 'Pesos según el documento de estado del arte del equipo (estudio SOM / random forest), renormalizados sobre los criterios con datos; el porcentaje bajo cada índice es la parte del peso cubierta. El hidrógeno y la densidad geológica no tienen capa en malla en los archivos usados y quedan fuera. Los rangos de normalización son convención de este proyecto. El FeO es un valor por píxel de ~60 km y la anomalía gravitatoria está dominada por la topografía: ambos describen la región, no el punto de alunizaje.')}
       </p>
     </section>
   );

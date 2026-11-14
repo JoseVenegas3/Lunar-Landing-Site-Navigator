@@ -8,7 +8,7 @@ export type ScenarioKey = 'A' | 'B';
 export type AppMode = 'planner' | 'explorer' | 'triage';
 export type Lang = 'en' | 'es';
 export type OverlayKind = 'none' | 'insolation' | 'dte' | 'slope';
-export type ViewKind = 'orbit' | 'top' | 'eye';
+export type ViewKind = 'orbit' | 'eye';
 /** Workspace panels of the planner: at most one tab open per side, or none (minimised). */
 export type LeftTab = 'sites' | 'hardware' | 'contingency';
 export type RightTab = 'vitals' | 'windows' | 'energy' | 'link' | 'survival' | 'score' | 'engineering';
@@ -109,6 +109,7 @@ export interface AppState {
   asset: AssetConfig;
   /** Vehicle geometry and touchdown dispersions of the tip-over estimate. */
   tipover: TipoverConfig;
+  /** Weighting of the suitability index: the synthesized one only (the engineering-first and science-first variants were removed from the interface). */
   scoreMode: WeightMode;
   science: Record<ScenarioKey, ScienceInputs>;
   /** Sub-pixel terrain (LOLA + fractal micro-relief) hazard analysis. */
@@ -149,7 +150,6 @@ export interface AppState {
   setThermalOn: (on: boolean) => void;
   setAsset: (patch: Partial<AssetConfig>) => void;
   setTipover: (patch: Partial<TipoverConfig>) => void;
-  setScoreMode: (m: WeightMode) => void;
   setScience: (k: ScenarioKey, id: CriterionId, value: number | null) => void;
   setMicroRelief: (on: boolean) => void;
   setBriefing: (b: BriefingState) => void;
@@ -257,7 +257,6 @@ export const useApp = create<AppState>((set) => ({
   setThermalOn: (thermalOn) => set({ thermalOn }),
   setAsset: (patch) => set((s) => ({ asset: { ...s.asset, ...patch } })),
   setTipover: (patch) => set((s) => ({ tipover: { ...s.tipover, ...patch } })),
-  setScoreMode: (scoreMode) => set({ scoreMode }),
   setScience: (k, id, value) => set((s) => {
     const next = { ...s.science[k] };
     if (value === null) delete next[id]; else next[id] = value;

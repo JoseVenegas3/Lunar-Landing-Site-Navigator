@@ -178,6 +178,9 @@ export function ContingencyPanel() {
 
       <section className="panel block" data-testid="replay-panel">
         <h3>{t('Replay a real landing', 'Reproducir un alunizaje real')}</h3>
+        <p className="alert" data-testid="replay-caveat">
+          {t('Validation only. This model does not reproduce the loss of IM-2 Athena: the lander came to rest in a small crater in shadow that the 20 m terrain does not contain, so here the site looks sunlit.', 'Solo para validación. Este modelo no reproduce la pérdida de IM-2 Athena: el lander quedó en un cráter pequeño en sombra que el terreno de 20 m no contiene, así que aquí el sitio aparece soleado.')}
+        </p>
         {HISTORICAL_LANDINGS.map((h) => {
           const on = siteId === h.id;
           return (

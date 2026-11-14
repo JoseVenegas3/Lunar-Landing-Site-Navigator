@@ -2,7 +2,7 @@
 import { ReactNode, useEffect, useState } from 'react';
 import {
   ALL_SITES, CANDIDATE_SITES, HISTORICAL_LANDINGS, CUSTOM_LAT_MAX, CUSTOM_LAT_MIN, DAY_MS, GROUND_STATIONS, MAX_RELAYS, MountType, RELAY_PRESETS, RELOCATION_LIMIT_M,
-  R_MOON_KM, RelayPresetId, RfBand, apoapsisAltKm, clamp, latLonToXY, orbitalPeriodS, periapsisAltKm, relayShape,
+  RelayPresetId, RfBand, apoapsisAltKm, clamp, latLonToXY, orbitalPeriodS, periapsisAltKm, relayShape,
 } from '../../engine';
 import { ScenarioKey, scenarioLatLon, useApp } from '../../state/store';
 import { useMission } from '../../state/mission';
@@ -255,9 +255,15 @@ export function HardwarePanel({ focus = 'all' }: { focus?: 'all' | 'power' | 'co
               <NumberField label={t('Thermal mass', 'Masa térmica')} unit="kJ/K" value={thermal.heatCapacityJK / 1000} min={5} max={2000} step={5} onChange={(v) => setThermal({ heatCapacityJK: v * 1000 })} />
               <NumberField label={t('Shadow sink', 'Sumidero en sombra')} unit="K" value={thermal.envDarkK} min={30} max={150} step={5} onChange={(v) => setThermal({ envDarkK: v })} />
             </div>
-            <p className="kpi-note orbit-help">
-              {t('Heaters switch on at 0 °C. Below −10 °C the battery loses capacity; at −20 °C it is frozen and the lander is lost.', 'Los calefactores se encienden a 0 °C. Bajo −10 °C la batería pierde capacidad; a −20 °C se congela y el lander se pierde.')}
-            </p>
+            <details className="adv-assume" data-testid="advanced-assumptions">
+              <summary>{t('Advanced assumptions', 'Supuestos avanzados')}</summary>
+              <dl className="link-grid mono">
+                <div><dt>{t('Heaters switch on below', 'Calefactores se encienden bajo')}</dt><dd>0 °C</dd></div>
+                <div><dt>{t('Battery starts losing capacity below', 'La batería pierde capacidad bajo')}</dt><dd>−10 °C</dd></div>
+                <div><dt>{t('Battery frozen, lander lost at', 'Batería congelada, lander perdido a')}</dt><dd>−20 °C</dd></div>
+              </dl>
+              <p className="kpi-note pad0">{t('Engineering assumption of this tool, typical of lithium-ion cells; not the specification of a real lander.', 'Supuesto de ingeniería de esta herramienta, típico de celdas de ion-litio; no es la especificación de un lander real.')}</p>
+            </details>
           </>
         )}
       </Group>}
@@ -273,29 +279,12 @@ export function HardwarePanel({ focus = 'all' }: { focus?: 'all' | 'power' | 'co
               <span className="field-label">{t('Orbit', 'Órbita')}</span>
               <select value={relay.preset} onChange={(e) => setRelay({ preset: e.target.value as RelayPresetId })} data-testid="relay-preset">
                 {RELAY_PRESETS.map((p) => <option key={p.id} value={p.id}>{p.name[lang]}</option>)}
-                <option value="custom">{t('Custom orbit…', 'Órbita personalizada…')}</option>
               </select>
             </label>
-            <div className="field-row">
-              <NumberField label={t('Satellites', 'Satélites')} value={relay.count} min={1} max={MAX_RELAYS} step={1} onChange={(v) => setRelay({ count: Math.round(v), planes: Math.min(relay.planes, Math.round(v)) })} testId="relay-count" />
-              <NumberField label={t('Orbital planes', 'Planos orbitales')} value={relay.planes} min={1} max={relay.count} step={1} onChange={(v) => setRelay({ planes: Math.round(v) })} />
-            </div>
-            {relay.preset === 'custom' && (
-              <>
-                <div className="field-row">
-                  <NumberField label={t('Semi-major axis', 'Semieje mayor')} unit="km" value={relay.custom.aKm} min={Math.ceil(R_MOON_KM + 20)} max={60000} step={50} onChange={(v) => setRelay({ custom: { ...relay.custom, aKm: v } })} />
-                  <NumberField label={t('Eccentricity', 'Excentricidad')} value={relay.custom.e} min={0} max={0.95} step={0.01} onChange={(v) => setRelay({ custom: { ...relay.custom, e: v } })} />
-                </div>
-                <div className="field-row">
-                  <NumberField label={t('Inclination', 'Inclinación')} unit="°" value={relay.custom.incDeg} min={0} max={180} step={1} onChange={(v) => setRelay({ custom: { ...relay.custom, incDeg: v } })} />
-                  <NumberField label={t('Arg. of periapsis', 'Arg. del periapsis')} unit="°" value={relay.custom.argPeriDeg} min={0} max={360} step={1} onChange={(v) => setRelay({ custom: { ...relay.custom, argPeriDeg: v } })} />
-                </div>
-              </>
-            )}
+            <NumberField label={t('Number of relay satellites', 'Número de satélites relay')} value={relay.count} min={1} max={MAX_RELAYS} step={1} onChange={(v) => setRelay({ count: Math.round(v), planes: Math.min(relay.planes, Math.round(v)) })} testId="relay-count" />
             <NumberField label={t('Lander-to-relay data rate', 'Tasa lander-relay')} unit="Mbps" value={relay.rateMbps} min={0.01} max={500} step={0.5} onChange={(v) => setRelay({ rateMbps: v })} />
             <p className="orbit-note mono" data-testid="relay-orbit">
               {t('Period', 'Período')} {(orbitalPeriodS(shape.aKm) / 3600).toFixed(2)} h · {t('altitude', 'altitud')} {periapsisAltKm(shape).toFixed(0)}–{apoapsisAltKm(shape).toFixed(0)} km
-              {shape.e !== (relay.preset === 'custom' ? relay.custom.e : shape.e) && ` · ${t('eccentricity limited to', 'excentricidad limitada a')} ${shape.e.toFixed(2)}`}
             </p>
             <p className="kpi-note orbit-help">
               {t('Two-body orbits with fixed elements: typical coverage, not the pass times of a specific spacecraft.', 'Órbitas de dos cuerpos con elementos fijos: cobertura típica, no las pasadas de una nave concreta.')}

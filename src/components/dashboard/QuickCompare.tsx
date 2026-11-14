@@ -6,9 +6,9 @@ import { useApp } from '../../state/store';
 import { verdictLabel, verdictSentence } from '../VerdictCard';
 import { fmtNum, useT } from '../../lib/format';
 
-/** Terrain safety, 0..100: 100 on level ground with no tip-over risk; 0 at 20 deg of slope or 25 % risk. An indicator, not a probability. */
-export function terrainSafetyPct(v: Verdict): number {
-  return Math.max(0, Math.min(100, 100 - (v.slopeDeg / 20) * 100 - (v.tipoverP ?? 0) * 400));
+/** Landing safety, percent: 1 - P(tip-over) from the touchdown dispersion model. A probability; null until the model has run. */
+export function landingSafetyPct(v: Verdict): number | null {
+  return v.tipoverP === null || v.tipoverP === undefined ? null : 100 * (1 - v.tipoverP);
 }
 
 function Bars({ data }: { data: ScenarioData }) {
@@ -20,7 +20,7 @@ function Bars({ data }: { data: ScenarioData }) {
     { id: 'sun', icon: '☀', label: t('Solar energy', 'Energía solar'), value: v ? v.illuminationPct : null, tone: 'sun' },
     { id: 'earth', icon: '⌁', label: t('Contact with the Earth', 'Contacto con la Tierra'), value: v ? v.linkPct : null, tone: 'rf' },
     { id: 'night', icon: '▮', label: t('Night survival', 'Supervivencia nocturna'), value: v ? Math.min(100, (100 * v.survivalHours) / Math.max(1, v.windowHours)) : null, tone: 'ops' },
-    { id: 'ground', icon: '▲', label: t('Terrain safety (slope, tip-over)', 'Seguridad del terreno (pendiente, vuelco)'), value: v ? terrainSafetyPct(v) : null, tone: 'rock' },
+    { id: 'ground', icon: '▲', label: t('Landing safety = 1 − P(tip-over)', 'Seguridad de aterrizaje = 1 − P(vuelco)'), value: v ? landingSafetyPct(v) : null, tone: 'rock' },
   ];
   return (
     <section className={`panel block quick${active === data.key ? ' is-active' : ''}`} data-testid={`quick-${data.key}`}>
@@ -35,6 +35,7 @@ function Bars({ data }: { data: ScenarioData }) {
           <output className="mono">{b.value === null ? '···' : `${fmtNum(b.value, 0)} %`}</output>
         </div>
       ))}
+      {v && <p className="quick-slope mono" data-bar="slope">{t('Ground slope', 'Pendiente del terreno')} {fmtNum(v.slopeDeg, 1)}°</p>}
       {v && <p className="kpi-note pad0">{verdictSentence(v, t)}</p>}
       {active !== data.key && <button type="button" className="btn btn-small" onClick={() => setActive(data.key)}>{t('Show this one in 3-D', 'Ver este en 3D')}</button>}
     </section>
