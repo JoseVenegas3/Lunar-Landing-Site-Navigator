@@ -600,11 +600,12 @@ try {
       tiltFolded: !f.querySelector('.emg-tilt')?.open,
       date: f.querySelectorAll('input[type="date"]').length,
       removed: ['unc-sigma', 'unc-run', 'unc-cells', 'escape-go'].filter((id) => document.querySelector(`[data-testid="${id}"]`)).length,
-      bands: /P10/.test(f.textContent), freeze: Boolean(f.querySelector('[data-vital="freeze"]')), verdict: f.querySelector('[data-testid="emg-verdict"]')?.textContent ?? '',
+      bands: /P10/.test(f.textContent), freeze: Boolean(f.querySelector('[data-vital="freeze"]')), verdict: f.querySelector('[data-testid="surv-head"]')?.textContent ?? '',
+      exit: f.querySelector('[data-testid="exit-block"]')?.textContent ?? '',
     };
   });
   check('survival panel = emergency flow: position and energy (tilt folded), no date, 5 x 5 grid, escape and time to freeze; RMS sliders, per-cell P and bands removed',
-    flow.cells === 25 && flow.escape.length > 10 && flow.map && flow.coords && flow.energy && flow.tiltFolded && flow.date === 0 && flow.removed === 0 && !flow.bands && flow.freeze && /(GO|CAUTION|NO-GO)/.test(flow.verdict), JSON.stringify({ ...flow, escape: flow.escape.slice(0, 60) }));
+    flow.cells === 25 && flow.escape.length > 10 && flow.map && flow.coords && flow.energy && flow.tiltFolded && flow.date === 0 && flow.removed === 0 && !flow.bands && flow.freeze && /SURVIVE/.test(flow.verdict) && /Way out/.test(flow.exit), JSON.stringify({ ...flow, escape: flow.escape.slice(0, 60), exit: flow.exit.slice(0, 80) }));
   await page.waitForTimeout(600);
   await shot('22-terrain-console-emergency-flow.png');
   lay = await overlaps();
@@ -994,10 +995,14 @@ try {
   await p2.waitForTimeout(2500);
   const freeze1 = await text2('[data-vital="freeze"]');
   check('the energy left in the battery changes the answer', freeze0 !== freeze1 || /(\d+ h)/.test(freeze1), `${freeze0} -> ${freeze1}`);
-  await p2.click('[data-testid="micro-toggle"]');
+  // v2.1 §3: no switch; the sub-pixel hazards are always there, measured under 300 ms, with their caveats
   await p2.waitForSelector('[data-testid="micro-hazard"]', { timeout: 30000 });
   const hz2 = await text2('[data-testid="micro-hazard"]');
-  check('sub-pixel terrain mode reports the micro-shadow and rock hazard', /hazard \d+ %/.test(hz2), hz2);
+  const hzMs = Number(await p2.locator('[data-testid="micro-hazard"]').getAttribute('data-ms'));
+  const hzNotes = await text2('[data-testid="micro-params"]');
+  check('sub-pixel hazards are always shown (no switch), computed in under 300 ms, "statistical, not a map", parameters marked as not validated',
+    /hazard \d+ %/.test(hz2) && (await p2.locator('[data-testid="micro-toggle"]').count()) === 0 && hzMs < 300 && /not validated/.test(hzNotes) && /Statistical, not a map/.test(await text2('[data-testid="triage"] .tri-right')),
+    `${hz2} · ${hzMs} ms`);
   await p2.waitForTimeout(600);
   await shot2('32-emergency-triage.png');
   const triFps = await p2.evaluate((dur) => new Promise((resolve) => {
@@ -1023,6 +1028,61 @@ try {
   const narrowTri = await p2.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1);
   check('emergency layout has no horizontal overflow', narrowTri);
   await ctx2.close();
+  }
+
+  // ------------------------------------------------------------ emergency: survives / survives if… / does not survive (fixed clock)
+  {
+  const ctx4 = await browser.newContext({ viewport: { width: 1600, height: 960 }, deviceScaleFactor: 1, reducedMotion: 'no-preference' });
+  const p4 = await ctx4.newPage();
+  p4.on('pageerror', (e) => errors.push(`p4 pageerror: ${e.message}`));
+  await p4.addInitScript(() => { localStorage.setItem('clps.briefing', 'done'); localStorage.setItem('clps.dblhint', 'hidden'); });
+  // "Now" is fixed so the three cases are reproducible (the emergency flow evaluates from the current hour).
+  await p4.clock.setFixedTime(new Date('2027-09-01T00:00:00Z'));
+  await p4.goto(URL);
+  await p4.waitForSelector('[data-testid="verdict"][data-level]', { timeout: 60000 });
+  await p4.click('[data-testid="mode-triage"]');
+  await p4.waitForSelector('[data-testid="emg-inputs"]');
+  const horizon = await p4.locator('[data-testid="emg-horizon"]').inputValue();
+  check('the emergency horizon is one lunar night (half a synodic month, 14.77 d, rounded up to 15 d), with 3 and 7 d offered', horizon === '15' && (await p4.locator('[data-testid="emg-horizon"] option').count()) === 3 && /next 15 d/.test(await p4.locator('[data-testid="emg-now"]').innerText()), horizon);
+  const CASES = [
+    { want: 'survives', coords: '-89.4401, -137.3618', wh: 4000, en: /^SURVIVES The lander survives the whole horizon \(15 d\)/, es: /^SOBREVIVE El módulo sobrevive todo el horizonte \(15 d\)/ },
+    { want: 'survives-if', coords: '-85.2682, 32.0028', wh: 4000, en: /^SURVIVES IF… …/, es: /^SOBREVIVE SI… …/ },
+    { want: 'lost', coords: '-87.45, -5.12', wh: 0, en: /^DOES NOT SURVIVE .* on 2027-09-\d\d \d\d:00 UTC \(T\+/, es: /^NO SOBREVIVE .* el 2027-09-\d\d \d\d:00 UTC \(T\+/ },
+  ];
+  for (const c of CASES) {
+    if ((await p4.locator('[data-testid="lang-es"]').getAttribute('aria-pressed')) === 'true') await p4.click('.lang button:first-child');
+    await p4.fill('[data-testid="tri-coords"]', c.coords);
+    await p4.click('[data-testid="tri-go"]');
+    await p4.fill('[data-testid="emg-energy"]', String(c.wh));
+    await p4.locator('[data-testid="emg-energy"]').blur();
+    await p4.waitForTimeout(900);
+    const pendingSeen = await p4.evaluate(() => document.querySelector('[data-testid="exit-block"]')?.textContent ?? '');
+    await p4.waitForFunction(() => { const b = document.querySelector('[data-testid="exit-block"]'); return b && b.dataset.state !== 'pending'; }, null, { timeout: 180000 });
+    const read = () => p4.evaluate(() => ({
+      state: document.querySelector('[data-testid="surv-head"]')?.dataset.state,
+      head: document.querySelector('[data-testid="surv-head"]')?.textContent.replace(/\s+/g, ' ').trim(),
+      headRole: document.querySelector('[data-testid="surv-head"]')?.getAttribute('role'),
+      icon: Boolean(document.querySelector('[data-testid="surv-head"] svg')),
+      answer: document.querySelector('[data-testid="exit-answer"]')?.textContent,
+      options: [...document.querySelectorAll('[data-testid="exit-block"] li')].map((li) => li.textContent.trim()),
+      missing: document.querySelector('[data-testid="exit-missing"]')?.textContent ?? '',
+      flow: document.querySelector('[data-testid="emg-result"]')?.innerText ?? '',
+    }));
+    const en = await read();
+    await p4.click('[data-testid="lang-es"]');
+    await p4.waitForTimeout(300);
+    const es = await read();
+    const noJargon = (x) => !/NO-GO|lost at/.test(x.flow);
+    const filled = (x) => x.options.length === 3 && x.options.every((o) => o.length > 20) && x.answer.length > 5 && (x.state !== 'lost' || x.missing.length > 20);
+    check(`emergency case "${c.want}": headline, way-out block (never empty) and no jargon, in English and Spanish`,
+      en.state === c.want && es.state === c.want && c.en.test(en.head) && c.es.test(es.head) && en.headRole === 'status' && en.icon && filled(en) && filled(es) && noJargon(en) && noJargon(es) && pendingSeen.length > 5
+        && (c.want === 'lost' ? /No way out/.test(en.answer) && /No hay salida/.test(es.answer) : /Yes, there is a way out/.test(en.answer) && /Sí hay salida/.test(es.answer)),
+      `${en.head} | ${en.answer} | ${en.options.join(' / ')} | ${en.missing} || ${es.head}`);
+    if (c.want !== 'survives') await p4.screenshot({ path: join(shots, `33-emergency-${c.want}.png`) });
+  }
+  const gloss = await p4.locator('[data-testid="verdict-gloss"]').innerText();
+  check('the verdict label of the emergency mode is spelled out in plain words', /misión/.test(gloss), gloss);
+  await ctx4.close();
   }
 
   // ------------------------------------------------------------ reduced motion and the developer frame counter

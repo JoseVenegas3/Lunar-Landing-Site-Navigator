@@ -112,7 +112,7 @@ Cada fila es la ventana completa: día/noche, Tierra visible y ambos a la vez (l
 ## 6. Terreno / alunizaje
 
 * **Actitud y vuelco**: presets (nominal, IM-1, IM-2, SLIM, apoyado en la pendiente), alabeo, cabeceo, guiñada, ancho de haz y cardán de la antena, y sus penalizaciones. Probabilidad de vuelco sobre la elipse según la velocidad de contacto. **Reproducir un alunizaje real**: siempre advierte que el modelo no reproduce la pérdida de IM-2 Athena (quedó en un cráter pequeño en sombra que el terreno de 20 m no contiene). **Activo vecino**: radio de exclusión del penacho y sombreado mutuo.
-* **Emergencia: supervivencia**: el mismo flujo que el modo Emergencia (sección 10). Sin fecha: **Evaluar desde ahora** (o cualquier dato ingresado) fija el inicio en la hora actual durante 14 días.
+* **Emergencia: supervivencia**: el mismo flujo que el modo Emergencia (sección 10). Sin fecha: **Evaluar desde ahora** (o cualquier dato ingresado) fija el inicio en la hora actual durante una noche lunar (15 días; también 3 o 7).
 
 ## 7. Ciencia
 
@@ -129,13 +129,13 @@ En Resumen > Sitios y fechas, debajo del escenario, una ficha por cada uno de lo
 
 ## 10. Modo Emergencia
 
-Para un lander que ya está en la superficie en un lugar no previsto. Pregunta solo lo esencial y evalúa desde **ahora** durante los próximos 14 días:
+Para un lander que ya está en la superficie en un lugar no previsto. Pregunta solo lo esencial y evalúa desde **ahora** durante los próximos 15 días (una noche lunar; también 3 o 7):
 
 1. **Posición actual**: clic en el mapa polar o coordenadas pegadas (por ejemplo −84,79; 29,20). Se acepta cualquier punto al sur de 80° S.
 2. **Energía disponible**: Wh restantes en la batería y carga mínima de supervivencia.
 3. **Inclinación actual** (opcional, plegada): alabeo, cabeceo o «Quedamos apoyados en la pendiente».
 
-Responde con el veredicto, la fuente y resolución del terreno, el tiempo hasta congelarse y **hacia dónde moverse**: la malla de 25 puntos a 200 m (cada celda es una misión completa), el vector de escape y **Mover el lander ahí**. La flecha verde sobre el terreno es el mismo vector. El terreno sub-píxel (LOLA + micro-relieve fractal) estima el peligro de micro-sombras y rocas; es estadístico, no un mapa.
+Responde primero con un titular en lenguaje llano: **SOBREVIVE**, **SOBREVIVE SI…** o **NO SOBREVIVE**, con fecha y hora (UTC y T+). Justo debajo, el bloque **Salida** dice si hay salida y da las opciones calculadas con el motor: quedarse y reducir la carga, moverse hasta 500 m y esperar la próxima luz; si ninguna alcanza, dice qué faltaría. El criterio de pérdida es el del motor: batería agotada sin sol o, con el modelo térmico, bus bajo −20 °C. Después vienen la fuente y resolución del terreno, el tiempo hasta congelarse y **hacia dónde moverse**: la malla de 25 puntos a 200 m (cada celda es una misión completa), el vector de escape y **Mover el lander ahí**. La flecha verde sobre el terreno es el mismo vector. Los peligros bajo el píxel de 20 m (LOLA + micro-relieve fractal: micro-sombras y rocas) se muestran siempre; son estadísticos, no un mapa.
 
 ## 11. Usos según el usuario
 

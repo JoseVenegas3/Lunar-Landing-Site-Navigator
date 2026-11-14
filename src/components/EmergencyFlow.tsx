@@ -5,8 +5,10 @@
  * It asks only what matters when the lander is already down: where it is,
  * how much energy is left, and (optionally) how it is tilted. There is no
  * date: the mission is evaluated from now over the next days. It answers
- * with the verdict, the time until the bus freezes, and where to move inside
- * the 5 x 5 dispersion grid (best cell and escape vector).
+ * first in one plain line (survives / survives if… / does not survive) with
+ * the "Way out" block right under it (ExitBlock.tsx), then the time until
+ * the bus freezes, and where to move inside the 5 x 5 dispersion grid (best
+ * cell and escape vector).
  */
 import { ReactNode, useEffect, useState } from 'react';
 import {
@@ -18,13 +20,20 @@ import { NumberField } from './dashboard/ScenarioPanel';
 import { DISPERSION_RADIUS_M, useDispersion } from '../state/insights';
 import { ScenarioData } from '../state/mission';
 import { ScenarioKey, scenarioLatLon, useApp } from '../state/store';
-import { useVerdict } from '../state/verdict';
-import { verdictLabel } from './VerdictCard';
+import { ExitBlock, SurvivalHeadline } from './ExitBlock';
+import { useExitPlan } from '../state/exitPlan';
 import { cardinal, fmtDateTime, fmtDuration, fmtEnergy, fmtLat, fmtLon, fmtNum, fmtSigned, useT } from '../lib/format';
 
-/** Days evaluated from now in an emergency. */
-export const EMERGENCY_DAYS = 14;
-const LAST_START = Date.UTC(2030, 11, 31) - EMERGENCY_DAYS * DAY_MS;
+/**
+ * Days evaluated from now in an emergency, by default: one lunar night. Half a
+ * synodic month is 29.53 / 2 = 14.77 d; it is rounded up to whole days (the
+ * window is set in days) so the horizon always contains a full night: 15 d.
+ */
+export const SYNODIC_MONTH_D = 29.530589;
+export const EMERGENCY_HORIZON_DAYS = Math.ceil(SYNODIC_MONTH_D / 2);
+/** Shorter horizons offered in the inputs (a quick answer for the next days), and the default. */
+export const EMERGENCY_HORIZONS = [3, 7, EMERGENCY_HORIZON_DAYS] as const;
+const LAST_START = Date.UTC(2030, 11, 31) - EMERGENCY_HORIZON_DAYS * DAY_MS;
 
 /** The current hour, UTC (clamped to the ephemeris range of the tool). */
 export const nowHourMs = (): number => Math.min(LAST_START, Math.floor(Date.now() / HOUR_MS) * HOUR_MS);
@@ -40,11 +49,14 @@ export function parseCoords(text: string): { latDeg: number; lonDeg: number } | 
   return { latDeg: lat, lonDeg: ((lon + 540) % 360) - 180 };
 }
 
+/** Horizon in use: the scenario window when it is one of the offered horizons, else the default lunar night. */
+const horizonOf = (days: number): number => ((EMERGENCY_HORIZONS as readonly number[]).includes(days) ? days : EMERGENCY_HORIZON_DAYS);
+
 /** Re-anchor the scenario to now, over the emergency horizon. */
-function atNow(k: ScenarioKey): void {
+function atNow(k: ScenarioKey, days?: number): void {
   const s = useApp.getState();
   s.setPlaying(false);
-  s.updateScenario(k, { startMs: nowHourMs(), days: EMERGENCY_DAYS });
+  s.updateScenario(k, { startMs: nowHourMs(), days: days ?? horizonOf(s.scenarios[k].days) });
   s.setCursor(0);
 }
 
@@ -131,9 +143,17 @@ export function EmergencyInputs({ data, compact = false }: { data: ScenarioData;
         <button type="button" className="btn btn-small" onClick={restOnSlope} disabled={!r} data-testid="tri-slope">{t('We came to rest on the slope', 'Quedamos apoyados en la pendiente')}</button>
       </details>
 
+      <label className="field emg-horizon">
+        <span className="field-label">{t('Horizon', 'Horizonte')}</span>
+        <select value={horizonOf(cfg.days)} onChange={(e) => atNow(k, Number(e.target.value))} data-testid="emg-horizon">
+          {EMERGENCY_HORIZONS.map((d) => (
+            <option key={d} value={d}>{d === EMERGENCY_HORIZON_DAYS ? t(`next ${d} d (one lunar night)`, `próximos ${d} d (una noche lunar)`) : t(`next ${d} d`, `próximos ${d} d`)}</option>
+          ))}
+        </select>
+      </label>
       <p className="emg-now mono" data-testid="emg-now">
         {isNow(cfg.startMs)
-          ? t(`From now, ${fmtDateTime(cfg.startMs)} UTC, over the next ${cfg.days} days`, `Desde ahora, ${fmtDateTime(cfg.startMs)} UTC, durante los próximos ${cfg.days} días`)
+          ? t(`From now, ${fmtDateTime(cfg.startMs)} UTC, over the next ${cfg.days} d`, `Desde ahora, ${fmtDateTime(cfg.startMs)} UTC, durante los próximos ${cfg.days} d`)
           : (
             <button type="button" className="btn btn-small btn-primary" onClick={() => atNow(k)} data-testid="emg-evaluate">
               {t('Evaluate from now', 'Evaluar desde ahora')}
@@ -149,7 +169,7 @@ export function EmergencyResult({ data, clocksTestId = 'emg-clocks', extra }: { 
   const t = useT();
   const k = data.key;
   const cfg = useApp((s) => s.scenarios[k]);
-  const v = useVerdict(data);
+  const plan = useExitPlan(data);
   const { result: grid, progress } = useDispersion(data, true);
   const r = data.result;
   const escape = grid?.escape ?? null;
@@ -164,9 +184,18 @@ export function EmergencyResult({ data, clocksTestId = 'emg-clocks', extra }: { 
           <>
             <p className="tri-big mono">{fmtLat(r.observer.latDeg)} {fmtLon(r.observer.lonDeg)}</p>
             <p className="tri-line mono">{fmtSigned(r.kpis.groundElevationM, 0)} m · {t('slope', 'pendiente')} <span className={r.kpis.slopeDeg > 15 ? 'is-crit' : r.kpis.slopeDeg > 10 ? 'is-warn' : ''}>{fmtNum(r.kpis.slopeDeg, 1)}°</span> · {t('tilt', 'inclinación')} {fmtNum(r.adv.kpis.tiltDeg, 1)}°</p>
-            {v && <p className={`emg-verdict is-${v.level}`} data-testid="emg-verdict"><b>{verdictLabel(v, t)}</b> {v.survives ? t('survives the period', 'sobrevive el período') : t(`lost at T+${fmtDuration(v.survivalHours)}`, `se pierde en T+${fmtDuration(v.survivalHours)}`)}</p>}
           </>
         ) : <p className="tri-line">{t('Reading the terrain…', 'Leyendo el terreno…')}</p>}
+        {plan ? (
+          <>
+            <SurvivalHeadline plan={plan} />
+            <ExitBlock plan={plan} onMove={moveTo} />
+          </>
+        ) : (
+          <section className="exit-block is-busy" aria-label={t('Way out', 'Salida')} data-testid="exit-block" data-state="pending">
+            <h4 role="status">{t('Way out', 'Salida')}: <b data-testid="exit-answer">{t('waiting for the terrain…', 'esperando el terreno…')}</b></h4>
+          </section>
+        )}
         {extra}
       </Step>
 
@@ -208,10 +237,10 @@ export function EmergencyResult({ data, clocksTestId = 'emg-clocks', extra }: { 
               </svg>
               <span className="disp-north mono">N</span>
             </div>
-            <p className="disp-legend mono">{t('green: survives (link %) · red: lost (time alive)', 'verde: sobrevive (% de enlace) · rojo: se pierde (tiempo con vida)')}</p>
+            <p className="disp-legend mono">{t('green: survives (link %) · red: does not survive (time alive)', 'verde: sobrevive (% de enlace) · rojo: no sobrevive (tiempo con vida)')}</p>
             {escape ? (
               <div className="escape" data-testid="tri-escape">
-                {grid.best.lost && <strong className="is-crit">{t('No point within 200 m saves the lander. The least bad one:', 'Ningún punto a 200 m salva el lander. El menos malo:')}</strong>}
+                {grid.best.lost && <strong className="is-crit">{t('No point within 200 m saves the lander. The one that lasts longest:', 'Ningún punto a 200 m salva el lander. El que más aguanta:')}</strong>}
                 <output className="mono" data-testid="escape-vector">{fmtNum(escape.distanceM, 0)} m → {cardinal(escape.azimuthDeg)} ({t('azimuth', 'acimut')} {fmtNum(escape.azimuthDeg, 0)}°)</output>
                 <span>
                   {escape.gainHours > 0.5

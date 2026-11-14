@@ -112,7 +112,7 @@ Each row is the whole window: day/night, Earth visible and both at once (the "go
 ## 6. Terrain / landing
 
 * **Attitude and tip-over**: presets (nominal, IM-1, IM-2, SLIM, resting on the slope), roll, pitch, yaw, antenna beamwidth and gimbal range, and their penalties. Tip-over probability over the ellipse against touchdown speed. **Replay a real landing**: always warns that the model does not reproduce the loss of IM-2 Athena (it came to rest in a small crater in shadow that the 20 m terrain does not contain). **Neighbouring asset**: plume keep-out radius and mutual shadowing.
-* **Emergency: survival**: the same flow as the Emergency mode (section 10). No date: **Evaluate from now** (or any value entered) sets the start to the current hour for 14 days.
+* **Emergency: survival**: the same flow as the Emergency mode (section 10). No date: **Evaluate from now** (or any value entered) sets the start to the current hour for one lunar night (15 days; also 3 or 7).
 
 ## 7. Science
 
@@ -129,13 +129,13 @@ In Overview > Sites and dates, under the scenario, one card for each of the five
 
 ## 10. Emergency mode
 
-For a lander already on the surface somewhere unplanned. It asks only what matters and evaluates from **now** over the next 14 days:
+For a lander already on the surface somewhere unplanned. It asks only what matters and evaluates from **now** over the next 15 days (one lunar night; also 3 or 7):
 
 1. **Current position**: click on the polar map or paste the coordinates (for example −84.79, 29.20). Any point south of 80° S is accepted.
 2. **Energy available**: Wh left in the battery and minimum survival load.
 3. **Current tilt** (optional, folded): roll, pitch, or "We came to rest on the slope".
 
-It answers with the verdict, the terrain source and resolution, the time until the bus freezes and **where to move**: the grid of 25 points within 200 m (each cell is a full mission), the escape vector and **Move the lander there**. The green arrow on the terrain is the same vector. Sub-pixel terrain (LOLA + fractal micro-relief) estimates the micro-shadow and rock hazard; it is statistical, not a map.
+It answers first with a plain-language headline: **SURVIVES**, **SURVIVES IF…** or **DOES NOT SURVIVE**, with date and time (UTC and T+). Right under it, the **Way out** block says whether there is a way out and gives the options computed with the engine: stay and cut the load, move up to 500 m and wait for the next sunlight; when none works, it says what would be missing. The loss criterion is the engine's: battery empty with no sunlight or, with the thermal model, bus below −20 °C. Then come the terrain source and resolution, the time until the bus freezes and **where to move**: the grid of 25 points within 200 m (each cell is a full mission), the escape vector and **Move the lander there**. The green arrow on the terrain is the same vector. The hazards under the 20 m pixel (LOLA + fractal micro-relief: micro-shadows and rocks) are always shown; they are statistical, not a map.
 
 ## 11. Uses by user
 

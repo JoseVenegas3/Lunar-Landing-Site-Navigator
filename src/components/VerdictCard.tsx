@@ -55,7 +55,16 @@ function Chip({ v, t }: { v: Verdict; t: T }) {
   );
 }
 
-export function VerdictCard({ data }: { data: ScenarioData }) {
+/** Short translation of the verdict label, for the emergency mode where the jargon is spelled out once. */
+export function verdictGloss(v: Verdict, t: T): string {
+  return v.level === 'go'
+    ? t('the mission can be completed as declared', 'la misión se puede cumplir tal como está declarada')
+    : v.level === 'caution'
+      ? t('it can be completed, with the risks below', 'se puede cumplir, con los riesgos de abajo')
+      : t('the mission cannot be completed as declared', 'la misión no se puede cumplir tal como está declarada');
+}
+
+export function VerdictCard({ data, gloss = false }: { data: ScenarioData; gloss?: boolean }) {
   const t = useT();
   const v = useVerdict(data);
   const rescue = useRescue(data);
@@ -67,7 +76,7 @@ export function VerdictCard({ data }: { data: ScenarioData }) {
     <div className={`verdict is-${v.level}`} data-testid="verdict" data-level={v.level} role="status" aria-live="polite">
       <span className="verdict-light" aria-hidden="true" />
       <div className="verdict-text">
-        <strong><ScenarioBadge k={data.key} />{verdictLabel(v, t)}</strong>
+        <strong><ScenarioBadge k={data.key} />{verdictLabel(v, t)}{gloss && <span className="verdict-gloss" data-testid="verdict-gloss">: {verdictGloss(v, t)}</span>}</strong>
         <p data-testid="verdict-sentence">{verdictSentence(v, t)}</p>
         {o && (
           <p className="verdict-after" data-testid="verdict-after">
