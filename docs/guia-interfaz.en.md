@@ -2,7 +2,7 @@
 
 GISAT UdeC · NASA Space Apps 2026 · Lunar South Pole landing site navigator
 
-This guide describes every button and panel of version 2.0, interface by interface, and how to use the application depending on who uses it: an engineer planning a mission, the general public or a teacher (Explorer mode), and a team facing an unplanned touchdown (Emergency mode).
+This guide describes every button and panel of version 2.0, interface by interface, and how to use the application depending on who uses it: an engineer planning a mission, the general public or a teacher (tutorial mode and site cards), and a team facing an unplanned touchdown (Emergency mode).
 
 > The figures come from this project's own physical model on the LRO LOLA terrain. They are meant to compare sites, dates and lander designs; they are not the certified prediction of a real mission. Thresholds labelled "engineering assumption" are choices of this tool.
 
@@ -13,7 +13,7 @@ From left to right:
 | Control | What it does |
 |---|---|
 | Brand | Name of the application and of the team. |
-| Planner / Explorer / Emergency | Switches the application mode (sections 2, 9 and 10). |
+| Planner / Emergency | Switches the application mode (sections 2 and 10). |
 | UTC clock and T+ | Date and time of the time cursor, and the time elapsed since touchdown. |
 | Mission guide | Starts the tutorial mode (section 8). A notice with Start / Cancel comes first. |
 | Export CSV | One click downloads the simulated telemetry of the mission on screen: 26 columns in SI units, one row per hour. |
@@ -123,9 +123,9 @@ Each row is the whole window: day/night, Earth visible and both at once (the "go
 
 A notice explains that the application will change tabs, site and date by itself. With **Start**, a fixed 10-step sequence drives the interface: 3-D view, double-click, time transport, the five tabs, landing windows and comparison, Emergency mode and Export. Each step spotlights the control it talks about. **Right arrow** goes on, **left arrow** goes back and **Esc** leaves. When it is left or finished, the application returns exactly to where you were. On the first visit, a card in the bottom-right corner offers the same tour or skipping it.
 
-## 9. Explorer mode (public and teachers)
+## 9. Candidate site cards (public and teachers)
 
-The same engine, told as a five-step tour: a Sun that never climbs, shadows that last for weeks, the Earth that wobbles in the sky, half a kilometre that decides the mission, and choosing a site. Each step has a button that moves the scene. Three tiles say in plain words whether there is sunlight, contact with the Earth and how much battery is left, and the cards compare the five candidate sites.
+In Overview > Sites and dates, under the scenario, one card for each of the five candidate sites with three meters: sunlight and contact with the Earth (0–100 % of the window) and longest night (full bar = what the battery can bridge in hibernation). A click selects the site. The Explorer mode of version 2.0 was retired: its tour is covered by the tutorial mode and its status tiles by the vitals.
 
 ## 10. Emergency mode
 
@@ -141,7 +141,7 @@ It answers with the verdict, the terrain source and resolution, the time until t
 
 **Mission engineer.** Set site and date in Overview, size power and thermal in Power, check the link in Comms, review attitude, tip-over and escape in Terrain and validate everything in Science > Engineering view. Use Landing windows to pick the date and Compare to decide between two sites or two dates. Export the CSV for the ground-station tools.
 
-**Public and teachers.** Explorer mode and the tutorial explain the physics of the south pole without jargon: the grazing Sun, the long shadows, the Earth hiding behind the mountains and why a few hundred metres change a lander's fate.
+**Public and teachers.** The tutorial and the site cards explain the physics of the south pole without jargon: the grazing Sun, the long shadows, the Earth hiding behind the mountains and why a few hundred metres change a lander's fate.
 
 **Team in an emergency.** Emergency mode (or Terrain > Emergency: survival) answers in order: where we are, how long we have and where to move, from now.
 

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { TopBar } from './components/TopBar';
 import { PlannerLayout } from './components/dashboard/PlannerLayout';
-import { ExplorerLayout } from './components/explorer/ExplorerLayout';
 import { TriageLayout } from './components/triage/TriageLayout';
 import { MissionBriefingTour } from './components/MissionBriefingTour';
 import { ensureRegional } from './state/dem';
@@ -66,7 +65,7 @@ export function App() {
     <MissionProvider>
       <div className={`app app-${mode}`}>
         <TopBar />
-        {mode === 'planner' ? <PlannerLayout /> : mode === 'triage' ? <TriageLayout /> : <ExplorerLayout />}
+        {mode === 'triage' ? <TriageLayout /> : <PlannerLayout />}
         <MissionBriefingTour />
       </div>
     </MissionProvider>

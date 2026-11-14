@@ -7,6 +7,7 @@ import {
 import { ScenarioKey, scenarioLatLon, useApp } from '../../state/store';
 import { useMission } from '../../state/mission';
 import { fmtLat, fmtLon, fromDateInput, toDateInput, useT } from '../../lib/format';
+import { SiteCards } from './SiteCards';
 
 const MIN_DATE = Date.UTC(2026, 0, 1);
 const MAX_DATE = Date.UTC(2030, 11, 31);
@@ -57,9 +58,18 @@ export function NumberField({ label, value, min, max, step, unit, onChange, test
   );
 }
 
-/** The landing scenario: site, date, window and offset. A second scenario is created from the Compare block of the landing-windows panel. */
+/**
+ * The landing scenario (site, date, window and offset) and the report cards of
+ * the candidate sites. A second scenario is created from the Compare block of
+ * the landing-windows panel.
+ */
 export function SitesPanel() {
-  return <ScenarioPanel k="A" />;
+  return (
+    <>
+      <ScenarioPanel k="A" />
+      <SiteCards />
+    </>
+  );
 }
 
 export function ScenarioPanel({ k }: { k: ScenarioKey }) {

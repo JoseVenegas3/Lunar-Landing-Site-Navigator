@@ -295,40 +295,7 @@ input[type="range"] { width: 100%; accent-color: var(--rock); height: 18px; marg
 .link-grid dt { font-family: var(--ui); color: var(--text); }
 .link-grid dd { color: var(--bright); white-space: nowrap; }
 
-/* ------------------------------------------------------------ explorer */
-.explorer {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 400px;
-  grid-template-rows: minmax(0, 1fr) auto;
-  grid-template-areas: "stage side" "time side";
-  gap: 1px;
-  background: var(--line);
-  min-height: 0;
-}
-.ex-stage { grid-area: stage; display: grid; grid-template-rows: minmax(0, 1fr) auto; min-height: 0; }
-.ex-side { grid-area: side; overflow-y: auto; display: flex; flex-direction: column; gap: 1px; background: var(--line); min-height: 0; scrollbar-width: thin; scrollbar-color: var(--line) var(--panel); }
-.ex-side::after { content: ""; flex: 1; background: var(--panel); }
-.ex-time { grid-area: time; }
-.ex-status { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border-top: 1px solid var(--line); }
-.status-tile { background: var(--panel); padding: 9px 12px 10px; display: grid; gap: 1px; border-top: 2px solid var(--faint); min-width: 0; }
-.status-tile span { color: var(--dim); font-size: 11.5px; }
-.status-tile strong { font-size: 17px; color: var(--bright); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.status-tile small { color: var(--dim); font-size: 11px; }
-.status-tile.is-sun { border-top-color: var(--sun); }
-.status-tile.is-sun strong { color: var(--sun); }
-.status-tile.is-rf { border-top-color: var(--rf); }
-.status-tile.is-rf strong { color: var(--rf); }
-.status-tile.is-crit { border-top-color: var(--crit); }
-.status-tile.is-crit strong { color: var(--crit); }
-.status-tile.is-warn { border-top-color: var(--sun); }
-
-.tour { padding: 12px 14px 14px; display: grid; gap: 9px; }
-.tour-head { display: flex; justify-content: space-between; align-items: center; color: var(--dim); font-size: 11px; }
-.tour-dots { display: flex; gap: 5px; }
-.tour-dots button { width: 22px; height: 6px; padding: 0; border: 0; background: var(--line); cursor: pointer; }
-.tour-dots button.is-on { background: var(--bright); }
-.tour h1 { font-size: 21px; line-height: 1.2; color: var(--bright); font-weight: 700; max-width: 22ch; }
-.tour p { font-size: 13.5px; line-height: 1.55; color: var(--text); max-width: 60ch; }
+/* ------------------------------------------------- site cards (Sites tab) */
 .tour-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 3px; }
 .tour-actions .btn { padding: 7px 12px; }
 .cards-cap { color: var(--dim); font-size: 11px; }
@@ -354,7 +321,6 @@ input[type="range"] { width: 100%; accent-color: var(--rock); height: 18px; marg
 @media (max-width: 1320px) {
   .brand span { display: none; }
   .planner { grid-template-columns: 264px minmax(0, 1fr) 304px; }
-  .explorer { grid-template-columns: minmax(0, 1fr) 340px; }
 }
 @media (max-width: 980px) {
   body { overflow: auto; }
@@ -363,11 +329,10 @@ input[type="range"] { width: 100%; accent-color: var(--rock); height: 18px; marg
   .topbar { flex-wrap: wrap; padding: 8px 12px; gap: 8px 12px; height: auto; }
   .transport { margin-left: 0; flex-wrap: wrap; }
   .clock { text-align: left; margin-left: 0; }
-  .planner, .explorer { display: flex; flex-direction: column; }
-  .rail, .ex-side { overflow: visible; }
-  .stage, .ex-stage { height: 70vh; min-height: 420px; }
+  .planner { display: flex; flex-direction: column; }
+  .rail { overflow: visible; }
+  .stage { height: 70vh; min-height: 420px; }
   .pano-wrap { height: 260px; }
-  .ex-status { grid-template-columns: 1fr; }
   .hud-bl { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {

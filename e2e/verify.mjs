@@ -10,7 +10,7 @@
  * landing-windows panel, the micro-relocation tool (slider, drag and
  * double-click), overlays, the shared emergency flow, telemetry, the
  * engineering view, the CSV export, the PDF guide, the tutorial mode,
- * Explorer mode, language switch and the narrow layout.
+ * site cards of the Sites tab, language switch and the narrow layout.
  * Screenshots go to artifacts/screenshots/, the report to artifacts/verify-report.json.
  */
 import { spawn } from 'node:child_process';
@@ -772,31 +772,23 @@ try {
   await goSub('overview');
   check('with the comparison off there is no trace of B (badges, comparator, KPI table, 3-D title, index)', noB.badges === 0 && noB.quick === 0 && noB.kpi === 0 && !noB.scenarioB && !noB2.scoreB && noB2.kpiCols === 2, JSON.stringify({ ...noB, ...noB2 }));
 
-  await page.click('[data-testid="mode-explorer"]');
-  await page.waitForSelector('[data-testid="explorer"]');
-  await page.waitForFunction(() => document.querySelectorAll('.site-card .meter').length >= 15, null, { timeout: 90000 });
-  await page.waitForTimeout(800);
-  await shot('12-explorer-mode.png');
-  lay = await overlaps();
-  check('explorer layout has no overlapping regions', lay.out.length === 0, lay.out.join('; '));
-  const exLabels = await siteLabels();
-  check('explorer cards and title name the sites in full; no scenario B', labelsOk(exLabels) && (await page.locator('.badge-B').count()) === 0, exLabels.map((l) => l.text).join(' | '));
-  await page.click('[data-testid="tour-action"]');
-  await page.waitForTimeout(2500);
-  await shot('13-explorer-tour-playing.png');
-  const exFps = await fps(4000);
-  check('60 fps frame pacing in explorer playback', at60(exFps), fpsText(exFps));
-  await page.click('[data-testid="tour-next"]');
-  await page.click('[data-testid="tour-action"]');
-  await page.waitForFunction(() => /of the window/.test(document.querySelector('.ramp-labels')?.textContent ?? ''), null, { timeout: 60000 });
-  await page.waitForTimeout(900);
-  await shot('14-explorer-sunlight-map.png');
+  // v2.1: no Explorer mode; its site cards live in the Sites tab of the planner
+  check('the mode switch offers Planner and Emergency only (no Explorer)', (await page.locator('[data-testid="mode-explorer"]').count()) === 0 && (await page.locator('.mode-switch button').count()) === 2);
+  await openPanel('sites');
+  await page.waitForFunction(() => document.querySelectorAll('[data-testid="site-cards"] .site-card .meter').length >= 15, null, { timeout: 90000 });
+  await page.locator('[data-testid="site-cards"]').scrollIntoViewIfNeeded();
+  await page.waitForTimeout(600);
+  await shot('12-sites-cards.png');
+  const cardLabels = await siteLabels();
+  const meterWhy = await page.locator('[data-testid="site-cards"] .meter').first().getAttribute('title');
+  check('the Sites tab holds the candidate cards with their meters, full names and a reason for each scale', labelsOk(cardLabels) && Boolean(meterWhy) && (await page.locator('[data-testid="site-cards"] .site-card').count()) === 5, `${cardLabels.map((l) => l.text).join(' | ')} · ${meterWhy}`);
   await page.click('[data-testid="card-malapert-massif"]');
   await page.waitForTimeout(2500);
+  check('a click on a card selects that site', (await page.locator('[data-testid="site-A"]').inputValue()) === 'malapert-massif');
   await page.click('[data-testid="lang-es"]');
   await page.waitForTimeout(500);
-  await shot('15-explorer-spanish-malapert.png');
-  check('language switch translates the interface', (await page.locator('.tour h1').innerText()).includes('Sombras'), await page.locator('.tour h1').innerText());
+  await shot('15-spanish-malapert.png');
+  check('language switch translates the interface', (await page.locator('[data-testid="site-cards"] h3').innerText()).includes('Sitios candidatos'), await page.locator('[data-testid="site-cards"] h3').innerText());
 
   // the PDF guide opens from the top-right corner, in the active language
   const guide = await page.evaluate(() => {
@@ -1070,7 +1062,7 @@ try {
   const failed = checks.filter((c) => !c.pass);
   writeFileSync(join(root, 'artifacts', 'verify-report.json'), JSON.stringify({
     date: new Date().toISOString(), webglRenderer: gl, bootMs,
-    fps: { idle, playing, explorer: exFps }, checks, consoleErrors: errors,
+    fps: { idle, playing }, checks, consoleErrors: errors,
   }, null, 2));
   console.log(`\n${checks.length - failed.length}/${checks.length} checks passed`);
   process.exitCode = failed.length ? 1 : 0;

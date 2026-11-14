@@ -69,11 +69,10 @@ async function pass(title, args) {
     await page.waitForTimeout(1500);
     show('planner, playback 12 h/s', await rate(page, 6000));
     await page.click('[data-testid="play"]');
-    await page.click('[data-testid="mode-explorer"]');
-    await page.waitForFunction(() => document.querySelectorAll('.site-card .meter').length >= 15, null, { timeout: 90000 });
-    await page.click('[data-testid="tour-action"]');
-    await page.waitForTimeout(1500);
-    show('explorer, playback 24 h/s', await rate(page, 6000));
+    await page.click('[data-testid="mode-triage"]');
+    await page.waitForSelector('[data-testid="triage"]');
+    await page.waitForTimeout(3000);
+    show('emergency mode, idle', await rate(page, 5000));
   } finally {
     await browser.close();
   }

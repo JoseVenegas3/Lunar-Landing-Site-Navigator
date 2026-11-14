@@ -7,10 +7,13 @@ import { ScenarioData } from '../../state/mission';
 import { useApp } from '../../state/store';
 import { fmtDuration, fmtEnergy, fmtNum, useT } from '../../lib/format';
 import { ScenarioBadge } from '../ScenarioBadge';
+import { hibernationHours } from './SiteCards';
 
 export function SurvivalPanel({ data }: { data: ScenarioData }) {
   const t = useT();
   const thermalOn = useApp((s) => s.thermalOn);
+  const power = useApp((s) => s.power);
+  const battH = hibernationHours(power.batteryCapacityWh, power.survivalLoadW);
   const r = data.result;
   const a = r?.adv.kpis;
 
@@ -58,6 +61,9 @@ export function SurvivalPanel({ data }: { data: ScenarioData }) {
             {!thermalOn && <p className="kpi-note pad0">{t('The coupled thermal model is switched off (Hardware panel): survival is judged on stored energy alone.', 'El modelo térmico acoplado está apagado (panel Equipo): la supervivencia se juzga solo por energía almacenada.')}</p>}
           </>
         ) : <p className="kpi-note pad0">{t('Waiting for the terrain model.', 'Esperando el modelo de terreno.')}</p>}
+        <p className="kpi-note pad0" data-testid="hibernation-note">
+          {t(`With the current battery the lander can hibernate about ${fmtDuration(battH)} without sunlight (${fmtNum(power.batteryCapacityWh, 0)} Wh ÷ ${fmtNum(power.survivalLoadW, 0)} W survival load; ignores the depth-of-discharge limit and the heaters).`, `Con la batería actual el lander puede hibernar unas ${fmtDuration(battH)} sin luz solar (${fmtNum(power.batteryCapacityWh, 0)} Wh ÷ ${fmtNum(power.survivalLoadW, 0)} W de carga de supervivencia; no cuenta el límite de descarga ni los calefactores).`)}
+        </p>
       </section>
 
     </>

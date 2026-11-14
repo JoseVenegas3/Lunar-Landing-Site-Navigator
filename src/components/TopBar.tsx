@@ -41,9 +41,6 @@ export function TopBar() {
         <button type="button" className={mode === 'planner' ? 'is-on' : ''} aria-pressed={mode === 'planner'} onClick={() => switchMode('planner')} data-testid="mode-planner">
           {t('Planner', 'Planificador')}
         </button>
-        <button type="button" className={mode === 'explorer' ? 'is-on' : ''} aria-pressed={mode === 'explorer'} onClick={() => switchMode('explorer')} data-testid="mode-explorer">
-          {t('Explorer', 'Explorador')}
-        </button>
         <button type="button" className={`mode-triage${mode === 'triage' ? ' is-on' : ''}`} aria-pressed={mode === 'triage'} onClick={() => switchMode('triage')} data-testid="mode-triage">
           {t('Emergency', 'Emergencia')}
         </button>

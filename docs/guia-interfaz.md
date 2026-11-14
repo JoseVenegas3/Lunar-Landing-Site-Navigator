@@ -2,7 +2,7 @@
 
 GISAT UdeC · NASA Space Apps 2026 · Navegador de sitios de alunizaje del Polo Sur lunar
 
-Esta guía describe cada botón y cada panel de la versión 2.0, interfaz por interfaz, y cómo usar la aplicación según quién la usa: un ingeniero que planifica, el público general o un docente (modo Explorador) y un equipo ante un alunizaje no previsto (modo Emergencia).
+Esta guía describe cada botón y cada panel de la versión 2.0, interfaz por interfaz, y cómo usar la aplicación según quién la usa: un ingeniero que planifica, el público general o un docente (modo tutorial y fichas de sitios) y un equipo ante un alunizaje no previsto (modo Emergencia).
 
 > Las cifras salen de un modelo físico propio sobre el relieve LRO LOLA. Sirven para comparar sitios, fechas y diseños de lander; no son la predicción certificada de una misión real. Los umbrales marcados como «supuesto de ingeniería» son elecciones de esta herramienta.
 
@@ -13,7 +13,7 @@ De izquierda a derecha:
 | Control | Qué hace |
 |---|---|
 | Marca | Nombre de la aplicación y del equipo. |
-| Planificador / Explorador / Emergencia | Cambia el modo de la aplicación (sección 2, 9 y 10). |
+| Planificador / Emergencia | Cambia el modo de la aplicación (sección 2 y 10). |
 | Reloj UTC y T+ | Fecha y hora del cursor de tiempo, y el tiempo transcurrido desde el alunizaje. |
 | Guía de misión | Activa el modo tutorial (sección 8). Antes de empezar muestra un aviso con Iniciar / Cancelar. |
 | Exportar CSV | Descarga con un clic la telemetría simulada de la misión en pantalla: 26 columnas en unidades SI, una fila por hora. |
@@ -123,9 +123,9 @@ Cada fila es la ventana completa: día/noche, Tierra visible y ambos a la vez (l
 
 Un aviso explica que la aplicación cambiará de pestañas, sitio y fecha por sí sola. Con **Iniciar**, una secuencia fija de 10 pasos conduce la interfaz: vista 3D, doble clic, control de tiempo, las cinco pestañas, ventanas de aterrizaje y comparación, modo Emergencia y Exportar. Cada paso resalta el control del que habla. **Flecha derecha** avanza, **flecha izquierda** retrocede y **Esc** sale. Al salir o terminar, la aplicación vuelve exactamente a donde estabas. En la primera visita, una tarjeta abajo a la derecha ofrece el mismo recorrido u omitirlo.
 
-## 9. Modo Explorador (público y docentes)
+## 9. Fichas de sitios candidatos (público y docentes)
 
-El mismo motor, contado como un recorrido de cinco pasos: un Sol que nunca sube, sombras que duran semanas, la Tierra que se bambolea, medio kilómetro que decide la misión y elegir un sitio. Cada paso tiene un botón que mueve la escena. Tres tarjetas dicen en palabras simples si hay sol, si hay contacto con la Tierra y cuánta batería queda, y las fichas comparan los cinco sitios candidatos.
+En Resumen > Sitios y fechas, debajo del escenario, una ficha por cada uno de los cinco sitios candidatos con tres medidores: luz solar y contacto con la Tierra (0–100 % de la ventana) y noche más larga (barra llena = lo que la batería resiste en hibernación). Un clic selecciona el sitio. El modo Explorador de la versión 2.0 se retiró: su recorrido lo cubre el modo tutorial y sus tarjetas de estado, los signos vitales.
 
 ## 10. Modo Emergencia
 
@@ -141,7 +141,7 @@ Responde con el veredicto, la fuente y resolución del terreno, el tiempo hasta 
 
 **Ingeniero de misión.** Fija sitio y fecha en Resumen, dimensiona energía y térmica en Energía, comprueba el enlace en Comunicaciones, revisa actitud, vuelco y escape en Terreno y valida todo en Ciencia > Vista de ingeniería. Usa Ventanas de aterrizaje para elegir la fecha y Comparar para decidir entre dos sitios o dos fechas. Exporta el CSV para las herramientas de la estación terrena.
 
-**Público y docentes.** El modo Explorador y el modo tutorial cuentan la física del polo sur sin jerga: el Sol rasante, las sombras largas, la Tierra que se esconde tras las montañas y por qué unos cientos de metros cambian el destino de un lander.
+**Público y docentes.** El modo tutorial y las fichas de sitios cuentan la física del polo sur sin jerga: el Sol rasante, las sombras largas, la Tierra que se esconde tras las montañas y por qué unos cientos de metros cambian el destino de un lander.
 
 **Equipo ante una emergencia.** El modo Emergencia (o Terreno > Emergencia: supervivencia) responde en orden: dónde estamos, cuánto tiempo queda y hacia dónde movernos, desde ahora.
 

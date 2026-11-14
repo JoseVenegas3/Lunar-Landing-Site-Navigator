@@ -5,7 +5,14 @@ import {
 } from '../engine';
 
 export type ScenarioKey = 'A' | 'B';
-export type AppMode = 'planner' | 'explorer' | 'triage';
+export type AppMode = 'planner' | 'triage';
+
+/**
+ * Mode from any stored or linked value. The Explorer mode of v2.0 was removed in
+ * v2.1 (its site cards live in the Sites tab and its tour in the tutorial), so
+ * 'explorer', or anything unknown, falls back to the planner without error.
+ */
+export const normaliseMode = (m: unknown): AppMode => (m === 'triage' ? 'triage' : 'planner');
 export type Lang = 'en' | 'es';
 export type OverlayKind = 'none' | 'insolation' | 'dte' | 'slope';
 export type ViewKind = 'orbit' | 'eye';
@@ -126,7 +133,6 @@ export interface AppState {
   speed: number;
   overlay: OverlayKind;
   view: ViewKind;
-  tourStep: number;
   panels: PanelState;
 
   setSubsystem: (s: Subsystem) => void;
@@ -135,7 +141,8 @@ export interface AppState {
   /** Reopen a minimised side with the first panel of the current subsystem. */
   openSide: (side: 'left' | 'right' | 'bottom') => void;
   setPanels: (patch: Partial<PanelState>) => void;
-  setMode: (m: AppMode) => void;
+  /** Accepts any value: an unknown or retired mode (v2.0 'explorer') becomes the planner. */
+  setMode: (m: AppMode | string) => void;
   setLang: (l: Lang) => void;
   setActive: (k: ScenarioKey) => void;
   /** Start a comparison (B = copy of A) or end it (B disappears). */
@@ -159,7 +166,6 @@ export interface AppState {
   setSpeed: (s: number) => void;
   setOverlay: (o: OverlayKind) => void;
   setView: (v: ViewKind) => void;
-  setTourStep: (n: number) => void;
 }
 
 /** Playback rates of the transport, simulated hours per real second. */
@@ -198,7 +204,6 @@ export const useApp = create<AppState>((set) => ({
   speed: 24,
   overlay: 'none',
   view: 'orbit',
-  tourStep: 0,
   panels: panelsFor('overview'),
 
   setSubsystem: (subsystem) => set((s) => (s.subsystem === subsystem ? {} : {
@@ -226,7 +231,7 @@ export const useApp = create<AppState>((set) => ({
     return { panels: { ...s.panels, ...patch } };
   }),
 
-  setMode: (mode) => set({ mode }),
+  setMode: (mode) => set({ mode: normaliseMode(mode) }),
   setLang: (lang) => set({ lang }),
   setActive: (active) => set((s) => ({ active: s.compare ? active : 'A' })),
   setCompare: (on) => set((s) => (on
@@ -273,7 +278,6 @@ export const useApp = create<AppState>((set) => ({
   setSpeed: (speed) => set({ speed }),
   setOverlay: (overlay) => set({ overlay }),
   setView: (view) => set({ view }),
-  setTourStep: (tourStep) => set({ tourStep }),
 }));
 
 /** Name of a free-coordinates site. */
@@ -289,7 +293,7 @@ export function scenarioLatLon(cfg: ScenarioCfg, lang: Lang = 'en'): { latDeg: n
   return { latDeg: cfg.customLat, lonDeg: cfg.customLon, name: CUSTOM_SITE_NAME[lang] };
 }
 
-/** What the 3-D scene emphasises: the planner subsystem, the landing ground in the emergency mode, nothing in the explorer. */
-export type SceneFocus = Subsystem | 'triage' | 'none';
+/** What the 3-D scene emphasises: the planner subsystem, or the landing ground in the emergency mode. */
+export type SceneFocus = Subsystem | 'triage';
 export const sceneFocus = (s: Pick<AppState, 'mode' | 'subsystem'>): SceneFocus =>
-  (s.mode === 'planner' ? s.subsystem : s.mode === 'triage' ? 'triage' : 'none');
+  (s.mode === 'planner' ? s.subsystem : 'triage');
