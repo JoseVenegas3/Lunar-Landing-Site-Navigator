@@ -715,12 +715,15 @@ coordenadas pegadas. Tres pasos:
 
 ### Niveles de la interfaz
 
-Reemplazado por la consola contextual de la sección 6.5. Se mantienen el
-interruptor de ingeniería (tabla de comparación completa y línea de tiempo
-detallada), el doble clic para alunizar y los nombres de accidentes sobre el
-horizonte.
+Reemplazado por la consola contextual de la sección 6.5 y, en la v2.0, por la
+Vista de ingeniería dentro de Ciencia (sección 6.6). Se mantienen el doble clic
+para alunizar y los nombres de accidentes sobre el horizonte.
 
 ## 6.5 Consola contextual por subsistemas (v5, 2026-11-14)
+
+> La v2.0 (sección 6.6) cambia parte de lo que sigue: pestañas a todo el ancho
+> con transición, un solo escenario por defecto, Ciencia con Vista de
+> ingeniería, Terreno con el flujo de emergencia y sin matriz de verificación.
 
 Objetivo del equipo: quitar la saturación de paneles fijos, sin ventanas
 modales, con estética de consola de control y una interfaz que cambie según el
@@ -782,6 +785,67 @@ recorrido. Reemplaza el recorrido de tres globos de la v4.
 **Paleta.** Fondo `#06080D`, paneles `#0D111A`; B612 para texto y JetBrains
 Mono con cifras tabulares para la telemetría.
 
+## 6.6 Interfaz v2.0 (2026-11-14)
+
+Revisión de la interfaz a partir del inventario de controles (cada control con
+su función, su fundamento y la marca «(modificable)» si no tenía razón
+suficiente). El motor físico (`src/engine/`) no cambió: solo interfaz, estado y
+textos, todo en inglés y español. Un commit por cambio.
+
+| # | Cambio | Dónde |
+|---|---|---|
+| 1 | «Guía de misión» activa un **modo tutorial**: un aviso ligero (Iniciar / Cancelar, salir con Esc) y una secuencia fija de 10 pasos que conduce la interfaz de verdad (vista 3D, doble clic, transporte, las cinco pestañas, ventanas y comparación, Emergencia, Exportar). Al salir o terminar restaura el estado previo. La oferta del primer uso lanza el mismo recorrido. | `MissionBriefingTour.tsx` |
+| 2 | Sin botón ni matriz de **Verificación** en la interfaz. `lib/verification.ts` queda solo para sus pruebas. | `TopBar.tsx` |
+| 3 | **Pestañas de subsistema** a todo el ancho (58 px, borde inferior de 4 px en el acento, ícono propio). Transición negro → ícono grande con nombre y acento → consola con su capa (~850 ms). Los clics durante la transición cambian el destino o se encolan. Con `prefers-reduced-motion`, fundido corto sin ícono. El estado de la transición vive en un store aparte. | `SubsystemSwitch.tsx` |
+| 4 | **Telemetría**: chip con estado abierta/cerrada recordado (`clps.telemetry`); tira en cuatro grupos (Sol, Energía, Térmico, Enlace con la Tierra) con íconos, unidades y una línea de ayuda por lectura. Umbrales en un único lugar. Lecturas técnicas solo en Ciencia. | `Readout.tsx`, `lib/telemetry.ts` |
+| 5 | Sin interruptor global de ingeniería: **Ciencia > Vista de ingeniería** con la tabla KPI completa y la incertidumbre del terreno; la línea de tiempo de Ciencia es la detallada. | `EngineeringView.tsx` |
+| 6 | **Guía (PDF)** arriba a la derecha, en el idioma activo. Fuente en `docs/guia-interfaz.md` (ES) y `docs/guia-interfaz.en.md` (EN); `npm run guide` la convierte con un conversor Markdown mínimo y el Chromium de Playwright, sin dependencias nuevas. | `scripts/build_guide.mjs`, `public/guide/` |
+| 7 | **Transporte** (−1 h, Reproducir/Pausa, +1 h, velocidad) en la vista 3D, abajo al centro. Sin ±1 d. Velocidades 1, 24 y 72 h/s (24 por defecto). El reloj UTC queda arriba. | `3d/Transport.tsx` |
+| 8 | **Doble clic** explícito: pista permanente que se oculta con × (`clps.dblhint`), retículo con «Mover el lander (X m)» o «Crear sitio propio aquí», y aviso «Fuera del área» al norte de 80° S en vez de ignorar el clic. | `SceneExtras.tsx`, `SceneView.tsx` |
+| 9 | **Un solo escenario** por defecto (sin pestañas A/B). El bloque **Comparar** al final de Ventanas de aterrizaje crea B como copia, muestra sus controles, el comparador rápido, la tabla KPI y «Usar la misma ventana». Apagado, B no se evalúa ni aparece. | `CompareBlock.tsx`, `store.compare` |
+| 10 | **Supervivencia** como flujo de emergencia inmediata, compartido con el modo Emergencia: posición (mapa o coordenadas), energía (Wh restantes y carga mínima), inclinación opcional; sin fecha (desde ahora, 14 días). Responde con veredicto, tiempo hasta congelarse y mejor celda / vector de escape. | `EmergencyFlow.tsx` |
+| 11 | **Nombres de sitio completos** o nada: se eliminó el código abreviado de la interfaz (tabla KPI, índice, línea de tiempo), las etiquetas del horizonte crecen con el texto. | prueba `labels.test.ts` |
+| 12 | **Exportar CSV** en la barra superior, un clic (26 columnas SI, una fila por hora). Sin .ics. | `TopBar.tsx`, `lib/export.ts` |
+
+Decisiones sobre los controles marcados «(modificable)»:
+
+| Control | Decisión |
+|---|---|
+| Contador de FPS | Fuera del HUD; solo con `?debug=1`. |
+| Botones ±1 d, cinco velocidades | Eliminados; tres velocidades. |
+| Cámara «Mapa» | Eliminada; quedan Órbita y Vista lander. |
+| Umbrales de calefactores 0 / −10 / −20 °C | Grupo plegado «Supuestos avanzados», rotulado como supuesto de ingeniería. |
+| Elementos orbitales de relays | Fuera de la interfaz; quedan los presets y el número de satélites. |
+| Botón «Mover el lander a la mejor celda» | Eliminado; el movimiento lo hace el flujo de emergencia. |
+| Cono de deslumbramiento y elipse iluminada mínima | Fijos, con la nota «umbrales supuestos de ingeniería». |
+| Modos Ingeniería primero / Ciencia primero | Eliminados; solo el índice sintetizado. |
+| Campos de hidrógeno y geología | Eliminados. |
+| «Seguridad del terreno» (100 − pendiente/20·100 − P·400) | Reemplazada por «Seguridad de aterrizaje = 1 − P(vuelco)», una probabilidad; la pendiente se muestra aparte. |
+| 100 kbps por defecto | Campo vacío con chips 10 / 100 / 1000 kbps. |
+| Exportación .ics | Eliminada. |
+| «Reintentar 20 m» (Emergencia) | Eliminado. |
+| «Reproducir un alunizaje real» | Se mantiene, con la nota permanente de que el modelo no reproduce la pérdida de IM-2. |
+
+**Decisiones propias fuera del pedido.**
+
+- La v2.0 vive en una copia aparte (rama `v2.0`, carpeta
+  `Lunar-Landing-Site-Navigator-v2`) para no tocar la v1.
+- La guía tiene dos fuentes Markdown (una por idioma) en lugar de una.
+- El flujo de emergencia evalúa 14 días desde la hora actual. La energía
+  restante se aplica como estado de carga inicial (`power.initialSoc`) y la
+  carga mínima como `power.survivalLoadW`: son ajustes globales, así que
+  también afectan al planificador. En el planificador, «Evaluar desde ahora» (o
+  cualquier dato ingresado) mueve la fecha del escenario a la hora actual; el
+  modo Emergencia lo hace al entrar.
+- La incertidumbre del terreno (sliders de error y correlación, N variantes,
+  bandas P10/P50/P90) quedó en la Vista de ingeniería; la probabilidad por
+  celda se eliminó.
+- El desplazamiento del lander (ΔE, ΔN) pasó bajo el título del sitio para
+  dejar el centro inferior de la vista 3D al transporte.
+- El sitio libre se llama «Sitio propio» / «Custom site».
+- Las letras A/B y la marca del mejor valor de la tabla solo aparecen durante
+  una comparación.
+
 ## 7. Interfaz
 
 **Paleta y tipografía** según el enunciado: fondo `#080B11`, paneles `#111827`,
@@ -790,8 +854,9 @@ solo para ocultación o estado crítico. Esmeralda (`#10B981`) para la operació
 simultánea Sol + DTE. JetBrains Mono para toda lectura numérica y B612 (la
 tipografía de cabina de Airbus) para etiquetas y texto.
 
-**Modo Mission Planner.** Dos escenarios A y B, cada uno con su sitio, sus
-coordenadas, su relocalización y su ventana de fechas, de modo que se comparan
+**Modo Mission Planner.** Un escenario de alunizaje y, a demanda (bloque
+Comparar de Ventanas de aterrizaje), un segundo escenario B con su propio sitio,
+coordenadas, relocalización y ventana de fechas, de modo que se comparan
 sitios, fechas o ambos. Matriz de KPIs con marca del mejor valor, presupuesto de
 enlace, panorama de horizonte, línea de tiempo sincronizada por tiempo
 transcurrido y telemetría instantánea.
@@ -809,7 +874,7 @@ cuatro cifras A/B y la línea de tiempo. La disposición se recuerda en
 **Decisión.** Paneles acoplados con pestañas en vez de ventanas flotantes
 libres: no se tapan entre sí ni tapan el lander, y no hay que ordenarlas.
 
-**Modo Explorer (inferido).** Para educadores y público: recorrido guiado de
+**Modo Explorer** (exigido por Contexto §3.4). Para educadores y público: recorrido guiado de
 cinco pasos que maneja la escena, tres indicadores en lenguaje llano y fichas de
 los cinco sitios con luz solar, contacto con la Tierra y noche más larga.
 
@@ -818,8 +883,8 @@ los cinco sitios con luz solar, contacto con la Tierra y noche más larga.
 **Vista 3D.** Escala real sin exageración vertical. Sol y Tierra en sus
 direcciones y tamaños angulares reales sobre una esfera a 55 km. El anillo de
 horizonte alrededor del lander es un instrumento az/el con la elevación
-exagerada ×5 (rotulado), porque 2° reales no se distinguen. Tres cámaras:
-órbita, mapa y vista desde el lander.
+exagerada ×5 (rotulado), porque 2° reales no se distinguen. Dos cámaras:
+órbita y vista desde el lander (la vista «Mapa» se quitó en la v2.0).
 
 ### Decisiones sobre las skills pedidas
 
@@ -863,17 +928,23 @@ precompilación de shaders al montar la escena.
 | Comando | Qué comprueba | Resultado |
 |---|---|---|
 | `npm run typecheck` | `tsc --noEmit`, modo estricto | sin errores |
-| `npm test` | 120 tests: motor, JPL Horizons, terreno LOLA, relays, contingencia, capas, evoluciones v3, ventanas, v4 (banda 80–90° S, parches de 20 m, micro-relieve, veredicto) y verificación | 120/120 |
-| `npm run build && npm run e2e` | 49 comprobaciones en Chromium headless, sobre terreno LOLA | 49/49 |
+| `npm test` | 128 tests: motor, JPL Horizons, terreno LOLA, relays, contingencia, capas, evoluciones v3, ventanas, v4 (banda 80–90° S, parches de 20 m, micro-relieve, veredicto), verificación, exportación, umbrales de telemetría y etiquetas sin abreviar | 128/128 |
+| `npm run build && npm run e2e` | 106 comprobaciones en Chromium headless, sobre terreno LOLA | 106/106 |
 | `npm run perf` | ritmo de cuadros con y sin vsync | tabla de la sección 8 |
+| `npm run guide` | regenera la guía PDF en ES y EN desde `docs/` | `public/guide/*.pdf` |
 
 `npm run e2e` cubre: arranque, escena no vacía, solapamientos y textos
-recortados, 60 fps en tres situaciones, comparador (sitio y fechas),
-relocalización por deslizador y arrastrando el lander, mapas de cobertura,
-cámaras, tipo de montura, estación terrena, línea de tiempo, coordenadas
-personalizadas, modo Explorer, idioma, 1280×720, 820 px y consola sin errores.
-Deja 17 capturas en `artifacts/screenshots/` y el detalle en
-`artifacts/verify-report.json`.
+recortados, 60 fps (reposo, reproducción, bandejas de cristal, Explorer,
+Emergencia), barra superior y transporte en la vista 3D, pestañas a todo el
+ancho y su transición (también con movimiento reducido y con clics durante la
+transición), un solo escenario por defecto y el bloque Comparar (B como copia,
+sitio y fechas, sin rastro al apagarlo), relocalización por deslizador,
+arrastre y doble clic (pista y retículo), mapas de cobertura, cámaras,
+telemetría agrupada, Vista de ingeniería, flujo de emergencia compartido,
+exportación CSV, guía PDF, modo tutorial (aviso, diez pasos que conducen la
+interfaz, restauración del estado), etiquetas de sitio completas, modo
+Explorer, idioma, 1280×720, 820 px y consola sin errores. Deja las capturas en
+`artifacts/screenshots/` y el detalle en `artifacts/verify-report.json`.
 
 ## 10. Límites conocidos
 
@@ -883,7 +954,7 @@ Deja 17 capturas en `artifacts/screenshots/` y el detalle en
   proxy o espejo con CORS (sección 6.4); sin él queda en 160 m u 800 m.
 - El micro-relieve sub-píxel es estadístico y sus parámetros no están
   cotejados contra la literatura (sección 6.4).
-- La verificación e2e (82 comprobaciones) necesita red para la del parche de
+- La verificación e2e (106 comprobaciones) necesita red para la del parche de
   20 m en vivo.
 - Muestreo horario. Los eventos más cortos que una hora se promedian.
 - La distancia del enlace es al centro de la Tierra, no a una estación concreta

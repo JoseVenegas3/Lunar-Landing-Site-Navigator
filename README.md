@@ -1,4 +1,4 @@
-# CLPS Lunar Mission Browser
+# CLPS Lunar Mission Browser v2.0
 
 Navegador de sitios de alunizaje del Polo Sur lunar. GISAT UdeC, NASA Space
 Apps Challenge 2026.
@@ -42,22 +42,27 @@ Abre <http://127.0.0.1:5173>. Requiere Node.js 20 o superior
   térmico acoplado con calefactores y congelación de batería; índice
   multicriterio; malla de dispersión con vector de escape; activo vecino con
   sombra mutua y eyección por pluma.
-- **Matriz de verificación** INCOSE en vivo y exportación de telemetría (CSV) y
-  calendario de operaciones (.ics).
-- **Tres modos**: Planner (comparador A/B, línea de tiempo, KPIs), Explorer
-  (recorrido guiado para educadores y público) y **Emergencia** (clic en
-  cualquier punto del casquete: dónde caímos, cuánto tiempo queda, hacia dónde
-  moverse).
+- **Exportar CSV** con un clic: telemetría simulada en 26 columnas SI, una fila
+  por hora.
+- **Tres modos**: Planner (un escenario de alunizaje, con comparación A/B a
+  demanda dentro de Ventanas de aterrizaje), Explorer (recorrido guiado para
+  educadores y público) y **Emergencia** (posición y energía disponible,
+  evaluado desde ahora: cuánto tiempo queda y hacia dónde moverse).
 - **Veredicto GO / CAUTION / NO-GO** en lenguaje llano sobre la vista 3D, con
   rescate de un clic (mejor punto a 200 m o siguiente fecha viable) y su antes
   y después.
-- **Consola por subsistemas**: Resumen, Energía/térmico, Comunicaciones/RF,
-  Terreno/alunizaje y Ciencia. Cada uno trae sus paneles, su color de acento,
-  su capa sobre el terreno y lo que destaca la escena 3D. Los paneles son
-  bandejas de cristal que flotan sobre la vista sin redimensionarla, y no hay
-  ventanas modales.
-- **Inducción de misión** de cinco pasos con foco sobre los controles reales;
-  se relanza con «Guía de misión».
+- **Consola por subsistemas**: cinco pestañas a todo el ancho (Resumen,
+  Energía/térmico, Comunicaciones/RF, Terreno/alunizaje y Ciencia) con una
+  transición negro → ícono → consola. Cada una trae sus paneles, su color, su
+  capa sobre el terreno y lo que destaca la escena 3D. Los paneles son bandejas
+  de cristal que flotan sobre la vista sin redimensionarla. Ciencia incluye la
+  Vista de ingeniería (tabla KPI completa y línea de tiempo detallada).
+- **Control de tiempo en la vista 3D** (−1 h, reproducir, +1 h; 1, 24 o 72 h/s)
+  y doble clic en el terreno para mover el lander o crear un sitio, con un
+  retículo que dice qué ocurrirá.
+- **Modo tutorial** («Guía de misión»): una secuencia de diez pasos que conduce
+  la interfaz y al terminar devuelve el estado previo. **Guía (PDF)** completa
+  en español e inglés.
 - **Terreno de 20 m en cualquier punto entre 80° S y 90° S**: se lee bajo
   demanda del mosaico LOLA con peticiones HTTP Range y queda guardado en
   IndexedDB. Requiere el proxy incluido en `npm run dev` / `npm run preview`
@@ -76,7 +81,8 @@ enunciado; el porqué está en la sección 4.2 de [ARCHITECTURE.md](ARCHITECTURE
 | `npm run dev` | servidor de desarrollo |
 | `npm run build` | verificación de tipos y build de producción en `dist/` |
 | `npm run typecheck` | `tsc --noEmit` |
-| `npm test` | 120 tests del motor y de la verificación (vitest) |
+| `npm test` | 128 tests del motor, la verificación, la exportación y la interfaz (vitest) |
+| `npm run guide` | regenera `public/guide/guia-interfaz-es.pdf` y `-en.pdf` desde `docs/guia-interfaz*.md` |
 | `npm run e2e` | verificación en navegador con Playwright (requiere `npm run build`) |
 | `npm run perf` | medición de cuadros por segundo |
 | `npm run build-dem` | regenera las mallas LOLA de `public/dem/` (requiere `pip install rasterio numpy`) |
@@ -114,4 +120,8 @@ Para añadir una estación, agrega una entrada a `GROUND_STATIONS`.
 ## Documentación
 
 [ARCHITECTURE.md](ARCHITECTURE.md): modelo físico, decisiones, calibración del
-terreno, resultados de verificación y límites conocidos.
+terreno, resultados de verificación y límites conocidos. La sección 6.6 resume
+la interfaz v2.0.
+
+[Guía de la interfaz](docs/guia-interfaz.md) ([English](docs/guia-interfaz.en.md)):
+cada botón y panel, y los usos para ingeniería, público y emergencia.
