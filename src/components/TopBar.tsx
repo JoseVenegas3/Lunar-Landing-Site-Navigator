@@ -74,6 +74,14 @@ export function TopBar() {
         <button type="button" className={lang === 'en' ? 'is-on' : ''} aria-pressed={lang === 'en'} onClick={() => setLang('en')}>EN</button>
         <button type="button" className={lang === 'es' ? 'is-on' : ''} aria-pressed={lang === 'es'} onClick={() => setLang('es')} data-testid="lang-es">ES</button>
       </div>
+
+      <a
+        className="btn btn-verif btn-guide-pdf" href={`${import.meta.env.BASE_URL}guide/guia-interfaz-${lang}.pdf`} target="_blank" rel="noopener" data-testid="guide-pdf"
+        title={t('Full guide of every button and panel (PDF, opens in a new tab)', 'Guía completa de cada botón y panel (PDF, se abre en una pestaña nueva)')}
+      >
+        <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path d="M4 1.5h5.5L13 5v9.5H4zM9.5 1.5V5H13M6 8.5h5M6 11h5" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" /></svg>
+        {t('Guide (PDF)', 'Guía (PDF)')}
+      </a>
     </header>
   );
 }

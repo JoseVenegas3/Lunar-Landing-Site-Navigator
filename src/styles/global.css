@@ -949,3 +949,4 @@ input[type="range"] { width: 100%; accent-color: var(--rock); height: 18px; marg
 
 /* ================================================================ v2.0: tutorial mode notice */
 .brief-confirm { right: 16px; top: calc(var(--top) + 10px); }
+.btn-guide-pdf { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
