@@ -1,11 +1,12 @@
 /**
  * Subsystem tabs across the whole width of the app, and the transition between
- * consoles: the interface fades to black, the icon of the destination appears
- * in its accent colour, and the new console fades in with its overlay already
- * applied (about 850 ms). Clicks during a transition retarget it when the
+ * consoles (about 1 s): the interface fades to black while the icon of the
+ * destination fades in (300 ms), the icon and the subsystem name stay still on
+ * the black screen (400 ms) and the new console fades in with its overlay
+ * already applied (300 ms). Clicks during a transition retarget it when the
  * console has not been swapped yet, and are queued otherwise, so the state is
- * always the one of the last tab clicked. With prefers-reduced-motion it is a
- * short fade with no icon.
+ * always the one of the last tab clicked. The transition is made of fades
+ * only, so prefers-reduced-motion keeps it as is: nothing moves or scales.
  */
 import { CSSProperties, ReactNode, useEffect } from 'react';
 import { create } from 'zustand';
@@ -36,25 +37,27 @@ export function subsystemLabel(s: Subsystem, t: T): string {
 /** Phase of the console transition. */
 export type SwitchPhase = 'idle' | 'out' | 'hold' | 'in';
 
-const reducedMotion = (): boolean => typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+/** Fade to black with the icon fading in, ms. */
+export const SWITCH_OUT_MS = 300;
+/** Icon and name still on the black screen, ms: long enough to read the name of the console. */
+export const SWITCH_HOLD_MS = 400;
+/** Fade from black to the new console, ms. */
+export const SWITCH_IN_MS = 300;
+/** Durations of the three phases, ms (about 1 s in all). */
+export const SWITCH_MS = { out: SWITCH_OUT_MS, hold: SWITCH_HOLD_MS, in: SWITCH_IN_MS } as const;
 
-/** Durations of the three phases, ms. */
-export const SWITCH_MS = { out: 220, hold: 380, in: 250 } as const;
-const SWITCH_MS_REDUCED = { out: 90, hold: 0, in: 120 } as const;
-
-interface SwitchState { phase: SwitchPhase; target: Subsystem | null; reduced: boolean }
+interface SwitchState { phase: SwitchPhase; target: Subsystem | null }
 /** Transition state, kept apart from the app store so a transition only re-renders the tabs and the curtain. */
-export const useSwitch = create<SwitchState>(() => ({ phase: 'idle', target: null, reduced: false }));
+export const useSwitch = create<SwitchState>(() => ({ phase: 'idle', target: null }));
 
 let want: Subsystem | null = null;
 let queued: Subsystem | null = null;
 let timers: number[] = [];
 
 function run(s: Subsystem): void {
-  const reduced = reducedMotion();
-  const ms = reduced ? SWITCH_MS_REDUCED : SWITCH_MS;
+  const ms = SWITCH_MS;
   want = s;
-  useSwitch.setState({ phase: 'out', target: s, reduced });
+  useSwitch.setState({ phase: 'out', target: s });
   const later = (fn: () => void, at: number): void => { timers.push(window.setTimeout(fn, at)); };
   later(() => {
     // Swap the console under the black screen, to the last tab clicked.
@@ -118,21 +121,19 @@ export function SubsystemTabs() {
 /** Black screen with the icon of the destination console, over the console area. */
 export function SubsystemCurtain() {
   const t = useT();
-  const { phase, target, reduced } = useSwitch();
+  const { phase, target } = useSwitch();
   useEffect(() => cancelSubsystemSwitch, []);
   if (phase === 'idle' || !target) return null;
   const accent = SUBSYSTEMS[target].accent;
   return (
     <div
-      className={`subsys-curtain is-${phase}${reduced ? ' is-reduced' : ''}`} aria-hidden="true" data-testid="subsys-curtain" data-phase={phase}
-      style={{ '--sub': accent, '--out-ms': `${reduced ? SWITCH_MS_REDUCED.out : SWITCH_MS.out}ms`, '--in-ms': `${reduced ? SWITCH_MS_REDUCED.in : SWITCH_MS.in}ms` } as CSSProperties}
+      className={`subsys-curtain is-${phase}`} aria-hidden="true" data-testid="subsys-curtain" data-phase={phase}
+      style={{ '--sub': accent, '--out-ms': `${SWITCH_MS.out}ms`, '--in-ms': `${SWITCH_MS.in}ms` } as CSSProperties}
     >
-      {!reduced && (
-        <div className="subsys-emblem">
-          <svg viewBox="0 0 20 20" width="88" height="88">{SUB_ICON[target]}</svg>
-          <strong>{subsystemLabel(target, t)}</strong>
-        </div>
-      )}
+      <div className="subsys-emblem" data-testid="subsys-emblem">
+        <svg viewBox="0 0 20 20" width="96" height="96">{SUB_ICON[target]}</svg>
+        <strong>{subsystemLabel(target, t)}</strong>
+      </div>
     </div>
   );
 }

@@ -30,7 +30,7 @@ Una línea en lenguaje claro: **VIABLE**, **RIESGO MODERADO** o **CRÍTICO**, co
 
 ### 2.2 Pestañas de subsistema
 
-Cinco pestañas ocupan todo el ancho. Cada una trae sus paneles, su color y lo que destaca la escena 3D. Al cambiar de pestaña la interfaz pasa a negro, aparece el ícono del subsistema y vuelve la consola con su capa ya aplicada (menos de un segundo; con la opción del sistema «reducir movimiento» es solo un fundido corto).
+Cinco pestañas ocupan todo el ancho. Cada una trae sus paneles, su color y lo que destaca la escena 3D. Al cambiar de pestaña la interfaz pasa a negro, aparece el ícono del subsistema y vuelve la consola con su capa ya aplicada (alrededor de un segundo; con la opción del sistema «reducir movimiento» nada se mueve: solo fundidos).
 
 | Pestaña | Color | Izquierda | Derecha | Abajo | Escena 3D |
 |---|---|---|---|---|---|

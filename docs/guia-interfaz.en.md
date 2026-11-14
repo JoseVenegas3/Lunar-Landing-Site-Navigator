@@ -30,7 +30,7 @@ One line in plain language: **GO**, **CAUTION** or **NO-GO**, with the main caus
 
 ### 2.2 Subsystem tabs
 
-Five tabs span the whole width. Each brings its panels, its colour and what the 3-D scene emphasises. Switching tabs fades the interface to black, shows the icon of the subsystem and brings the console back with its layer applied (under a second; with the system "reduce motion" setting it is just a short fade).
+Five tabs span the whole width. Each brings its panels, its colour and what the 3-D scene emphasises. Switching tabs fades the interface to black, shows the icon of the subsystem and brings the console back with its layer applied (about one second; with the system "reduce motion" setting nothing moves: fades only).
 
 | Tab | Colour | Left | Right | Bottom | 3-D scene |
 |---|---|---|---|---|---|

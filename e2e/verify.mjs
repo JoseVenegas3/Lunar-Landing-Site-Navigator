@@ -267,18 +267,26 @@ try {
         const phase = c ? c.dataset.phase : 'idle';
         const emblem = c?.querySelector('.subsys-emblem strong')?.textContent ?? '';
         const color = c ? getComputedStyle(c.querySelector('.subsys-emblem') ?? c).color : '';
+        const em = c?.querySelector('.subsys-emblem');
+        const seen = em ? Number(getComputedStyle(c).opacity) * Number(getComputedStyle(em).opacity) : 0;
+        const size = em ? em.querySelector('svg').getBoundingClientRect().width : 0;
+        if (seen >= 0.5) { window.__iconFrom ??= performance.now(); window.__iconTo = performance.now(); window.__iconSize = size; }
         if (!log.length || log[log.length - 1].phase !== phase) log.push({ t: Math.round(performance.now() - t0), phase, emblem, color, sub: document.querySelector('[data-testid="planner"]').dataset.subsystem });
         if (performance.now() - t0 < 1400) requestAnimationFrame(tick); else resolve();
       };
       tick();
     });
-    return log;
-  });
+    log.iconMs = Math.round((window.__iconTo ?? 0) - (window.__iconFrom ?? 0));
+    log.iconPx = Math.round(window.__iconSize ?? 0);
+    return { log, iconMs: log.iconMs, iconPx: log.iconPx };
+  }).then((r) => Object.assign(r.log, { iconMs: r.iconMs, iconPx: r.iconPx }));
   const phases = switchLog.map((x) => x.phase).join('>');
   const hold = switchLog.find((x) => x.phase === 'hold');
   const doneAt = switchLog.find((x, i) => i > 0 && x.phase === 'idle')?.t ?? 9999;
-  check('tab change: fade to black, the destination icon in its accent colour, then the console with its overlay (700–900 ms)',
-    /out>hold>in>idle/.test(phases) && hold && /Power/.test(hold.emblem) && hold.color === 'rgb(245, 158, 11)' && hold.sub === 'power' && doneAt >= 650 && doneAt <= 1000, `${phases}; ${JSON.stringify(hold)}; done at ${doneAt} ms`);
+  check('tab change: fade to black, the destination icon in its accent colour, then the console with its overlay (about 1 s)',
+    /out>hold>in>idle/.test(phases) && hold && /Power/.test(hold.emblem) && hold.color === 'rgb(245, 158, 11)' && hold.sub === 'power' && doneAt >= 900 && doneAt <= 1250, `${phases}; ${JSON.stringify(hold)}; done at ${doneAt} ms`);
+  check('the subsystem icon is visible for at least 350 ms, at least 64 px wide, with its name under it',
+    switchLog.iconMs >= 350 && switchLog.iconPx >= 64 && /Power/.test(hold?.emblem ?? ''), `visible ${switchLog.iconMs} ms, ${switchLog.iconPx} px`);
   // rapid clicks during a transition end on the last tab clicked, with nothing left half-done
   await page.evaluate(() => { for (const s of ['comms', 'terrain', 'science', 'terrain']) document.querySelector(`[data-testid="subsys-${s}"]`).click(); });
   await page.waitForTimeout(150);
@@ -1035,18 +1043,24 @@ try {
   await p3.waitForSelector('[data-testid="verdict"][data-level]', { timeout: 60000 });
   const reduced = await p3.evaluate(async () => {
     const t0 = performance.now();
-    let emblem = false;
+    let from = null, to = null, moved = false, doneAt = null;
     document.querySelector('[data-testid="subsys-terrain"]').click();
     await new Promise((resolve) => {
       const tick = () => {
-        if (document.querySelector('.subsys-emblem')) emblem = true;
-        if (performance.now() - t0 < 900) requestAnimationFrame(tick); else resolve();
+        const c = document.querySelector('[data-testid="subsys-curtain"]');
+        const em = c?.querySelector('.subsys-emblem');
+        if (em) {
+          const seen = Number(getComputedStyle(c).opacity) * Number(getComputedStyle(em).opacity);
+          if (seen >= 0.5) { from ??= performance.now(); to = performance.now(); }
+          if (getComputedStyle(em).transform !== 'none') moved = true;
+        } else if (from !== null && doneAt === null) doneAt = Math.round(performance.now() - t0);
+        if (performance.now() - t0 < 1500) requestAnimationFrame(tick); else resolve();
       };
       tick();
     });
-    return { emblem, sub: document.querySelector('[data-testid="planner"]').dataset.subsystem, curtain: Boolean(document.querySelector('[data-testid="subsys-curtain"]')) };
+    return { iconMs: from === null ? 0 : Math.round(to - from), moved, doneAt, sub: document.querySelector('[data-testid="planner"]').dataset.subsystem, curtain: Boolean(document.querySelector('[data-testid="subsys-curtain"]')) };
   });
-  check('with prefers-reduced-motion the tab change is a short fade without the animated icon', !reduced.emblem && reduced.sub === 'terrain' && !reduced.curtain, JSON.stringify(reduced));
+  check('with prefers-reduced-motion the tab change is still a fade to black with the icon (about 1 s), and nothing moves', reduced.iconMs >= 350 && !reduced.moved && reduced.doneAt >= 900 && reduced.doneAt <= 1300 && reduced.sub === 'terrain' && !reduced.curtain, JSON.stringify(reduced));
   check('the frame counter appears only with ?debug=1', (await p3.locator('[data-testid="fps"]').count()) === 1);
   await ctx3.close();
   }
