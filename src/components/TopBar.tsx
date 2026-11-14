@@ -56,8 +56,8 @@ export function TopBar() {
 
       <button
         type="button" className="btn btn-verif btn-guide" data-testid="briefing-open"
-        onClick={() => { switchMode('planner'); useApp.getState().setBriefing(0); }}
-        title={t('Relaunch the mission briefing tour', 'Relanzar el recorrido de inducción')}
+        onClick={() => useApp.getState().setBriefing('confirm')}
+        title={t('Tutorial mode: a guided sequence that drives the app by itself', 'Modo tutorial: una secuencia guiada que conduce la app por sí sola')}
       >
         {t('Mission guide', 'Guía de misión')}
       </button>

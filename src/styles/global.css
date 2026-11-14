@@ -946,3 +946,6 @@ input[type="range"] { width: 100%; accent-color: var(--rock); height: 18px; marg
 .rate-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
 .quick-slope { font-size: 11px; color: var(--dim); padding: 2px 10px 0; }
 .score-weighting { padding-top: 10px; }
+
+/* ================================================================ v2.0: tutorial mode notice */
+.brief-confirm { right: 16px; top: calc(var(--top) + 10px); }

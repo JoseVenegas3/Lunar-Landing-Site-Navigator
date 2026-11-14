@@ -134,7 +134,7 @@ export function Timeline({ scenarios, simple = false }: { scenarios: ScenarioDat
       ctx.textAlign = 'left';
       ctx.fillText(text, tx + 5, ty + 8);
     }
-  } }, [...results, maxHours, rowLabels.join('|'), scenarios.length]);
+  } }, [results[0] ?? null, results[1] ?? null, maxHours, rowLabels.join('|'), scenarios.length]);
 
   const scrub = (e: React.PointerEvent<HTMLCanvasElement>): void => {
     const r = e.currentTarget.getBoundingClientRect();

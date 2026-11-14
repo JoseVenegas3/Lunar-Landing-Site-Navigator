@@ -67,7 +67,7 @@ export function App() {
       <div className={`app app-${mode}`}>
         <TopBar />
         {mode === 'planner' ? <PlannerLayout /> : mode === 'triage' ? <TriageLayout /> : <ExplorerLayout />}
-        {mode === 'planner' && <MissionBriefingTour />}
+        <MissionBriefingTour />
       </div>
     </MissionProvider>
   );

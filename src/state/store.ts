@@ -74,8 +74,8 @@ const panelsFor = (s: Subsystem, keep?: PanelState): PanelState => ({
   telemetry: keep?.telemetry ?? telemetryOpen(), legend: keep?.legend ?? false,
 });
 
-/** Mission briefing tour: offer at first visit, a step index while it runs, or off. */
-export type BriefingState = 'offer' | 'off' | number;
+/** Tutorial mode: offer at first visit, the notice before it starts, a step index while it runs, or off. */
+export type BriefingState = 'offer' | 'confirm' | 'off' | number;
 
 export interface ScenarioCfg {
   /** Candidate site id, or 'custom' for free coordinates. */
