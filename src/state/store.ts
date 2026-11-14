@@ -11,7 +11,7 @@ export type OverlayKind = 'none' | 'insolation' | 'dte' | 'slope';
 export type ViewKind = 'orbit' | 'top' | 'eye';
 /** Workspace panels of the planner: at most one tab open per side, or none (minimised). */
 export type LeftTab = 'sites' | 'hardware' | 'contingency';
-export type RightTab = 'vitals' | 'compare' | 'windows' | 'energy' | 'link' | 'survival' | 'score';
+export type RightTab = 'vitals' | 'compare' | 'windows' | 'energy' | 'link' | 'survival' | 'score' | 'engineering';
 export type BottomTab = 'timeline' | 'horizon' | 'thermal';
 export type PanelId = LeftTab | RightTab | BottomTab;
 
@@ -33,7 +33,7 @@ export const SUBSYSTEMS: Record<Subsystem, SubsystemDef> = {
   power: { left: ['hardware'], right: ['energy'], bottom: ['thermal', 'timeline'], overlay: 'insolation', accent: '#F59E0B' },
   comms: { left: ['hardware'], right: ['link'], bottom: ['horizon', 'timeline'], overlay: 'dte', accent: '#06B6D4' },
   terrain: { left: ['contingency'], right: ['survival'], bottom: ['horizon', 'timeline'], overlay: 'slope', accent: '#E2E8F0' },
-  science: { left: ['sites'], right: ['score'], bottom: ['timeline'], overlay: 'none', accent: '#B49CFF' },
+  science: { left: ['sites'], right: ['score', 'engineering'], bottom: ['timeline'], overlay: 'none', accent: '#B49CFF' },
 };
 export const SUBSYSTEM_ORDER: Subsystem[] = ['overview', 'power', 'comms', 'terrain', 'science'];
 
@@ -58,15 +58,8 @@ export interface PanelState {
   legend: boolean;
 }
 
-const EXPERT_KEY = 'clps.expert';
 /** First-visit mission briefing: 'done' once it was taken or skipped. */
 export const BRIEFING_KEY = 'clps.briefing';
-const readFlag = (key: string): boolean => {
-  try { return typeof localStorage !== 'undefined' && localStorage.getItem(key) === '1'; } catch { return false; }
-};
-const writeFlag = (key: string, on: boolean): void => {
-  try { localStorage.setItem(key, on ? '1' : '0'); } catch { /* storage unavailable */ }
-};
 const briefingDone = (): boolean => {
   try { return typeof localStorage !== 'undefined' && localStorage.getItem(BRIEFING_KEY) === 'done'; } catch { return true; }
 };
@@ -111,8 +104,6 @@ export interface AppState {
   tipover: TipoverConfig;
   scoreMode: WeightMode;
   science: Record<ScenarioKey, ScienceInputs>;
-  /** Engineering level: every panel and control. Off shows the quick view. */
-  expert: boolean;
   /** Sub-pixel terrain (LOLA + fractal micro-relief) hazard analysis. */
   microRelief: boolean;
   /** Mission subsystem the planner console is set to. */
@@ -151,7 +142,6 @@ export interface AppState {
   setTipover: (patch: Partial<TipoverConfig>) => void;
   setScoreMode: (m: WeightMode) => void;
   setScience: (k: ScenarioKey, id: CriterionId, value: number | null) => void;
-  setExpert: (on: boolean) => void;
   setMicroRelief: (on: boolean) => void;
   setBriefing: (b: BriefingState) => void;
   setMast: (m: number) => void;
@@ -189,7 +179,6 @@ export const useApp = create<AppState>((set) => ({
   tipover: DEFAULT_TIPOVER,
   scoreMode: 'synthesized',
   science: { A: {}, B: {} },
-  expert: readFlag(EXPERT_KEY),
   microRelief: false,
   subsystem: 'overview',
   briefing: briefingDone() ? 'off' : 'offer',
@@ -258,7 +247,6 @@ export const useApp = create<AppState>((set) => ({
     if (value === null) delete next[id]; else next[id] = value;
     return { science: { ...s.science, [k]: next } };
   }),
-  setExpert: (expert) => set(() => { writeFlag(EXPERT_KEY, expert); return { expert }; }),
   setMicroRelief: (microRelief) => set({ microRelief }),
   setBriefing: (briefing) => set(() => {
     if (briefing === 'off') { try { localStorage.setItem(BRIEFING_KEY, 'done'); } catch { /* storage unavailable */ } }

@@ -21,7 +21,8 @@ import { VerdictCard } from '../VerdictCard';
 import { VitalCards } from '../VitalCards';
 import { ContingencyPanel } from './ContingencyPanel';
 import { HorizonPanorama } from './HorizonPanorama';
-import { KpiMatrix, LinkBudgetCard } from './KpiMatrix';
+import { LinkBudgetCard } from './KpiMatrix';
+import { EngineeringView } from './EngineeringView';
 import { QuickCompare } from './QuickCompare';
 import { Readout } from './Readout';
 import { HardwarePanel, SitesPanel } from './ScenarioPanel';
@@ -33,7 +34,8 @@ import { WindowsPanel } from './WindowsPanel';
 
 type T = (en: string, es: string) => string;
 
-function panelLabel(id: PanelId, t: T): string {
+function panelLabel(id: PanelId, t: T, subsystem?: string): string {
+  if (id === 'timeline' && subsystem === 'science') return t('Detailed timeline', 'Línea de tiempo detallada');
   return {
     sites: t('Sites and dates', 'Sitios y fechas'),
     hardware: t('Hardware', 'Equipo'),
@@ -45,6 +47,7 @@ function panelLabel(id: PanelId, t: T): string {
     link: t('Link budget', 'Presupuesto de enlace'),
     survival: t('Dispersion and escape', 'Dispersión y escape'),
     score: t('Suitability index', 'Índice de aptitud'),
+    engineering: t('Engineering view', 'Vista de ingeniería'),
     timeline: t('Mission windows', 'Ventanas de misión'),
     horizon: t('Horizon 360°', 'Horizonte 360°'),
     thermal: t('Power and temperature', 'Potencia y temperatura'),
@@ -57,11 +60,12 @@ function panelHint(id: PanelId, t: T): string {
     hardware: t('Solar panels, battery, heaters, radio and relays. Bigger panels and battery survive longer shadows.', 'Paneles, batería, calefactores, radio y relays. Paneles y batería más grandes resisten sombras más largas.'),
     contingency: t('What happens if the lander ends up tilted, tips over, or lands next to another vehicle.', 'Qué pasa si el lander queda inclinado, vuelca o aluniza junto a otro vehículo.'),
     vitals: t('Hours of sunlight left, whether the Earth is reachable, and the time until the battery freezes, from the time on the clock.', 'Horas de sol restantes, si la Tierra está al alcance y el tiempo hasta que se congele la batería, desde la hora del reloj.'),
-    compare: t('The two scenarios side by side. Engineering mode shows the full table.', 'Los dos escenarios lado a lado. El modo ingeniería muestra la tabla completa.'),
+    compare: t('The two scenarios side by side in four bars. The full table is in Science, Engineering view.', 'Los dos escenarios lado a lado en cuatro barras. La tabla completa está en Ciencia, Vista de ingeniería.'),
     windows: t('Which landing dates work, and what rules out the others.', 'Qué fechas de alunizaje sirven y qué descarta a las demás.'),
     energy: t('Whether the battery and the electronics get through the cold of the shadows.', 'Si la batería y la electrónica resisten el frío de las sombras.'),
     link: t('Whether the radio signal reaches the Earth: power, distance, antenna, mountains in the way.', 'Si la señal de radio llega a la Tierra: potencia, distancia, antena y montañas en el camino.'),
     survival: t('25 touchdown points within 200 m, the escape vector, and how much the answer depends on terrain errors.', '25 puntos de contacto a 200 m, el vector de escape y cuánto depende la respuesta del error del terreno.'),
+    engineering: t('Every KPI of the mission in one table, with the detailed timeline below: one row per ground station, the relay and simultaneous operations.', 'Todos los KPI de la misión en una tabla, con la línea de tiempo detallada abajo: una fila por estación terrena, el relay y las operaciones simultáneas.'),
     score: t('A single 0–100 mark that weighs sunlight, Earth view, slope and science interest, with the orbital layers behind it.', 'Una nota de 0 a 100 que pondera luz, vista a la Tierra, pendiente e interés científico, con las capas orbitales detrás.'),
     timeline: t('Sun, Earth and both at once over the window. Green is the golden window.', 'Sol, Tierra y ambos a la vez en la ventana. El verde es la ventana de oro.'),
     horizon: t('The skyline all around the lander with the paths of the Sun and the Earth.', 'El horizonte alrededor del lander con las trayectorias del Sol y la Tierra.'),
@@ -78,18 +82,10 @@ function ConsoleTools() {
   const t = useT();
   const telemetry = useApp((s) => s.panels.telemetry);
   const setPanels = useApp((s) => s.setPanels);
-  const expert = useApp((s) => s.expert);
-  const setExpert = useApp((s) => s.setExpert);
   return (
     <div className="subsys-tools">
       <button type="button" className={`btn btn-small${telemetry ? ' is-on' : ''}`} aria-pressed={telemetry} onClick={() => setPanels({ telemetry: !telemetry })} data-testid="dock-telemetry">
         {t('Telemetry', 'Telemetría')}
-      </button>
-      <button
-        type="button" className={`btn btn-small${expert ? ' is-on' : ''}`} aria-pressed={expert} onClick={() => setExpert(!expert)} data-testid="expert-toggle"
-        title={t('Engineering mode: full comparison table and the detailed timeline', 'Modo ingeniería: tabla de comparación completa y línea de tiempo detallada')}
-      >
-        {expert ? t('Engineering: on', 'Ingeniería: sí') : t('Engineering: off', 'Ingeniería: no')}
       </button>
     </div>
   );
@@ -146,7 +142,6 @@ export function PlannerLayout() {
   const setPanels = useApp((s) => s.setPanels);
   const openPanel = useApp((s) => s.openPanel);
   const openSide = useApp((s) => s.openSide);
-  const expert = useApp((s) => s.expert);
   const def = SUBSYSTEMS[subsystem];
   const deck = useRef<HTMLDivElement>(null);
   const bottom = useRef<HTMLElement>(null);
@@ -191,7 +186,8 @@ export function PlannerLayout() {
   const rightBody = (id: RightTab): ReactNode => {
     switch (id) {
       case 'vitals': return <div className="panel block"><VitalCards data={active} /></div>;
-      case 'compare': return expert ? <KpiMatrix /> : <QuickCompare />;
+      case 'compare': return <QuickCompare />;
+      case 'engineering': return <EngineeringView />;
       case 'windows': return <WindowsPanel data={active} />;
       case 'energy': return <SurvivalPanel data={active} part="thermal" />;
       case 'link': return <LinkBudgetCard data={active} />;
@@ -200,7 +196,7 @@ export function PlannerLayout() {
     }
   };
   const bottomBody = (id: BottomTab): ReactNode => {
-    if (id === 'timeline') return <Timeline scenarios={[mission.A, mission.B]} simple={!expert} />;
+    if (id === 'timeline') return <Timeline scenarios={[mission.A, mission.B]} simple={subsystem !== 'science'} />;
     if (id === 'horizon') return <div className="pano-wrap"><HorizonPanorama data={active} /></div>;
     return <div className="pano-wrap"><ThermalChart data={active} /></div>;
   };
@@ -234,7 +230,7 @@ export function PlannerLayout() {
             <div className="bottom-tabs" role="tablist">
               {def.bottom.map((id) => (
                 <button key={id} type="button" role="tab" aria-selected={bottomTab === id} className={bottomTab === id ? 'is-on' : ''} onClick={() => openPanel(id)} data-testid={`bottom-${id}`}>
-                  {panelLabel(id, t)}
+                  {panelLabel(id, t, subsystem)}
                 </button>
               ))}
             </div>
