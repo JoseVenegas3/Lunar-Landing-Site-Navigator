@@ -951,3 +951,6 @@ input[type="range"] { width: 100%; accent-color: var(--rock); height: 18px; marg
 .brief-confirm { right: 16px; top: calc(var(--top) + 10px); }
 .btn-guide-pdf { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
 .sw-dbl { background: transparent; border: 1px solid var(--bright); height: 8px; width: 8px; border-radius: 50%; }
+.hud-bl .legend { max-width: 240px; }
+.hud-bl .legend li { white-space: normal; align-items: flex-start; }
+.hud-bl .legend li .sw { margin-top: 5px; }
