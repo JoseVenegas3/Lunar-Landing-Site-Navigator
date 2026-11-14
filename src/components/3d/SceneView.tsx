@@ -207,7 +207,9 @@ const DEBUG = typeof location !== 'undefined' && new URLSearchParams(location.se
 function DoubleClickHint() {
   const t = useT();
   const [hidden, setHidden] = useState(() => { try { return localStorage.getItem(DBL_HINT_KEY) === 'hidden'; } catch { return false; } });
-  if (hidden) return null;
+  // The open legend repeats the hint, and needs the room at the bottom of the view.
+  const legend = useApp((s) => s.panels.legend);
+  if (hidden || legend) return null;
   return (
     <div className="hud-block dbl-hint" data-testid="dbl-hint">
       <span>{t(`Double-click the terrain: move the lander (≤ ${RELOCATION_LIMIT_M} m) or create a custom site`, `Doble clic en el terreno: mover el lander (≤ ${RELOCATION_LIMIT_M} m) o crear un sitio propio`)}</span>
@@ -308,6 +310,7 @@ function SceneHud({ data }: { data: ScenarioData }) {
             <li><i className="sw sw-psi" />{t('NASA exclusion radius, scaled', 'Radio de exclusión NASA, escalado')}</li>
             <li><i className="sw sw-ring" />{t(`Horizon gauge, elevation ×${RING_ELEVATION_GAIN}`, `Anillo de horizonte, elevación ×${RING_ELEVATION_GAIN}`)}</li>
             <li><i className="sw sw-box" />{t(`Drag the lander inside the ±${RELOCATION_LIMIT_M} m box`, `Arrastra el lander dentro del cuadro de ±${RELOCATION_LIMIT_M} m`)}</li>
+            <li><i className="sw sw-dbl" />{t(`Double-click the terrain: move the lander (≤ ${RELOCATION_LIMIT_M} m) or create a custom site`, `Doble clic en el terreno: mover el lander (≤ ${RELOCATION_LIMIT_M} m) o crear un sitio propio`)}</li>
           </ul>
         )}
         <button type="button" className={`btn btn-small${legend ? ' is-on' : ''}`} aria-pressed={legend} onClick={() => setPanels({ legend: !legend })} data-testid="legend-toggle">
