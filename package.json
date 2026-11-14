@@ -1,0 +1,47 @@
+{
+  "name": "clps-lunar-mission-browser",
+  "private": true,
+  "version": "1.0.0",
+  "description": "CLPS Lunar Mission Browser - Lunar Landing Site Navigator (GISAT UdeC, NASA Space Apps 2026)",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "calibrate": "vite-node scripts/calibrate_sites.ts",
+    "e2e": "node e2e/verify.mjs",
+    "perf": "node e2e/perf-probe.mjs",
+    "optimise-sites": "vite-node scripts/optimise_sites.ts",
+    "search-rim": "vite-node scripts/search_crater_rim.ts",
+    "build-dem": "python scripts/build_lola_dem.py",
+    "compare-horizons": "vite-node scripts/compare_horizons.ts"
+  },
+  "dependencies": {
+    "@astrouxds/astro-web-components": "^8.0.1",
+    "@astrouxds/react": "^8.0.0",
+    "@fontsource/b612": "^5.3.0",
+    "@fontsource/jetbrains-mono": "^5.3.0",
+    "@react-three/drei": "^10.7.9",
+    "@react-three/fiber": "^9.8.2",
+    "astronomy-engine": "^2.1.19",
+    "geotiff": "^3.0.5",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "three": "^0.187.0",
+    "zustand": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@types/three": "^0.187.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "playwright": "^1.65.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8",
+    "vite-node": "^6.0.0",
+    "vitest": "^5.1.0"
+  }
+}

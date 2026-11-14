@@ -1,0 +1,148 @@
+{
+ "source": "LRO LOLA, NASA GSFC PGDA product 90 (LDEM_80S_20MPP_ADJ, LDEM_60S_240MPP_ADJ)",
+ "citation": "Barker et al. 2023, Planet. Sci. J. 4, 183, doi:10.3847/PSJ/acf3e1",
+ "dataDoi": "10.60903/gsfcpgda-lola-spole",
+ "frame": "MOON_ME (DE421), heights in metres above the 1737.4 km sphere",
+ "generatedUtc": "2026-11-14T15:22:54Z",
+ "projection": "azimuthal equidistant about the south pole: x = r sin(lon), y = r cos(lon), r = R * colatitude",
+ "sites": [
+  {
+   "id": "shackleton-ridge",
+   "name": "Shackleton Connecting Ridge",
+   "latDeg": -89.4401,
+   "lonDeg": -137.3618,
+   "file": "site-shackleton-ridge.f32",
+   "n": 513,
+   "spacingM": 32.0,
+   "encoding": "float32le-m",
+   "sourcePixelM": 20,
+   "elevationM": 1957.822998046875,
+   "slopeDeg": 0.7911963200837506,
+   "minM": -723.0064697265625,
+   "maxM": 1958.8837890625,
+   "highestWithin2km": {
+    "elevationM": 1958.8837890625,
+    "eastM": 68.75705171449955,
+    "northM": 19.810801082481102
+   }
+  },
+  {
+   "id": "malapert-massif",
+   "name": "Malapert Massif",
+   "latDeg": -85.9759,
+   "lonDeg": 1.573,
+   "file": "site-malapert-massif.f32",
+   "n": 513,
+   "spacingM": 32.0,
+   "encoding": "float32le-m",
+   "sourcePixelM": 20,
+   "elevationM": 5094.4794921875,
+   "slopeDeg": 6.2103276683836155,
+   "minM": 1592.241943359375,
+   "maxM": 5173.08056640625,
+   "highestWithin2km": {
+    "elevationM": 5173.08056640625,
+    "eastM": 1034.1551405970029,
+    "northM": -355.74589973293195
+   }
+  },
+  {
+   "id": "haworth-rim",
+   "name": "Haworth Crater Rim",
+   "latDeg": -86.7573,
+   "lonDeg": -20.4744,
+   "file": "site-haworth-rim.f32",
+   "n": 513,
+   "spacingM": 32.0,
+   "encoding": "float32le-m",
+   "sourcePixelM": 20,
+   "elevationM": 1903.689208984375,
+   "slopeDeg": 2.4032001095133317,
+   "minM": -40.72541046142578,
+   "maxM": 2719.726806640625,
+   "highestWithin2km": {
+    "elevationM": 1907.5972900390625,
+    "eastM": -59.56742807737587,
+    "northM": -251.02135668553512
+   }
+  },
+  {
+   "id": "nobile-rim",
+   "name": "Nobile Crater Rim (VIPER site)",
+   "latDeg": -85.2682,
+   "lonDeg": 32.0028,
+   "file": "site-nobile-rim.f32",
+   "n": 513,
+   "spacingM": 32.0,
+   "encoding": "float32le-m",
+   "sourcePixelM": 20,
+   "elevationM": 6294.4951171875,
+   "slopeDeg": 5.711036222299782,
+   "minM": 4423.11669921875,
+   "maxM": 6507.80615234375,
+   "highestWithin2km": {
+    "elevationM": 6320.986328125,
+    "eastM": 200.1077186855212,
+    "northM": -440.96814048463443
+   }
+  },
+  {
+   "id": "de-gerlache-rim-2",
+   "name": "De Gerlache Rim 2",
+   "latDeg": -88.7047,
+   "lonDeg": -68.4666,
+   "file": "site-de-gerlache-rim-2.f32",
+   "n": 513,
+   "spacingM": 32.0,
+   "encoding": "float32le-m",
+   "sourcePixelM": 20,
+   "elevationM": 1779.93994140625,
+   "slopeDeg": 0.39176597008423075,
+   "minM": -809.4852905273438,
+   "maxM": 1814.45556640625,
+   "highestWithin2km": {
+    "elevationM": 1814.45556640625,
+    "eastM": 35.40903856055763,
+    "northM": 1218.0091132615623
+   }
+  },
+  {
+   "id": "im2-athena",
+   "name": "IM-2 Athena (Mons Mouton)",
+   "latDeg": -84.7906,
+   "lonDeg": 29.1957,
+   "file": "site-im2-athena.f32",
+   "n": 513,
+   "spacingM": 32.0,
+   "encoding": "float32le-m",
+   "sourcePixelM": 20,
+   "elevationM": 5321.90576171875,
+   "slopeDeg": 2.7746377917623994,
+   "minM": 4832.91455078125,
+   "maxM": 5827.31298828125,
+   "highestWithin2km": {
+    "elevationM": 5358.28466796875,
+    "eastM": 60.77615102561529,
+    "northM": -699.1782744525974
+   }
+  }
+ ],
+ "regional": {
+  "file": "regional.i16",
+  "n": 1401,
+  "spacingM": 800.0,
+  "encoding": "int16le-0.5m",
+  "sourcePixelM": 240,
+  "minM": -7985.5234375,
+  "maxM": 7008.33740234375
+ },
+ "cap": {
+  "file": "cap.i16",
+  "n": 2001,
+  "spacingM": 160.0,
+  "encoding": "int16le-0.5m",
+  "sourcePixelM": 160,
+  "minM": -5495.61083984375,
+  "maxM": 7025.69580078125
+ }
+}

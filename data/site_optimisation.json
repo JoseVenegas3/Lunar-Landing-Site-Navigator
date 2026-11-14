@@ -1,0 +1,126 @@
+{
+ "method": "annual illumination % + annual DTE % (2027, 2 h step, sensor 2 m above ground, 2 deg antenna margin) maximised over points within 4 km of the grid centre with slope <= 10 deg",
+ "terrain": "Barker et al. 2023, Planet. Sci. J. 4, 183, doi:10.3847/PSJ/acf3e1",
+ "sites": {
+  "shackleton-ridge": {
+   "brief": {
+    "eastM": 0,
+    "northM": 0,
+    "latDeg": -89.54,
+    "lonDeg": -129.78,
+    "elevationM": 1201.104879379273,
+    "slopeDeg": 13.555402418404817,
+    "illuminationPct": 22.70783673688703,
+    "dtePct": 41.246290801186944
+   },
+   "best": {
+    "eastM": -2239.9999999999986,
+    "northM": 2880.000000000002,
+    "latDeg": -89.44012898553606,
+    "lonDeg": -137.3618237665151,
+    "elevationM": 1957.6269487885477,
+    "slopeDeg": 0.13962242105976616,
+    "illuminationPct": 84.3221497401259,
+    "dtePct": 42.54736361561287
+   },
+   "candidates": 1949,
+   "usable": 955
+  },
+  "malapert-massif": {
+   "brief": {
+    "eastM": 0,
+    "northM": 0,
+    "latDeg": -86.04,
+    "lonDeg": 2.7,
+    "elevationM": 5063.044548034668,
+    "slopeDeg": 5.309724202380221,
+    "illuminationPct": 20.837800289571515,
+    "dtePct": 35.38005021684547
+   },
+   "best": {
+    "eastM": -2399.9999999999986,
+    "northM": 1920.0000000000011,
+    "latDeg": -85.97590404238737,
+    "lonDeg": 1.5730195936191838,
+    "elevationM": 5093.66778616523,
+    "slopeDeg": 6.057713161200737,
+    "illuminationPct": 57.48056093847648,
+    "dtePct": 76.71764437343073
+   },
+   "candidates": 1949,
+   "usable": 600
+  },
+  "haworth-rim": {
+   "brief": {
+    "eastM": 0,
+    "northM": 0,
+    "latDeg": -86.8,
+    "lonDeg": -21.5,
+    "elevationM": 1819.9584484100342,
+    "slopeDeg": 0.7235924986044926,
+    "illuminationPct": 39.412573525983305,
+    "dtePct": 50.947272312257475
+   },
+   "best": {
+    "eastM": 1760.0000000000011,
+    "northM": 1280.0000000000014,
+    "latDeg": -86.75726883045076,
+    "lonDeg": -20.47441806807024,
+    "elevationM": 1903.5549222598763,
+    "slopeDeg": 2.280630573758701,
+    "illuminationPct": 51.189605066013065,
+    "dtePct": 54.804839077836114
+   },
+   "candidates": 1949,
+   "usable": 1551
+  },
+  "nobile-rim": {
+   "brief": {
+    "eastM": 0,
+    "northM": 0,
+    "latDeg": -85.2,
+    "lonDeg": 31.3,
+    "elevationM": 5897.677898406984,
+    "slopeDeg": 11.823131137569298,
+    "illuminationPct": 45.68017449278348,
+    "dtePct": 70.21228030130108
+   },
+   "best": {
+    "eastM": 1760.0000000000011,
+    "northM": -2079.999999999998,
+    "latDeg": -85.26823801610296,
+    "lonDeg": 32.00282324385931,
+    "elevationM": 6294.479001070513,
+    "slopeDeg": 5.541170861140772,
+    "illuminationPct": 51.03928825376838,
+    "dtePct": 73.27094270714448
+   },
+   "candidates": 1949,
+   "usable": 1159
+  },
+  "de-gerlache-rim-2": {
+   "brief": {
+    "eastM": 0,
+    "northM": 0,
+    "latDeg": -88.71,
+    "lonDeg": -68.7,
+    "elevationM": 1765.5839920043945,
+    "slopeDeg": 6.219089270749433,
+    "illuminationPct": 54.95310357586668,
+    "dtePct": 15.863958000456517
+   },
+   "best": {
+    "eastM": 160.0000000000014,
+    "northM": 160.0000000000014,
+    "latDeg": -88.70471279110444,
+    "lonDeg": -68.46660015968209,
+    "elevationM": 1779.9872166743712,
+    "slopeDeg": 0.6585565035244675,
+    "illuminationPct": 77.5789327041701,
+    "dtePct": 45.01255421136727
+   },
+   "candidates": 1949,
+   "usable": 328
+  }
+ }
+}
