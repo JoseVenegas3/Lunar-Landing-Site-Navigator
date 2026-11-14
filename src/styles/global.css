@@ -876,3 +876,8 @@ input[type="range"] { width: 100%; accent-color: var(--rock); height: 18px; marg
 .compare-b { border: 1px dashed var(--line); border-radius: 3px; padding-top: 6px; }
 .compare-b h4 { margin: 0 10px 2px; font-size: 12px; color: var(--bright); }
 .compare-block .quick, .compare-block .kpis { background: transparent; }
+
+/* ================================================================ v2.0: site labels are full names, wrapped when needed, never cut */
+.site-label { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; }
+.kpi-site { white-space: normal; max-width: 150px; }
+.kpi-site .site-label { color: var(--text); font-size: 11px; }

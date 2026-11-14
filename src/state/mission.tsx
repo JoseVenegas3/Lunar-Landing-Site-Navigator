@@ -12,8 +12,8 @@ import { ScenarioKey, scenarioLatLon, useApp } from './store';
 
 export interface ScenarioData {
   key: ScenarioKey;
+  /** Full site name (never abbreviated). */
   name: string;
-  short: string;
   /** Nominal coordinates (before relocation). */
   latDeg: number;
   lonDeg: number;
@@ -47,7 +47,8 @@ function useScenarioData(key: ScenarioKey): ScenarioData {
   const asset = useApp((s) => s.asset);
   const layers = useScience((s) => s.layers);
   const mastM = useApp((s) => s.mastM);
-  const { latDeg, lonDeg, name, short } = scenarioLatLon(cfg);
+  const lang = useApp((s) => s.lang);
+  const { latDeg, lonDeg, name } = scenarioLatLon(cfg, lang);
 
   const tKey = localKey(latDeg, lonDeg);
   const gridVersion = useTerrainStream((s) => s.version[tKey] ?? 0);
@@ -109,7 +110,7 @@ function useScenarioData(key: ScenarioKey): ScenarioData {
   }, [dem, horizon, input]);
 
   return {
-    key, name, short, latDeg, lonDeg, dem, result, input, loading: dem ? null : loading ?? 0,
+    key, name, latDeg, lonDeg, dem, result, input, loading: dem ? null : loading ?? 0,
     terrain: terrainKind(), terrainResolutionM: dem ? localSourceResolutionM(latDeg, lonDeg) : null,
     stream, streamCoveragePct: streamCoverage ?? null,
   };

@@ -28,7 +28,7 @@ function ScoreHead({ data, score }: { data: ScenarioData; score: SiteScore | nul
     <th>
       <ScenarioBadge k={data.key} />
       <div className="score-big mono" data-testid={`score-${data.key}`}>{score ? fmtNum(score.score, 1) : '···'}</div>
-      <div className="kpi-cap mono" data-testid={`coverage-${data.key}`}>{data.short} · {score ? `${fmtNum(score.coveragePct, 0)} %` : ''}</div>
+      <div className="kpi-cap kpi-site" data-testid={`coverage-${data.key}`}><span className="site-label" data-site-label={data.name}>{data.name}</span><br /><span className="mono">{score ? `${fmtNum(score.coveragePct, 0)} %` : ''}</span></div>
     </th>
   );
 }

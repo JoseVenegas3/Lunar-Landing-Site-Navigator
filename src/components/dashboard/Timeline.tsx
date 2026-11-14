@@ -77,9 +77,6 @@ export function Timeline({ scenarios, simple = false }: { scenarios: ScenarioDat
         ctx.fillStyle = lane.data.key === 'A' ? '#E6EDF7' : '#A5B4CC';
         ctx.fillText(lane.data.key, 8, lane.top + ROW_H / 2);
       }
-      ctx.font = `10px ${FONT_MONO}`;
-      ctx.fillStyle = C.faint;
-      ctx.fillText(lane.data.short, 8, lane.top + ROW_H + ROW_GAP + ROW_H / 2);
       if (!r) continue;
       drawLane(ctx, r, lane.top, pw, maxHours, relayOn, simple);
       drawAxis(ctx, r, lane.top + groupH + 3, pw, maxHours, X);

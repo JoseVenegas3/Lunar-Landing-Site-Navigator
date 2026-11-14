@@ -59,20 +59,26 @@ export function EscapeArrow({ result, frame, dem, scenarioKey }: { result: Missi
 
 const LANDMARKS = ['Shackleton', 'Haworth', 'Shoemaker', 'Cabeus', 'Amundsen', 'Nobile', 'de Gerlache', 'Faustini', 'Malapert Massif', 'Mons Mouton'];
 
+/** Full landform name on a dark plate. The canvas is as wide as the text: names are never clipped or abbreviated. */
 function labelSprite(text: string): Sprite {
   const c = document.createElement('canvas');
-  c.width = 384; c.height = 56;
+  const font = '26px "B612", system-ui, sans-serif';
+  const probe = c.getContext('2d') as CanvasRenderingContext2D;
+  probe.font = font;
+  const w = Math.ceil(probe.measureText(text).width + 22);
+  c.width = w + 4; c.height = 56;
   const ctx = c.getContext('2d') as CanvasRenderingContext2D;
-  ctx.font = '26px "B612", system-ui, sans-serif';
-  const w = Math.min(380, ctx.measureText(text).width + 22);
+  ctx.font = font;
   ctx.fillStyle = 'rgba(8,11,17,0.62)';
-  ctx.fillRect((384 - w) / 2, 8, w, 40);
+  ctx.fillRect(2, 8, w, 40);
   ctx.fillStyle = '#c9d4e3';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(text, 192, 29);
+  ctx.fillText(text, c.width / 2, 29);
   const sprite = new Sprite(new SpriteMaterial({ map: new CanvasTexture(c), transparent: true, depthTest: false, depthWrite: false }));
-  sprite.scale.set(7.4, 1.08, 1);
+  // Same text height as before (1.08 units for 56 px); the width follows the text.
+  sprite.scale.set((1.08 * c.width) / 56, 1.08, 1);
+  sprite.userData.label = text;
   sprite.renderOrder = 5;
   return sprite;
 }

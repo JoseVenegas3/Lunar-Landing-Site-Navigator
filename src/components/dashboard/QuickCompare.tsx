@@ -25,7 +25,7 @@ function Bars({ data }: { data: ScenarioData }) {
   return (
     <section className={`panel block quick${active === data.key ? ' is-active' : ''}`} data-testid={`quick-${data.key}`}>
       <h3>
-        <span className={`badge badge-${data.key}`}>{data.key}</span>{data.name}
+        <span className={`badge badge-${data.key}`}>{data.key}</span><span className="site-label" data-site-label={data.name}>{data.name}</span>
         {v && <em className={`quick-level is-${v.level}`}>{verdictLabel(v, t)}</em>}
       </h3>
       {bars.map((b) => (

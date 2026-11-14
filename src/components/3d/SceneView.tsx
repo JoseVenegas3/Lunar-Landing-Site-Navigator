@@ -217,7 +217,7 @@ function SceneHud({ data }: { data: ScenarioData }) {
     <div className="scene-hud">
       <div className="scene-tag scene-tag-crit hud-los" ref={(el) => { hudTags.los = el; }} style={{ display: 'none' }} />
       <div className="hud-block hud-tl">
-        <div className="hud-title"><ScenarioBadge k={data.key} />{data.name}</div>
+        <div className="hud-title"><ScenarioBadge k={data.key} /><span className="site-label" data-site-label={data.name}>{data.name}</span></div>
         {r && pos && (
           <p className="hud-line mono">
             {fmtLat(pos.latDeg)} {fmtLon(pos.lonDeg)} · {fmtSigned(r.kpis.groundElevationM, 0)} m ·{' '}

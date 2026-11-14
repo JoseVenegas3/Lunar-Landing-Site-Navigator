@@ -269,11 +269,17 @@ export const useApp = create<AppState>((set) => ({
   setTourStep: (tourStep) => set({ tourStep }),
 }));
 
-/** Nominal selenographic coordinates of a scenario. */
-export function scenarioLatLon(cfg: ScenarioCfg): { latDeg: number; lonDeg: number; name: string; short: string } {
+/** Name of a free-coordinates site. */
+export const CUSTOM_SITE_NAME: Record<Lang, string> = { en: 'Custom site', es: 'Sitio propio' };
+
+/**
+ * Nominal selenographic coordinates and full name of a scenario. Interface rule:
+ * a site is labelled with its full name or not at all, never an abbreviation.
+ */
+export function scenarioLatLon(cfg: ScenarioCfg, lang: Lang = 'en'): { latDeg: number; lonDeg: number; name: string } {
   const site = ALL_SITES.find((s) => s.id === cfg.siteId);
-  if (site) return { latDeg: site.latDeg, lonDeg: site.lonDeg, name: site.name, short: site.short };
-  return { latDeg: cfg.customLat, lonDeg: cfg.customLon, name: 'Custom site', short: 'CUS' };
+  if (site) return { latDeg: site.latDeg, lonDeg: site.lonDeg, name: site.name };
+  return { latDeg: cfg.customLat, lonDeg: cfg.customLon, name: CUSTOM_SITE_NAME[lang] };
 }
 
 /** What the 3-D scene emphasises: the planner subsystem, the landing ground in the emergency mode, nothing in the explorer. */

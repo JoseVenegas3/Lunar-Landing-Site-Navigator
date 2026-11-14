@@ -187,7 +187,7 @@ export function ExplorerLayout() {
               return (
                 <li key={site.id}>
                   <button type="button" className={`site-card${on ? ' is-on' : ''}`} aria-pressed={on} onClick={() => update('A', { siteId: site.id })} data-testid={`card-${site.id}`}>
-                    <strong>{site.name}</strong>
+                    <strong className="site-label" data-site-label={site.name}>{site.name}</strong>
                     <em>{site.summary[lang]}</em>
                     {c ? (
                       <>

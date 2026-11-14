@@ -71,7 +71,7 @@ function Cell({ row, k, wins }: { row: Row; k: AllKpis | null; wins: boolean }) 
 }
 
 function Caption({ d, startMs, days }: { d: ScenarioData; startMs: number; days: number }) {
-  return <div className="kpi-cap mono">{d.short} · {days} d<br />{fmtDate(startMs)}</div>;
+  return <div className="kpi-cap kpi-site"><span className="site-label" data-site-label={d.name}>{d.name}</span><br /><span className="mono">{days} d · {fmtDate(startMs)}</span></div>;
 }
 
 export function KpiMatrix() {
