@@ -163,6 +163,9 @@ export interface AppState {
   setTourStep: (n: number) => void;
 }
 
+/** Playback rates of the transport, simulated hours per real second. */
+export const PLAYBACK_SPEEDS = [1, 24, 72] as const;
+
 const DEFAULT_START = Date.UTC(2027, 8, 1); // southern-summer approach, 2027
 
 export const maxCursorHours = (s: Pick<AppState, 'scenarios' | 'mode' | 'active'>): number =>
@@ -193,7 +196,7 @@ export const useApp = create<AppState>((set) => ({
   mastM: 2,
   cursorHours: 96,
   playing: false,
-  speed: 12,
+  speed: 24,
   overlay: 'none',
   view: 'orbit',
   tourStep: 0,

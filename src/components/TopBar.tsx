@@ -1,23 +1,16 @@
-/** Top bar: identity, global mode switch, time transport and language. */
+/** Top bar: identity, global mode switch, mission clock, guide, export and language. The time transport lives in the 3-D view. */
 import { HOUR_MS } from '../engine';
 import { useActiveScenario, useThrottledCursor } from '../state/mission';
 import { AppMode, maxCursorHours, useApp } from '../state/store';
 import { fmtDateTime, fmtDuration, useT } from '../lib/format';
 import { buildTelemetryCsv, downloadText, exportStem } from '../lib/export';
 
-const SPEEDS = [1, 6, 12, 24, 72];
-
 export function TopBar() {
   const t = useT();
   const mode = useApp((s) => s.mode);
   const lang = useApp((s) => s.lang);
-  const playing = useApp((s) => s.playing);
-  const speed = useApp((s) => s.speed);
   const setMode = useApp((s) => s.setMode);
   const setLang = useApp((s) => s.setLang);
-  const setPlaying = useApp((s) => s.setPlaying);
-  const setSpeed = useApp((s) => s.setSpeed);
-  const setCursor = useApp((s) => s.setCursor);
   const setActive = useApp((s) => s.setActive);
   const maxHours = useApp((s) => maxCursorHours(s));
   const cursor = useThrottledCursor();
@@ -27,10 +20,6 @@ export function TopBar() {
   const switchMode = (m: AppMode): void => {
     if (m !== 'planner') setActive('A');
     setMode(m);
-  };
-  const nudge = (hours: number): void => {
-    setPlaying(false);
-    setCursor(useApp.getState().cursorHours + hours);
   };
 
   return (
@@ -60,24 +49,9 @@ export function TopBar() {
         </button>
       </div>
 
-      <div className="transport">
-        <button type="button" className="btn btn-icon" onClick={() => nudge(-24)} aria-label={t('Back one day', 'Retroceder un día')} title={t('Back one day', 'Retroceder un día')}>−1d</button>
-        <button type="button" className="btn btn-icon" onClick={() => nudge(-1)} aria-label={t('Back one hour', 'Retroceder una hora')} title={t('Back one hour', 'Retroceder una hora')}>−1h</button>
-        <button type="button" className={`btn btn-play${playing ? ' is-on' : ''}`} onClick={() => setPlaying(!playing)} data-testid="play" aria-pressed={playing}>
-          {playing ? t('Pause', 'Pausa') : t('Play', 'Reproducir')}
-        </button>
-        <button type="button" className="btn btn-icon" onClick={() => nudge(1)} aria-label={t('Forward one hour', 'Avanzar una hora')} title={t('Forward one hour', 'Avanzar una hora')}>+1h</button>
-        <button type="button" className="btn btn-icon" onClick={() => nudge(24)} aria-label={t('Forward one day', 'Avanzar un día')} title={t('Forward one day', 'Avanzar un día')}>+1d</button>
-        <label className="speed">
-          <span className="sr-only">{t('Playback rate', 'Velocidad de reproducción')}</span>
-          <select className="mono" value={speed} onChange={(e) => setSpeed(Number(e.target.value))} data-testid="speed">
-            {SPEEDS.map((s) => <option key={s} value={s}>{s} h/s</option>)}
-          </select>
-        </label>
-        <div className="clock mono" data-testid="clock">
-          <output>{startMs !== null ? fmtDateTime(startMs + Math.min(cursor, maxHours) * HOUR_MS) : '----'} UTC</output>
-          <small>T+{fmtDuration(cursor)} · {data.key}</small>
-        </div>
+      <div className="clock mono" data-testid="clock">
+        <output>{startMs !== null ? fmtDateTime(startMs + Math.min(cursor, maxHours) * HOUR_MS) : '----'} UTC</output>
+        <small>T+{fmtDuration(cursor)}</small>
       </div>
 
       <button
@@ -87,7 +61,6 @@ export function TopBar() {
       >
         {t('Mission guide', 'Guía de misión')}
       </button>
-
       <button
         type="button" className="btn btn-verif btn-export" data-testid="export-csv" disabled={!data.result}
         onClick={() => { if (data.result) downloadText(`${exportStem(data.name, data.result)}_telemetry.csv`, buildTelemetryCsv(data.result, { site: data.name, scenario: data.key }), 'text/csv;charset=utf-8'); }}

@@ -54,7 +54,7 @@ const TOUR: TourStep[] = [
     action: ['Watch the radio link', 'Observar el enlace de radio'],
     apply: (s) => {
       s.updateScenario('A', { siteId: nobile });
-      s.setOverlay('none'); s.setView('orbit'); s.setSpeed(12); s.setCursor(0); s.setPlaying(true);
+      s.setOverlay('none'); s.setView('orbit'); s.setSpeed(24); s.setCursor(0); s.setPlaying(true);
     },
   },
   {

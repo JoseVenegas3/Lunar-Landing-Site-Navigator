@@ -15,6 +15,7 @@ import { fmtLat, fmtLon, fmtNum, fmtSigned, useT } from '../../lib/format';
 import { DteBeam, FarSkyline, HorizonRing, Lander, RelaySats, RelocationPad, SkyBodies, SunVector } from './SceneObjects';
 import { Terrain } from './Terrain';
 import { DoubleClickLand, EscapeArrow, LandmarkLabels, SunBeam } from './SceneExtras';
+import { Transport } from './Transport';
 import { terrainStatusText } from '../triage/TriageLayout';
 import { LiveSky, RING_ELEVATION_GAIN, dirToScene, hudTags, makeLiveSky, makeSceneFrame, updateLiveSky, useSceneUi } from './sceneMath';
 
@@ -224,6 +225,15 @@ function SceneHud({ data }: { data: ScenarioData }) {
             </span>
           </p>
         )}
+        <p className="hud-line hud-reloc mono">
+          <span className="reloc-title">{t('Lander offset', 'Desplazamiento')}</span>{' '}
+          <span className="reloc-values" data-testid="reloc-readout">ΔE {fmtSigned(cfg.dxM, 0)} m&nbsp;&nbsp;ΔN {fmtSigned(cfg.dyM, 0)} m</span>
+          {moved && (
+            <button type="button" className="btn btn-small hud-reset" onClick={() => setRelocation(data.key, 0, 0)} data-testid="reloc-reset">
+              {t('Return to nominal point', 'Volver al punto nominal')}
+            </button>
+          )}
+        </p>
         {r && data.stream && data.stream !== 'static' && (
           <p className={`hud-line hud-stream is-${terrainStatusText(data, t).tone}`} data-testid="hud-stream" data-stream={data.stream}>{terrainStatusText(data, t).text}</p>
         )}
@@ -280,19 +290,7 @@ function SceneHud({ data }: { data: ScenarioData }) {
         </button>
       </div>
 
-      <div className="hud-block hud-br">
-        <div className="reloc">
-          <span className="reloc-title">{t('Lander offset', 'Desplazamiento')}</span>
-          <span className="mono reloc-values" data-testid="reloc-readout">
-            ΔE {fmtSigned(cfg.dxM, 0)} m&nbsp;&nbsp;ΔN {fmtSigned(cfg.dyM, 0)} m
-          </span>
-          {moved && (
-            <button type="button" className="btn btn-small" onClick={() => setRelocation(data.key, 0, 0)}>
-              {t('Return to nominal point', 'Volver al punto nominal')}
-            </button>
-          )}
-        </div>
-      </div>
+      <Transport />
     </div>
   );
 }
