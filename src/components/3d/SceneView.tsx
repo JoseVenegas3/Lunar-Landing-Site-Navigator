@@ -2,7 +2,7 @@
  * 3-D view of the selected landing site: terrain tile, lander, Sun and Earth
  * vectors, horizon gauge and the micro-relocation tool, with a DOM HUD on top.
  */
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Stars } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
@@ -107,6 +107,12 @@ function CameraRig({ live, result, siteKey }: { live: LiveSky; result: MissionRe
 
 function SceneContents({ dem, result, overlay, scenarioKey }: { dem: DemStack; result: MissionResult; overlay: OverlayKind; scenarioKey: ScenarioKey }) {
   const focus = useApp(sceneFocus);
+  const t = useT();
+  const dblText = useMemo(() => ({
+    move: (m: number) => t(`Move the lander (${m} m)`, `Mover el lander (${m} m)`),
+    create: t('Create a custom site here', 'Crear sitio propio aquí'),
+    outside: t('Outside the area: only south of 80° S', 'Fuera del área: solo al sur de 80° S'),
+  }), [t]);
   const grid = dem.local as Grid;
   const live = useMemo(makeLiveSky, []);
   const frame = useMemo(() => makeSceneFrame(grid), [grid]);
@@ -178,7 +184,7 @@ function SceneContents({ dem, result, overlay, scenarioKey }: { dem: DemStack; r
       <LandmarkLabels result={result} frame={frame} />
       {(focus === 'triage' || focus === 'terrain') && <EscapeArrow result={result} frame={frame} dem={dem} scenarioKey={scenarioKey} />}
       {focus === 'power' && <SunBeam live={live} />}
-      <DoubleClickLand result={result} frame={frame} scenarioKey={scenarioKey} />
+      <DoubleClickLand result={result} frame={frame} scenarioKey={scenarioKey} text={dblText} />
     </>
   );
 }
@@ -193,6 +199,21 @@ function Segmented<T extends string>({ value, options, onChange, label }: {
           {o.label}
         </button>
       ))}
+    </div>
+  );
+}
+
+const DBL_HINT_KEY = 'clps.dblhint';
+
+/** Permanent, discreet reminder of what a double-click on the terrain does; can be dismissed (remembered). */
+function DoubleClickHint() {
+  const t = useT();
+  const [hidden, setHidden] = useState(() => { try { return localStorage.getItem(DBL_HINT_KEY) === 'hidden'; } catch { return false; } });
+  if (hidden) return null;
+  return (
+    <div className="hud-block dbl-hint" data-testid="dbl-hint">
+      <span>{t(`Double-click the terrain: move the lander (≤ ${RELOCATION_LIMIT_M} m) or create a custom site`, `Doble clic en el terreno: mover el lander (≤ ${RELOCATION_LIMIT_M} m) o crear un sitio propio`)}</span>
+      <button type="button" aria-label={t('Hide this hint', 'Ocultar esta pista')} title={t('Hide this hint', 'Ocultar esta pista')} onClick={() => { setHidden(true); try { localStorage.setItem(DBL_HINT_KEY, 'hidden'); } catch { /* storage unavailable */ } }} data-testid="dbl-hint-close">×</button>
     </div>
   );
 }
@@ -216,6 +237,12 @@ function SceneHud({ data }: { data: ScenarioData }) {
   return (
     <div className="scene-hud">
       <div className="scene-tag scene-tag-crit hud-los" ref={(el) => { hudTags.los = el; }} style={{ display: 'none' }} />
+      <div className="dbl-cursor" ref={(el) => { hudTags.cursor = el; }} style={{ display: 'none' }} data-testid="dbl-cursor" aria-hidden="true">
+        <svg viewBox="-12 -12 24 24" width="24" height="24"><circle r="6" fill="none" stroke="currentColor" strokeWidth="1.3" /><path d="M-11 0h4M7 0h4M0-11v4M0 7v4" stroke="currentColor" strokeWidth="1.3" /></svg>
+        <span />
+      </div>
+      <div className="dbl-notice" ref={(el) => { hudTags.notice = el; }} style={{ display: 'none' }} role="status" data-testid="dbl-notice" />
+      <DoubleClickHint />
       <div className="hud-block hud-tl">
         <div className="hud-title"><ScenarioBadge k={data.key} /><span className="site-label" data-site-label={data.name}>{data.name}</span></div>
         {r && pos && (

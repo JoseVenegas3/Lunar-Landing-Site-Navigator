@@ -13,7 +13,7 @@ import {
 } from '../../engine';
 import { useInsights } from '../../state/insights';
 import { ScenarioKey, useApp } from '../../state/store';
-import { BODY_DISTANCE_KM, LiveSky, SKYLINE_RADIUS_KM, SceneFrame, mapToScene } from './sceneMath';
+import { BODY_DISTANCE_KM, LiveSky, SKYLINE_RADIUS_KM, SceneFrame, hudTags, mapToScene, useSceneUi } from './sceneMath';
 
 const ARROW_COLOUR = 0x34f5a8;
 
@@ -112,35 +112,90 @@ export function LandmarkLabels({ result, frame }: { result: MissionResult; frame
   return <primitive object={group} />;
 }
 
-/** Double-click on the terrain puts the lander there: a relocation when it is close, a new site otherwise. */
-export function DoubleClickLand({ result, frame, scenarioKey }: { result: MissionResult; frame: SceneFrame; scenarioKey: ScenarioKey }) {
+/** Labels of the double-click action, in the interface language. */
+export interface DoubleClickText {
+  move: (m: number) => string;
+  create: string;
+  outside: string;
+}
+
+/**
+ * Double-click on the terrain puts the lander there: a relocation when it is
+ * within the ±500 m box, a new site otherwise. While the pointer moves over
+ * the terrain a reticle says which of the two will happen; north of 80° S the
+ * click is refused with a message instead of being ignored.
+ */
+export function DoubleClickLand({ result, frame, scenarioKey, text }: { result: MissionResult; frame: SceneFrame; scenarioKey: ScenarioKey; text: DoubleClickText }) {
   const { gl, camera, scene } = useThree();
   const { latDeg, lonDeg } = result.input;
   useEffect(() => {
     const ray = new Raycaster();
     const ndc = new Vector2();
-    const onDouble = (ev: MouseEvent): void => {
+    const el = gl.domElement;
+    const pick = (ev: MouseEvent) => {
       const terrain = scene.getObjectByName('terrain');
-      if (!terrain) return;
-      const r = gl.domElement.getBoundingClientRect();
+      if (!terrain) return null;
+      const r = el.getBoundingClientRect();
       ndc.set(((ev.clientX - r.left) / r.width) * 2 - 1, 1 - ((ev.clientY - r.top) / r.height) * 2);
       ray.setFromCamera(ndc, camera);
       const hit = ray.intersectObject(terrain, false)[0];
-      if (!hit) return;
+      if (!hit) return null;
       const x = hit.point.x + frame.cx, y = frame.cy - hit.point.z;
       const ll = xyToLatLon(x, y);
-      if (ll.latDeg > CUSTOM_LAT_MAX) return;
       const [nx, ny] = latLonToXY(latDeg, lonDeg);
       const ax = localAxes(lonDeg);
       const eastM = ((x - nx) * ax.ex + (y - ny) * ax.ey) * 1000, northM = ((x - nx) * ax.nx + (y - ny) * ax.ny) * 1000;
-      const s = useApp.getState();
-      if (Math.abs(eastM) <= RELOCATION_LIMIT_M && Math.abs(northM) <= RELOCATION_LIMIT_M) s.setRelocation(scenarioKey, eastM, northM);
-      else s.updateScenario(scenarioKey, { siteId: 'custom', customLat: Math.round(ll.latDeg * 10000) / 10000, customLon: Math.round(ll.lonDeg * 10000) / 10000, dxM: 0, dyM: 0 });
+      const inBox = Math.abs(eastM) <= RELOCATION_LIMIT_M && Math.abs(northM) <= RELOCATION_LIMIT_M;
+      return { ll, eastM, northM, inBox, outside: ll.latDeg > CUSTOM_LAT_MAX, px: ev.clientX - r.left, py: ev.clientY - r.top };
     };
-    const el = gl.domElement;
+    const showCursor = (p: ReturnType<typeof pick>): void => {
+      const c = hudTags.cursor;
+      if (!c) return;
+      if (!p || useSceneUi.getState().dragging) { c.style.display = 'none'; return; }
+      const cfg = useApp.getState().scenarios[scenarioKey];
+      const label = p.outside ? text.outside : p.inBox ? text.move(Math.round(Math.hypot(p.eastM - cfg.dxM, p.northM - cfg.dyM))) : text.create;
+      c.style.display = 'block';
+      c.style.transform = `translate(${Math.round(p.px)}px, ${Math.round(p.py)}px)`;
+      c.dataset.action = p.outside ? 'outside' : p.inBox ? 'move' : 'create';
+      const span = c.lastElementChild as HTMLElement | null;
+      if (span && span.textContent !== label) span.textContent = label;
+    };
+    let raf = 0;
+    let last: MouseEvent | null = null;
+    const onMove = (ev: MouseEvent): void => {
+      last = ev;
+      if (raf) return;
+      raf = requestAnimationFrame(() => { raf = 0; if (last) showCursor(pick(last)); });
+    };
+    const onLeave = (): void => { if (hudTags.cursor) hudTags.cursor.style.display = 'none'; };
+    const onDouble = (ev: MouseEvent): void => {
+      const p = pick(ev);
+      if (!p) return;
+      if (p.outside) {
+        const n = hudTags.notice;
+        if (n) {
+          n.textContent = text.outside;
+          n.style.display = 'block';
+          window.clearTimeout(Number(n.dataset.timer ?? 0));
+          n.dataset.timer = String(window.setTimeout(() => { n.style.display = 'none'; }, 3500));
+        }
+        return;
+      }
+      const s = useApp.getState();
+      if (p.inBox) s.setRelocation(scenarioKey, p.eastM, p.northM);
+      else s.updateScenario(scenarioKey, { siteId: 'custom', customLat: Math.round(p.ll.latDeg * 10000) / 10000, customLon: Math.round(p.ll.lonDeg * 10000) / 10000, dxM: 0, dyM: 0 });
+    };
     el.addEventListener('dblclick', onDouble);
-    return () => el.removeEventListener('dblclick', onDouble);
-  }, [gl, camera, scene, frame, latDeg, lonDeg, scenarioKey]);
+    el.addEventListener('pointermove', onMove);
+    el.addEventListener('pointerleave', onLeave);
+    return () => {
+      el.removeEventListener('dblclick', onDouble);
+      el.removeEventListener('pointermove', onMove);
+      el.removeEventListener('pointerleave', onLeave);
+      cancelAnimationFrame(raf);
+      onLeave();
+    };
+  }, [gl, camera, scene, frame, latDeg, lonDeg, scenarioKey, text]);
   return null;
 }
 

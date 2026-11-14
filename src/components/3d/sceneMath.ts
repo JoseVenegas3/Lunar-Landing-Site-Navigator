@@ -99,7 +99,13 @@ export const useSceneUi = create<SceneUi>((set) => ({
  * DOM tags positioned over the canvas by scene objects. They live in the HUD
  * layer (pointer-events: none) so they never intercept the lander drag.
  */
-export const hudTags: { los: HTMLDivElement | null } = { los: null };
+export const hudTags: {
+  los: HTMLDivElement | null;
+  /** Reticle and "what a double-click does here" text that follow the pointer over the terrain. */
+  cursor: HTMLDivElement | null;
+  /** Short-lived message of the last double-click (outside the allowed area). */
+  notice: HTMLDivElement | null;
+} = { los: null, cursor: null, notice: null };
 
 /** Radii (km) of the far-field shells drawn around the lander. */
 export const SKYLINE_RADIUS_KM = 40;

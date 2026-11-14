@@ -921,3 +921,20 @@ input[type="range"] { width: 100%; accent-color: var(--rock); height: 18px; marg
 .tm-read.is-ok output { color: var(--ops); }
 .tm-read.is-warn output { color: var(--sun); }
 .tm-read.is-crit output { color: var(--crit); }
+
+/* ================================================================ v2.0: double-click affordance on the terrain */
+.dbl-cursor { position: absolute; left: 0; top: 0; pointer-events: none; color: var(--bright); z-index: 3; }
+.dbl-cursor svg { position: absolute; left: -12px; top: -12px; filter: drop-shadow(0 0 2px #000); }
+.dbl-cursor span { position: absolute; left: 14px; top: 8px; white-space: nowrap; font: 11px var(--ui); padding: 2px 6px; background: rgba(8, 11, 17, 0.82); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 3px; }
+.dbl-cursor[data-action="move"] { color: var(--ops); }
+.dbl-cursor[data-action="create"] { color: var(--rf); }
+.dbl-cursor[data-action="outside"] { color: var(--crit); }
+.dbl-notice { position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%); pointer-events: none; padding: 8px 14px; background: rgba(40, 8, 8, 0.9); border: 1px solid var(--crit); color: #fecaca; font-size: 13px; border-radius: 4px; z-index: 4; }
+.dbl-hint {
+  left: calc(var(--tray-l, 0px) + (100% - var(--tray-l, 0px) - var(--tray-r, 0px)) / 2); bottom: calc(var(--tray-b, 0px) + 60px); transform: translateX(-50%);
+  display: flex; align-items: center; gap: 6px; max-width: min(520px, calc(100% - var(--tray-l, 0px) - var(--tray-r, 0px) - 24px));
+  padding: 3px 4px 3px 10px; background: rgba(8, 11, 17, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 999px; font-size: 11px; color: var(--dim);
+}
+.dbl-hint span { overflow-wrap: anywhere; }
+.dbl-hint button { background: transparent; border: 0; color: var(--dim); font-size: 15px; line-height: 1; width: 22px; height: 22px; border-radius: 50%; cursor: pointer; flex: none; }
+.dbl-hint button:hover { color: var(--bright); background: rgba(255, 255, 255, 0.06); }
