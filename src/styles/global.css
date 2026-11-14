@@ -899,3 +899,25 @@ input[type="range"] { width: 100%; accent-color: var(--rock); height: 18px; marg
 .emg-verdict.is-nogo b { color: var(--crit); }
 .emg-result .tri-step { padding: 10px; }
 .emg-grid { max-width: 240px; }
+
+/* ================================================================ v2.0: telemetry chip and grouped strip */
+.tm-chip { display: inline-flex; align-items: center; gap: 7px; padding: 3px 10px 3px 8px; border-radius: 999px; border: 1px solid var(--line); background: rgba(8, 11, 17, 0.6); color: var(--text); font-size: 11.5px; cursor: pointer; }
+.tm-chip:hover { border-color: #33455f; color: var(--bright); }
+.tm-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--faint); }
+.tm-chip.is-on { border-color: var(--rf); color: var(--bright); }
+.tm-chip.is-on .tm-dot { background: var(--ops); box-shadow: 0 0 6px var(--ops); }
+.tm-state { font-size: 10.5px; color: var(--dim); }
+.telemetry { display: flex; flex-wrap: wrap; gap: 6px; padding: 7px 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
+.tm-group { display: grid; gap: 4px; padding: 5px 8px 6px; border: 1px solid var(--line-soft); border-left: 2px solid var(--faint); border-radius: 3px; background: rgba(255, 255, 255, 0.015); flex: 1 1 auto; }
+.tm-group h4 { margin: 0; display: flex; align-items: center; gap: 6px; font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); font-weight: 700; }
+.tm-sun { border-left-color: var(--sun); } .tm-sun h4 svg { color: var(--sun); }
+.tm-power { border-left-color: #fbbf24; } .tm-power h4 svg { color: #fbbf24; }
+.tm-thermal { border-left-color: #fb7185; } .tm-thermal h4 svg { color: #fb7185; }
+.tm-link { border-left-color: var(--rf); } .tm-link h4 svg { color: var(--rf); }
+.tm-reads { display: flex; flex-wrap: wrap; gap: 2px 14px; }
+.tm-read { display: grid; gap: 0; cursor: help; outline-offset: 2px; }
+.tm-label { font-size: 10.5px; color: var(--dim); white-space: nowrap; }
+.tm-read output { font-size: 12.5px; color: var(--bright); white-space: nowrap; }
+.tm-read.is-ok output { color: var(--ops); }
+.tm-read.is-warn output { color: var(--sun); }
+.tm-read.is-crit output { color: var(--crit); }

@@ -82,8 +82,13 @@ function ConsoleTools() {
   const setPanels = useApp((s) => s.setPanels);
   return (
     <div className="subsys-tools">
-      <button type="button" className={`btn btn-small${telemetry ? ' is-on' : ''}`} aria-pressed={telemetry} onClick={() => setPanels({ telemetry: !telemetry })} data-testid="dock-telemetry">
+      <button
+        type="button" className={`tm-chip${telemetry ? ' is-on' : ''}`} aria-pressed={telemetry} aria-expanded={telemetry} onClick={() => setPanels({ telemetry: !telemetry })} data-testid="dock-telemetry"
+        title={telemetry ? t('Hide the live telemetry', 'Ocultar la telemetría en vivo') : t('Show what the lander reports at the time on the clock', 'Mostrar lo que reporta el lander a la hora del reloj')}
+      >
+        <i className="tm-dot" aria-hidden="true" />
         {t('Telemetry', 'Telemetría')}
+        <span className="tm-state">{telemetry ? t('open', 'abierta') : t('closed', 'cerrada')}</span>
       </button>
     </div>
   );
@@ -235,7 +240,7 @@ export function PlannerLayout() {
             <ConsoleTools />
             {bottomTab && <MinButton side="bottom" onClick={() => setPanels({ bottomTab: null })} />}
           </header>
-          {panels.telemetry && <Readout data={active} />}
+          {panels.telemetry && <Readout data={active} engineering={subsystem === 'science'} />}
           {bottomTab && <div className="tray-bottom-body" key={`${subsystem}-${bottomTab}`}>{bottomBody(bottomTab)}</div>}
         </section>
       </div>

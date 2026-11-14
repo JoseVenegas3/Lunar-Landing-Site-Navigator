@@ -58,6 +58,11 @@ export interface PanelState {
   legend: boolean;
 }
 
+/** Telemetry strip open or closed, remembered between visits. */
+export const TELEMETRY_KEY = 'clps.telemetry';
+const telemetryOpen = (): boolean => {
+  try { return typeof localStorage !== 'undefined' && localStorage.getItem(TELEMETRY_KEY) === '1'; } catch { return false; }
+};
 /** First-visit mission briefing: 'done' once it was taken or skipped. */
 export const BRIEFING_KEY = 'clps.briefing';
 const briefingDone = (): boolean => {
@@ -66,7 +71,7 @@ const briefingDone = (): boolean => {
 
 const panelsFor = (s: Subsystem, keep?: PanelState): PanelState => ({
   leftTab: SUBSYSTEMS[s].left[0], rightTab: SUBSYSTEMS[s].right[0], bottomTab: SUBSYSTEMS[s].bottom[0],
-  telemetry: keep?.telemetry ?? false, legend: keep?.legend ?? false,
+  telemetry: keep?.telemetry ?? telemetryOpen(), legend: keep?.legend ?? false,
 });
 
 /** Mission briefing tour: offer at first visit, a step index while it runs, or off. */
@@ -216,7 +221,10 @@ export const useApp = create<AppState>((set) => ({
     if (side === 'right') return { panels: { ...s.panels, rightTab: d.right[0] } };
     return { panels: { ...s.panels, bottomTab: d.bottom[0] } };
   }),
-  setPanels: (patch) => set((s) => ({ panels: { ...s.panels, ...patch } })),
+  setPanels: (patch) => set((s) => {
+    if (patch.telemetry !== undefined) { try { localStorage.setItem(TELEMETRY_KEY, patch.telemetry ? '1' : '0'); } catch { /* storage unavailable */ } }
+    return { panels: { ...s.panels, ...patch } };
+  }),
 
   setMode: (mode) => set({ mode }),
   setLang: (lang) => set({ lang }),
