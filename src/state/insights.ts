@@ -2,15 +2,15 @@
  * Derived analyses that are too slow to run on every keystroke: the suitability
  * score (it needs a shadow sweep of the window) and the 5 x 5 dispersion grid
  * (25 full mission evaluations). Both are debounced and time-sliced, and their
- * latest results are kept in a small store so the verification matrix can
- * quote them.
+ * latest results are kept in a small store (the 3-D escape arrow reads the
+ * grid from it).
  */
 import { useEffect, useMemo, useState } from 'react';
 import { create } from 'zustand';
 import {
   DEFAULT_UNCERTAINTY, DEFAULT_WINDOW_CONFIG, DispersionCell, DispersionResult, EnsembleStats, LandingCandidate, MemberOutcome, MissionInput,
   MissionResult, STATE_RF_PHYSICAL, STATE_SUN, SiteMetrics, SiteScience, SiteScore, UncertaintyConfig, WindowConfig, WindowSearch,
-  candidateTimes, computeHorizon, computeHorizonEnsemble, computeSOMRandomForestSiteScore, evaluateLandingCandidate, evaluateMission, feoAt,
+  INDEX_CRITERIA, candidateTimes, computeHorizon, computeHorizonEnsemble, computeSOMRandomForestSiteScore, evaluateLandingCandidate, evaluateMission, feoAt, staticStabilityDeg,
   gravityAt, makeEllipseSweep, makeObserver, persistentShadowDistanceKm, psrDistanceKm, rankDispersion, relocatedXY, siteScience,
   summariseEnsemble, summariseWindowSearch,
 } from '../engine';
@@ -66,6 +66,8 @@ export function useSiteScore(data: ScenarioData): SiteScoreView {
   const layers = useScience((s) => s.layers);
   const mode = useApp((s) => s.scoreMode);
   const science = useApp((s) => s.science[data.key]);
+  const tipover = useApp((s) => s.tipover);
+  const slopeLimitDeg = staticStabilityDeg(tipover);
   const setScore = useInsights((s) => s.setScore);
   const [shadow, setShadow] = useState<PersistentShadow | null>(null);
   const { dem, result } = data;
@@ -95,7 +97,8 @@ export function useSiteScore(data: ScenarioData): SiteScoreView {
       psrBeyond = shadow.distanceKm === null;
       psr = shadow.distanceKm ?? SHADOW_SEARCH_KM;
     }
-    const metrics: SiteMetrics = {
+    // v2.1: only the criteria whose range is anchored (INDEX_CRITERIA) enter the index; the others are left out.
+    const all: SiteMetrics = {
       earthVisibility: result.kpis.dtePct,
       illumination: result.kpis.illuminationPct,
       slope: result.kpis.slopeDeg,
@@ -106,10 +109,11 @@ export function useSiteScore(data: ScenarioData): SiteScoreView {
       hydrogen: science.hydrogen ?? null,
       geology: science.geology ?? null,
     };
+    const metrics: SiteMetrics = Object.fromEntries(INDEX_CRITERIA.map((id) => [id, all[id] ?? null]));
     return { metrics, psrBeyond };
   }, [result, layers, shadow, science]);
 
-  const score = useMemo(() => (result ? computeSOMRandomForestSiteScore(view.metrics, mode) : null), [result, view, mode]);
+  const score = useMemo(() => (result ? computeSOMRandomForestSiteScore(view.metrics, mode, { slopeLimitDeg }) : null), [result, view, mode, slopeLimitDeg]);
   useEffect(() => { if (score) setScore(data.key, score); }, [score, data.key, setScore]);
   return { score, metrics: view.metrics, shadow, psrFromLayer: layers !== null, psrBeyond: view.psrBeyond, site };
 }

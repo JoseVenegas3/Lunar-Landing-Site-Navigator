@@ -864,6 +864,17 @@ input[type="range"] { width: 100%; accent-color: var(--rock); height: 18px; marg
 .surv-head.is-crit { border-left-color: var(--crit); } .surv-head.is-crit strong, .surv-head.is-crit .exit-icon { color: #fca5a5; }
 .exit-icon { flex: none; margin-top: 1px; }
 .micro-head { margin: 4px 0 0; font-size: 12px; color: var(--bright); }
+/* Model assumptions (engineering view): read-only, origin in plain view. */
+.assume-wrap { overflow-x: auto; }
+.assume-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.assume-table th, .assume-table td { text-align: left; vertical-align: top; padding: 4px 6px; border-top: 1px solid var(--line-soft); }
+.assume-table thead th { color: var(--dim); font-weight: 400; border-top: 0; }
+.assume-table tbody th { font-weight: 400; color: var(--text); }
+.assume-table td.mono { color: var(--bright); white-space: nowrap; }
+.assume-table td.is-team { color: var(--sun); }
+.verdict-actions { display: flex; align-items: center; gap: 8px; flex: none; }
+.rescue-span { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--dim); }
+.rescue-span select { font: 11.5px var(--mono); padding: 3px 4px; }
 .verdict-gloss { font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--text); }
 .exit-block { display: grid; gap: 6px; padding: 8px 10px 10px; border: 1px solid var(--line); background: var(--panel); }
 .exit-block h4 { margin: 0; display: flex; gap: 6px; align-items: center; font-size: 12.5px; color: var(--bright); }

@@ -26,7 +26,7 @@ El planificador es la vista de trabajo. Arriba está el veredicto; debajo, la vi
 
 ### 2.1 Veredicto
 
-Una línea en lenguaje claro: **VIABLE**, **RIESGO MODERADO** o **CRÍTICO**, con la causa principal y el día en que ocurre. Si no está en verde, el botón **Optimizar sitio y fecha** prueba los 25 puntos de contacto a 200 m y luego las fechas siguientes, y mueve el lander al primero que sobrevive. Muestra el antes y el después, cuántas misiones evaluó y el tiempo que tardó. Si nada salva la misión, lo dice.
+Una línea en lenguaje claro: **VIABLE**, **RIESGO MODERADO** o **CRÍTICO**, con la causa principal y el día en que ocurre. Si no está en verde, el botón **Optimizar sitio y fecha** prueba los 25 puntos de contacto a 200 m y luego las fechas siguientes (en 30, 60 o 90 días; 60 por defecto), y mueve el lander al primero que sobrevive. Muestra el antes y el después, cuántas misiones evaluó y el tiempo que tardó. Si nada salva la misión, lo dice.
 
 ### 2.2 Pestañas de subsistema
 
@@ -116,8 +116,8 @@ Cada fila es la ventana completa: día/noche, Tierra visible y ambos a la vez (l
 
 ## 7. Ciencia
 
-* **Índice de aptitud** de 0 a 100, sintetizado: luz, vista a la Tierra, pendiente, rugosidad, proximidad a regiones en sombra permanente, FeO y gravedad, con el peso y la fuente de cada criterio. Datos orbitales del sitio (temperaturas Diviner, hielo estable, PSR).
-* **Vista de ingeniería**: la tabla completa de KPI y la **incertidumbre del terreno** (error de altura RMS, longitud de correlación, N variantes de terreno, probabilidad de sobrevivir y bandas P10/P50/P90). En esta consola la línea de tiempo es la **detallada**: Sol, batería, Tierra visible, descarga por estación, relay y operación simultánea.
+* **Índice de aptitud** de 0 a 100, sintetizado: luz, vista a la Tierra, pendiente y FeO, con el peso, la fuente y el rango de cada criterio (al pasar el cursor). Cada rango se ancla a un límite físico; la rugosidad, la proximidad a sombra permanente y la gravedad quedan fuera porque no tienen uno. Datos orbitales del sitio (temperaturas Diviner, hielo estable, PSR).
+* **Vista de ingeniería**: la tabla completa de KPI y la **incertidumbre del terreno** (error de altura RMS, longitud de correlación, N variantes de terreno, probabilidad de sobrevivir y bandas P10/P50/P90) y la tabla **Supuestos del modelo**: cada parámetro, su valor, su unidad, su origen («fuente: …» o «supuesto del equipo») y dónde se usa. En esta consola la línea de tiempo es la **detallada**: Sol, batería, Tierra visible, descarga por estación, relay y operación simultánea.
 
 ## 8. Modo tutorial (Guía de misión)
 

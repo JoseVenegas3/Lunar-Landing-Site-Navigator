@@ -119,6 +119,8 @@ export interface AppState {
   /** Weighting of the suitability index: the synthesized one only (the engineering-first and science-first variants were removed from the interface). */
   scoreMode: WeightMode;
   science: Record<ScenarioKey, ScienceInputs>;
+  /** Days of later touchdown dates the "Optimise site and date" rescue tries (30, 60 or 90). */
+  rescueDays: number;
   /** Mission subsystem the planner console is set to. */
   subsystem: Subsystem;
   /** Mission briefing tour. */
@@ -157,6 +159,7 @@ export interface AppState {
   setTipover: (patch: Partial<TipoverConfig>) => void;
   setScience: (k: ScenarioKey, id: CriterionId, value: number | null) => void;
   setBriefing: (b: BriefingState) => void;
+  setRescueDays: (d: number) => void;
   setMast: (m: number) => void;
   setCursor: (hours: number) => void;
   setPlaying: (p: boolean) => void;
@@ -167,6 +170,8 @@ export interface AppState {
 
 /** Playback rates of the transport, simulated hours per real second. */
 export const PLAYBACK_SPEEDS = [1, 24, 72] as const;
+/** Spans of later dates the rescue may try, days: one, two or three lunations. 60 by default. */
+export const RESCUE_SPANS = [30, 60, 90] as const;
 
 const DEFAULT_START = Date.UTC(2027, 8, 1); // southern-summer approach, 2027
 
@@ -192,6 +197,7 @@ export const useApp = create<AppState>((set) => ({
   tipover: DEFAULT_TIPOVER,
   scoreMode: 'synthesized',
   science: { A: {}, B: {} },
+  rescueDays: 60,
   subsystem: 'overview',
   briefing: briefingDone() ? 'off' : 'offer',
   mastM: 2,
@@ -267,6 +273,7 @@ export const useApp = create<AppState>((set) => ({
     if (briefing === 'off') { try { localStorage.setItem(BRIEFING_KEY, 'done'); } catch { /* storage unavailable */ } }
     return { briefing };
   }),
+  setRescueDays: (rescueDays) => set({ rescueDays }),
   setMast: (mastM) => set({ mastM }),
   setCursor: (hours) => set((s) => ({ cursorHours: clamp(hours, 0, maxCursorHours(s)) })),
   setPlaying: (playing) => set({ playing }),

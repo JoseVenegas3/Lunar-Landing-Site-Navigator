@@ -1,5 +1,5 @@
 /** Multi-criteria suitability score of both scenarios (SyR-C5.1), with the orbital data behind it. */
-import { CRITERIA, Criterion, CriterionId, SiteScore } from '../../engine';
+import { CRITERIA, Criterion, CriterionId, INDEX_CRITERIA, SiteScore, staticStabilityDeg } from '../../engine';
 import { PSR_SEARCH_KM, SHADOW_SEARCH_KM, SiteScoreView, useSiteScore } from '../../state/insights';
 import { ScenarioData, useMission } from '../../state/mission';
 import { useScience } from '../../state/science';
@@ -29,8 +29,20 @@ function ScoreHead({ data, score }: { data: ScenarioData; score: SiteScore | nul
   );
 }
 
+/** The range each merit bar spans and why (v2.1: every range is anchored or the criterion is out of the index). */
+export function rangeWhy(id: CriterionId, slopeLimitDeg: number, t: (en: string, es: string) => string): string {
+  switch (id) {
+    case 'earthVisibility': return t('0–100 % of the window with the Earth above the terrain (a physical share).', '0–100 % de la ventana con la Tierra sobre el relieve (una fracción física).');
+    case 'illumination': return t('0–100 % of the solar disc visible over the window (a physical share).', '0–100 % del disco solar visible en la ventana (una fracción física).');
+    case 'slope': return t(`0° scores 1; ${fmtNum(slopeLimitDeg, 0)}° scores 0: the static stability angle of the vehicle in Attitude and tip-over, atan(tip radius / centre-of-mass height).`, `0° vale 1; ${fmtNum(slopeLimitDeg, 0)}° vale 0: el ángulo de estabilidad estática del vehículo de Actitud y vuelco, atan(radio de vuelco / altura del centro de masa).`);
+    case 'feo': return t('0–20 wt.%: the span of lunar soils, from the highlands (a few %) to the iron-rich mare soils (about 20 %).', '0–20 % en peso: el rango de los suelos lunares, de las tierras altas (pocos %) a los suelos de mare ricos en hierro (~20 %).');
+    default: return '';
+  }
+}
+
 export function ScorePanel() {
   const t = useT();
+  const slopeLimitDeg = useApp((s) => staticStabilityDeg(s.tipover));
   const lang = useApp((s) => s.lang);
   const active = useApp((s) => s.active);
   const layers = useScience((s) => s.layers);
@@ -50,7 +62,7 @@ export function ScorePanel() {
 
   return (
     <section className="panel score" data-testid="score-panel">
-      <p className="kpi-note score-weighting">{t('Synthesized index: sunlight, Earth view, slope and the orbital science layers, weighted as in the team\'s state-of-the-art study.', 'Índice sintetizado: luz, vista a la Tierra, pendiente y las capas científicas orbitales, ponderadas según el estudio de estado del arte del equipo.')}</p>
+      <p className="kpi-note score-weighting">{t('Synthesized index: Earth view, sunlight, slope and FeO, weighted as in the team\'s state-of-the-art study. Each range is anchored to a physical limit (hover a criterion to see it).', 'Índice sintetizado: vista a la Tierra, luz, pendiente y FeO, ponderados según el estudio de estado del arte del equipo. Cada rango se ancla a un límite físico (pasa el cursor por un criterio para verlo).')}</p>
       <table className="kpi-table score-table">
         <thead>
           <tr>
@@ -60,9 +72,9 @@ export function ScorePanel() {
           </tr>
         </thead>
         <tbody>
-          {CRITERIA.map((c, k) => c.source === 'input' ? null : (
+          {CRITERIA.map((c, k) => !INDEX_CRITERIA.includes(c.id) ? null : (
             <tr key={c.id} data-criterion={c.id}>
-              <th scope="row">
+              <th scope="row" title={rangeWhy(c.id, slopeLimitDeg, t)} data-range={rangeWhy(c.id, slopeLimitDeg, t)}>
                 {c.name[lang]}
                 <small className="mono">{fmtNum(100 * (sa.score?.rows[k].weight ?? 0), 1)} % · {sourceText(c)}</small>
               </th>
@@ -104,7 +116,7 @@ export function ScorePanel() {
 
       </div>
       <p className="kpi-note">
-        {t('Weights as listed in the team\'s state-of-the-art document (SOM / random-forest study), renormalised over the criteria with data; the percentage under each score is the share of the weight covered. Hydrogen and geological density have no gridded layer in the archives used and are left out. The normalisation ranges are this project\'s convention. FeO is one value per ~60 km pixel and the gravity anomaly is dominated by topography: both describe the region, not the landing point.', 'Pesos según el documento de estado del arte del equipo (estudio SOM / random forest), renormalizados sobre los criterios con datos; el porcentaje bajo cada índice es la parte del peso cubierta. El hidrógeno y la densidad geológica no tienen capa en malla en los archivos usados y quedan fuera. Los rangos de normalización son convención de este proyecto. El FeO es un valor por píxel de ~60 km y la anomalía gravitatoria está dominada por la topografía: ambos describen la región, no el punto de alunizaje.')}
+        {t('Weights as listed in the team\'s state-of-the-art document (SOM / random-forest study, not checked against the paper), renormalised over the criteria in the index; the percentage under each score is the share of the published weight covered. Left out of the index because their normalisation range cannot be anchored to a physical limit or a requirement: kilometre-scale roughness, distance to a permanent shadow and the gravity anomaly. Hydrogen and geological density have no gridded layer in the archives used. FeO is one value per ~60 km pixel: it describes the region, not the landing point.', 'Pesos según el documento de estado del arte del equipo (estudio SOM / random forest, sin contrastar con el artículo), renormalizados sobre los criterios del índice; el porcentaje bajo cada índice es la parte del peso publicado cubierta. Quedan fuera del índice porque su rango de normalización no se puede anclar a un límite físico ni a un requisito: la rugosidad a escala kilométrica, la distancia a sombra permanente y la anomalía gravitatoria. El hidrógeno y la densidad geológica no tienen capa en malla en los archivos usados. El FeO es un valor por píxel de ~60 km: describe la región, no el punto de alunizaje.')}
       </p>
     </section>
   );

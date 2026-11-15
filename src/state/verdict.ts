@@ -75,7 +75,7 @@ export function useMicroHazard(data: ScenarioData): { hazard: MicroHazard; ms: n
   return out;
 }
 
-const RESCUE_SEARCH_DAYS = 60;
+/** Step between the later dates the rescue tries, hours (the candidate step of the landing-window search). */
 const RESCUE_STEP_HOURS = 12;
 
 /** Place and date of a scenario, as one string. */
@@ -100,6 +100,7 @@ export function useRescue(data: ScenarioData): RescueView {
   const setLast = useRescueStore((s) => s.set);
   const token = useRef(0);
   const { dem, input, result, key } = data;
+  const searchDays = useApp((s) => s.rescueDays);
 
   useEffect(() => () => { token.current++; }, []);
 
@@ -110,7 +111,7 @@ export function useRescue(data: ScenarioData): RescueView {
     const before = missionVerdict(result);
     const step = (2 * DISPERSION_RADIUS_M) / (DISPERSION_SIZE - 1);
     const cells = DISPERSION_SIZE * DISPERSION_SIZE;
-    const dates = Math.floor((RESCUE_SEARCH_DAYS * 24) / RESCUE_STEP_HOURS);
+    const dates = Math.floor((searchDays * 24) / RESCUE_STEP_HOURS);
     let best = { verdict: before, eastM: 0, northM: 0 };
     let k = 0, missions = 0;
     setProgress(0);
@@ -163,7 +164,7 @@ export function useRescue(data: ScenarioData): RescueView {
       setTimeout(tick, 0);
     };
     setTimeout(tick, 0);
-  }, [dem, input, result, key, setLast]);
+  }, [dem, input, result, key, setLast, searchDays]);
 
   const clear = useCallback(() => setLast(key, undefined), [key, setLast]);
   return { run, progress, last, clear };

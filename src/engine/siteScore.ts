@@ -71,11 +71,32 @@ const clamp01 = (v: number): number => (v < 0 ? 0 : v > 1 ? 1 : v);
  */
 export type SiteMetrics = Partial<Record<CriterionId, number | null>>;
 
-export function normaliseCriterion(id: CriterionId, value: number): number {
+/**
+ * Criteria of the index shown in the interface since v2.1: those whose
+ * normalisation range is anchored to a physical limit or a requirement.
+ *   earthVisibility, illumination  0–100 % of the window (a physical share)
+ *   slope   0 deg to the static stability angle of the configured vehicle,
+ *           atan(tip radius / centre-of-mass height): the slope on which it
+ *           would tip over standing still (passed as `slopeLimitDeg`)
+ *   feo     0–20 wt.%: the span of lunar soils, from the highlands (a few
+ *           percent) to the iron-rich mare soils (about 20 %)
+ * Roughness (200 m), distance to a permanent shadow (20 km) and gravity
+ * (300 mGal) have no such anchor and were removed from the index; hydrogen
+ * and geological density have no gridded layer. The function keeps the old
+ * defaults for the other criteria so the engine tests and scripts still run.
+ */
+export const INDEX_CRITERIA: CriterionId[] = ['earthVisibility', 'illumination', 'slope', 'feo'];
+
+export interface NormaliseOptions {
+  /** Slope at which the merit reaches 0, deg (default 20). */
+  slopeLimitDeg?: number;
+}
+
+export function normaliseCriterion(id: CriterionId, value: number, opts: NormaliseOptions = {}): number {
   switch (id) {
     case 'earthVisibility':
     case 'illumination': return clamp01(value / 100);
-    case 'slope': return clamp01(1 - value / 20);
+    case 'slope': return clamp01(1 - value / Math.max(1e-6, opts.slopeLimitDeg ?? 20));
     case 'roughness': return clamp01(1 - value / 200);
     case 'psrProximity': return clamp01(1 - value / 20);
     case 'hydrogen': return clamp01(value / 0.5);
@@ -106,13 +127,13 @@ export interface SiteScore {
 }
 
 /** Suitability score with the published weights (or one of the derived sets). */
-export function computeSOMRandomForestSiteScore(metrics: SiteMetrics, mode: WeightMode = 'synthesized'): SiteScore {
+export function computeSOMRandomForestSiteScore(metrics: SiteMetrics, mode: WeightMode = 'synthesized', opts: NormaliseOptions = {}): SiteScore {
   const weights = criterionWeights(mode);
   let covered = 0, sum = 0;
   const rows: ScoreBreakdownRow[] = CRITERIA.map((c) => {
     const raw = metrics[c.id];
     const available = raw !== null && raw !== undefined && Number.isFinite(raw);
-    const merit = available ? normaliseCriterion(c.id, raw as number) : 0;
+    const merit = available ? normaliseCriterion(c.id, raw as number, opts) : 0;
     if (available) { covered += weights[c.id]; sum += weights[c.id] * merit; }
     return { id: c.id, weight: weights[c.id], available, raw: available ? (raw as number) : null, merit, points: 0 };
   });

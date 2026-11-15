@@ -5,6 +5,7 @@
 import { Verdict, VerdictCause } from '../engine';
 import { ScenarioData } from '../state/mission';
 import { useRescue, useVerdict } from '../state/verdict';
+import { RESCUE_SPANS, useApp } from '../state/store';
 import { cardinal, fmtDateTime, fmtDuration, fmtNum, useT } from '../lib/format';
 import { ScenarioBadge } from './ScenarioBadge';
 
@@ -68,6 +69,7 @@ export function VerdictCard({ data, gloss = false }: { data: ScenarioData; gloss
   const t = useT();
   const v = useVerdict(data);
   const rescue = useRescue(data);
+  const days = useApp((s) => s.rescueDays);
   if (!v) {
     return <div className="verdict is-wait" data-testid="verdict" role="status"><span className="verdict-light" /><p>{t('Reading the terrain…', 'Leyendo el terreno…')}</p></div>;
   }
@@ -82,10 +84,10 @@ export function VerdictCard({ data, gloss = false }: { data: ScenarioData; gloss
           <p className="verdict-after" data-testid="verdict-after">
             <Chip v={o.before} t={t} /><span aria-hidden="true">→</span><Chip v={o.after} t={t} />
             <span>
-              {o.after.level === 'nogo' && o.action !== 'none' && t('No point within 200 m and no date in the next 60 days saves this mission. Best found: ', 'Ningún punto a 200 m ni fecha en los próximos 60 días salva esta misión. Lo mejor hallado: ')}
+              {o.after.level === 'nogo' && o.action !== 'none' && t(`No point within 200 m and no date in the next ${days} days saves this mission. Best found: `, `Ningún punto a 200 m ni fecha en los próximos ${days} días salva esta misión. Lo mejor hallado: `)}
               {o.action === 'move' && t(`moved ${fmtNum(Math.hypot(o.eastM, o.northM), 0)} m to the ${cardinal((Math.atan2(o.eastM, o.northM) * 180) / Math.PI)}`, `movido ${fmtNum(Math.hypot(o.eastM, o.northM), 0)} m al ${cardinal((Math.atan2(o.eastM, o.northM) * 180) / Math.PI)}`)}
               {o.action === 'date' && o.startMs !== null && t(`landing moved to ${fmtDateTime(o.startMs)} UTC`, `alunizaje movido al ${fmtDateTime(o.startMs)} UTC`)}
-              {o.action === 'none' && t('No better point within 200 m and no better date in the next 60 days. Try a shorter mission, a larger battery or another site', 'No hay mejor punto a 200 m ni mejor fecha en los próximos 60 días. Prueba una misión más corta, una batería mayor u otro sitio')}
+              {o.action === 'none' && t(`No better point within 200 m and no better date in the next ${days} days. Try a shorter mission, a larger battery or another site`, `No hay mejor punto a 200 m ni mejor fecha en los próximos ${days} días. Prueba una misión más corta, una batería mayor u otro sitio`)}
               {' · '}{o.missions} {t('missions in', 'misiones en')} {fmtNum(o.elapsedMs / 1000, 1)} s
             </span>
           </p>
@@ -94,9 +96,17 @@ export function VerdictCard({ data, gloss = false }: { data: ScenarioData; gloss
       {rescue.progress !== null ? (
         <div className="verdict-busy mono" data-testid="verdict-busy">{t('Searching', 'Buscando')} {Math.round(rescue.progress * 100)}%<div className="bar"><i style={{ width: `${Math.round(rescue.progress * 100)}%` }} /></div></div>
       ) : v.level !== 'go' && (
-        <button type="button" className="btn btn-rescue" onClick={rescue.run} data-testid="verdict-fix" title={t('Tries the 25 touchdown points within 200 m, then later dates', 'Prueba los 25 puntos de contacto a 200 m y luego fechas posteriores')}>
-          {t('⚡ Optimise site and date', '⚡ Optimizar sitio y fecha')}
-        </button>
+        <div className="verdict-actions">
+          <label className="rescue-span" title={t('How far ahead the later dates are searched, every 12 h: one, two or three lunar months', 'Hasta dónde se buscan fechas posteriores, cada 12 h: uno, dos o tres meses lunares')}>
+            <span>{t('Dates within', 'Fechas en')}</span>
+            <select value={days} onChange={(e) => useApp.getState().setRescueDays(Number(e.target.value))} data-testid="rescue-days">
+              {RESCUE_SPANS.map((d) => <option key={d} value={d}>{d} d</option>)}
+            </select>
+          </label>
+          <button type="button" className="btn btn-rescue" onClick={rescue.run} data-testid="verdict-fix" title={t(`Tries the 25 touchdown points within 200 m, then later dates over ${days} days`, `Prueba los 25 puntos de contacto a 200 m y luego fechas posteriores durante ${days} días`)}>
+            {t('⚡ Optimise site and date', '⚡ Optimizar sitio y fecha')}
+          </button>
+        </div>
       )}
     </div>
   );

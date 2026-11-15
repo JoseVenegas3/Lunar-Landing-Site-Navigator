@@ -2,11 +2,11 @@
 import { ReactNode, useEffect, useState } from 'react';
 import {
   ALL_SITES, CANDIDATE_SITES, HISTORICAL_LANDINGS, MISSION_SITES, MissionSite, REFERENCE_MARKERS, CUSTOM_LAT_MAX, CUSTOM_LAT_MIN, DAY_MS, GROUND_STATIONS, MAX_RELAYS, MountType, RELAY_PRESETS, RELOCATION_LIMIT_M,
-  RelayPresetId, RfBand, apoapsisAltKm, clamp, latLonToXY, orbitalPeriodS, periapsisAltKm, relayShape,
+  DEFAULT_POWER, RelayPresetId, RfBand, apoapsisAltKm, clamp, latLonToXY, orbitalPeriodS, periapsisAltKm, relayShape,
 } from '../../engine';
 import { ScenarioKey, scenarioLatLon, useApp } from '../../state/store';
 import { useMission } from '../../state/mission';
-import { fmtLat, fmtLon, fromDateInput, toDateInput, useT } from '../../lib/format';
+import { fmtLat, fmtLon, fmtNum, fromDateInput, toDateInput, useT } from '../../lib/format';
 import { SiteCards } from './SiteCards';
 
 const MIN_DATE = Date.UTC(2026, 0, 1);
@@ -231,6 +231,7 @@ export function HardwarePanel({ focus = 'all' }: { focus?: 'all' | 'power' | 'co
           <NumberField label={t('Battery', 'Batería')} unit="Wh" value={power.batteryCapacityWh} min={50} max={200000} step={50} onChange={(v) => setPower({ batteryCapacityWh: v })} testId="battery" />
           <NumberField label={t('DoD limit', 'Límite DoD')} unit="%" value={Math.round(power.maxDepthOfDischarge * 100)} min={10} max={100} step={5} onChange={(v) => setPower({ maxDepthOfDischarge: v / 100 })} />
         </div>
+        <p className="kpi-note pad0" data-testid="vehicle-example">{t(`Starting values (${fmtNum(DEFAULT_POWER.batteryCapacityWh / 1000, 0)} kWh battery, ${fmtNum(DEFAULT_POWER.baseLoadW, 0)} W operating load, ${fmtNum(DEFAULT_POWER.panelAreaM2, 1)} m² of cells) are an illustrative example, not the data sheet of a real lander. Every field here can be edited.`, `Los valores iniciales (batería de ${fmtNum(DEFAULT_POWER.batteryCapacityWh / 1000, 0)} kWh, consumo operativo de ${fmtNum(DEFAULT_POWER.baseLoadW, 0)} W, ${fmtNum(DEFAULT_POWER.panelAreaM2, 1)} m² de celdas) son un ejemplo ilustrativo, no la ficha de un lander real. Todos los campos se pueden editar.`)}</p>
       </Group>}
 
       {showComms && <Group title={t('DTE radio link', 'Enlace de radio DTE')} open={focus === 'comms'}>

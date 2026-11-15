@@ -41,7 +41,14 @@ export const DEFAULT_MICRO_RELIEF: MicroReliefConfig = {
   slopeRmsDeg: 2.5, craterDensity: 1, craterMinM: 3, craterMaxM: 15, slopeLimitDeg: 15, footprintM: 4,
 };
 
-/** Equilibrium crater density coefficient: N(>D) = k / D^2 craters per m^2, D in metres. */
+/**
+ * Equilibrium crater density coefficient: N(>D) = k / D^2 craters per m^2, D
+ * in metres. k = 10^-1.1 = 0.079 is the equilibrium of N. J. Trask (1966),
+ * from the Ranger images (quoted from memory). The other parameters of this
+ * module (DEFAULT_MICRO_RELIEF, HURST, the depth-to-diameter ratios) are team
+ * parameters, not validated: they are listed as such in the model-assumptions
+ * table of the interface.
+ */
 export const EQUILIBRIUM_K = 0.079;
 
 /** Deterministic hash of two integers and a seed to [0, 1). */

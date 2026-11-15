@@ -26,7 +26,7 @@ The planner is the working view. The verdict is at the top; below it the 3-D vie
 
 ### 2.1 Verdict
 
-One line in plain language: **GO**, **CAUTION** or **NO-GO**, with the main cause and the day it happens. When it is not green, **Optimise site and date** tries the 25 touchdown points within 200 m, then the following dates, and moves the lander to the first one that survives. It shows the before and after, how many missions it flew and how long it took. When nothing saves the mission, it says so.
+One line in plain language: **GO**, **CAUTION** or **NO-GO**, with the main cause and the day it happens. When it is not green, **Optimise site and date** tries the 25 touchdown points within 200 m, then the following dates (over 30, 60 or 90 days; 60 by default), and moves the lander to the first one that survives. It shows the before and after, how many missions it flew and how long it took. When nothing saves the mission, it says so.
 
 ### 2.2 Subsystem tabs
 
@@ -116,8 +116,8 @@ Each row is the whole window: day/night, Earth visible and both at once (the "go
 
 ## 7. Science
 
-* **Suitability index** from 0 to 100, synthesized: sunlight, Earth view, slope, roughness, proximity to permanently shadowed regions, FeO and gravity, with the weight and source of each criterion. Orbital data of the site (Diviner temperatures, stable ice, PSR).
-* **Engineering view**: the full KPI table and the **terrain uncertainty** (RMS height error, correlation length, N terrain variants, probability of surviving and P10/P50/P90 bands). In this console the timeline is the **detailed** one: Sun, battery, Earth visible, downlink per station, relay and simultaneous operations.
+* **Suitability index** from 0 to 100, synthesized: sunlight, Earth view, slope and FeO, with the weight, the source and the range of each criterion (on hover). Each range is anchored to a physical limit; roughness, proximity to permanent shadow and gravity are left out because they have none. Orbital data of the site (Diviner temperatures, stable ice, PSR).
+* **Engineering view**: the full KPI table and the **terrain uncertainty** (RMS height error, correlation length, N terrain variants, probability of surviving and P10/P50/P90 bands) and the **Model assumptions** table: each parameter, its value, its unit, its origin ("source: …" or "team assumption") and where it is used. In this console the timeline is the **detailed** one: Sun, battery, Earth visible, downlink per station, relay and simultaneous operations.
 
 ## 8. Tutorial mode (Mission guide)
 

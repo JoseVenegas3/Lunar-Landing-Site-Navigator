@@ -7,6 +7,14 @@
  * approximation of ITU-R P.526 (one edge, or three with the Deygout
  * construction) and a two-ray reflection.
  *
+ * Sources (v2.1, model-assumptions table): the single-edge loss
+ * J(nu) = 6.9 + 20 log10(sqrt((nu - 0.1)^2 + 1) + nu - 0.1) is the
+ * approximation given in ITU-R P.526; the three-edge construction is
+ * J. Deygout, "Multiple knife-edge diffraction of microwaves", IEEE Trans.
+ * Antennas Propag. 14(4), 480-489 (1966). Both are quoted from memory, not
+ * re-checked against the texts. DEYGOUT_RIDGE_GUARD and the regolith
+ * permittivity / loss tangent are team parameters, not validated.
+ *
  * Replaces the boolean "Earth visible" by a continuous loss:
  *   - knife-edge diffraction over the dominant ridge (ITU-R P.526 approximation),
  *     which attenuates a grazing link before the Earth geometrically sets and

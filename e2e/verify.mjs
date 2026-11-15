@@ -339,7 +339,22 @@ try {
   check('Science has its own engineering view: full KPI table and the detailed timeline; no global engineering switch',
     eng.rows > 10 && eng.cols === 2 && !eng.toggle && /Detailed timeline/.test(eng.timeline) && eng.techTelemetry, JSON.stringify(eng));
   await shot('00d-science-engineering-view.png');
+  // v2.1 §8: the read-only table of model assumptions, every row with its origin
+  const assume = await page.evaluate(() => {
+    const rows = [...document.querySelectorAll('[data-testid="assumptions"] tbody tr')];
+    return {
+      rows: rows.length,
+      complete: rows.every((r) => [...r.children].every((c) => c.textContent.trim().length > 0)),
+      team: rows.filter((r) => r.dataset.origin === 'team').every((r) => /team assumption/.test(r.children[3].textContent)),
+      cited: rows.filter((r) => r.dataset.origin === 'source').map((r) => r.children[3].textContent).join(' | '),
+      inputs: document.querySelectorAll('[data-testid="assumptions"] input, [data-testid="assumptions"] select, [data-testid="assumptions"] button').length,
+    };
+  });
+  check('engineering view holds the read-only "Model assumptions" table: parameter, value, unit, origin, where used',
+    assume.rows >= 25 && assume.complete && assume.team && /Trask/.test(assume.cited) && /Deygout/.test(assume.cited) && /synodic/.test(assume.cited) && assume.inputs === 0, JSON.stringify({ ...assume, cited: assume.cited.slice(0, 120) }));
   await goSub('power');
+  check('the default vehicle is labelled an illustrative example in Hardware, where it can be edited',
+    /illustrative example/.test(await page.locator('[data-testid="vehicle-example"]').innerText()) && (await page.locator('[data-testid="battery"]').isEditable()));
   await page.click('[data-testid="play"]');
   await page.waitForTimeout(1500);
   const glassFps = await fps(4000);
@@ -624,9 +639,12 @@ try {
   check('suitability index: synthesized only, no weighting modes, no hydrogen or geology fields', scoreB0 > 0 && scoreB0 <= 100 && scoreUi.modes === 0 && scoreUi.inputs === 0 && !scoreUi.rows.includes('hydrogen') && !scoreUi.rows.includes('geology'), `B ${scoreB0}; ${JSON.stringify(scoreUi)}`);
   await shot('23-suitability-score.png');
   const coverageB = await page.locator('[data-testid="coverage-B"]').innerText();
-  const psrSource = (await page.locator('tr[data-criterion="psrProximity"] th small').innerText()).trim();
+  const feoSource = (await page.locator('tr[data-criterion="feo"] th small').innerText()).trim();
+  const ranges = await page.$$eval('tr[data-criterion] th', (ths) => ths.map((th) => th.getAttribute('data-range') ?? ''));
   const orbital = (await page.locator('[data-testid="orbital-data"]').innerText()).replace(/\s+/g, ' ');
-  check('score uses the real PSR, FeO and gravity layers and shows the Diviner data of the site', /LOLA PSR/.test(psrSource) && /\d+ K/.test(orbital) && /8\d %|9\d %/.test(coverageB), `${coverageB.replace(/\s+/g, ' ')}; ${psrSource}; ${orbital.slice(0, 160)}`);
+  check('index: only criteria with an anchored range (Earth view, sunlight, slope up to the vehicle stability angle, FeO), each range shown on hover; roughness, PSR distance and gravity left out',
+    JSON.stringify(scoreUi.rows) === JSON.stringify(['earthVisibility', 'slope', 'illumination', 'feo']) && ranges.every((r) => r.length > 20) && ranges.some((r) => /stability angle/.test(r)) && /LP GRS/.test(feoSource) && /\d+ K/.test(orbital) && /5\d %/.test(coverageB),
+    `${scoreUi.rows.join(',')}; ${coverageB.replace(/\s+/g, ' ')}; ${ranges[1]}`);
   const lbl2 = await siteLabels();
   check('score headers name the sites in full', labelsOk(lbl2), lbl2.map((l) => l.text).join(' | '));
 
@@ -921,6 +939,8 @@ try {
   const levelB = await p2.locator('[data-testid="verdict"]').getAttribute('data-level');
   const sentenceB = await text2('[data-testid="verdict-sentence"]');
   check('a scenario that freezes reads NO-GO with the cause and the day', levelB === 'nogo' && /(day|hour)/.test(sentenceB), `${levelB}: ${sentenceB}`);
+  const spans = await p2.$$eval('[data-testid="rescue-days"] option', (o) => o.map((x) => x.value));
+  check('"Optimise" searches later dates over 30, 60 or 90 days, 60 by default', JSON.stringify(spans) === '["30","60","90"]' && (await p2.locator('[data-testid="rescue-days"]').inputValue()) === '60', spans.join(','));
   await p2.click('[data-testid="verdict-fix"]');
   await p2.waitForSelector('[data-testid="verdict-after"]', { timeout: 180000 });
   await p2.waitForTimeout(1500);
