@@ -3,6 +3,9 @@ import { TopBar } from './components/TopBar';
 import { PlannerLayout } from './components/dashboard/PlannerLayout';
 import { TriageLayout } from './components/triage/TriageLayout';
 import { MissionBriefingTour } from './components/MissionBriefingTour';
+import { Gate } from './beginner/Gate';
+import { Beginner } from './beginner/Beginner';
+import { useBeginner } from './beginner/state';
 import { ensureRegional } from './state/dem';
 import { loadScienceLayers } from './state/science';
 import { MissionProvider } from './state/mission';
@@ -50,6 +53,9 @@ function BootScreen({ progress }: { progress: number }) {
 
 export function App() {
   const mode = useApp((s) => s.mode);
+  const experience = useApp((s) => s.experience);
+  const setExperience = useApp((s) => s.setExperience);
+  const reveal = useBeginner((s) => s.reveal);
   const [progress, setProgress] = useState(0);
   const [ready, setReady] = useState(false);
   usePlayback();
@@ -61,13 +67,23 @@ export function App() {
     return () => { alive = false; };
   }, []);
 
+  // v3.0: the entry gate comes first, over the terrain loading (which goes on behind it).
+  if (experience === 'gate') {
+    return (
+      <>
+        <BootScreen progress={progress} />
+        <Gate ready={ready} progress={progress} onEnter={setExperience} />
+      </>
+    );
+  }
   if (!ready) return <BootScreen progress={progress} />;
   return (
     <MissionProvider>
-      <div className={`app app-${mode}`}>
+      <div className={`app app-${mode}`} data-experience={experience} data-reveal={experience === 'beginner' ? reveal.join(' ') : undefined}>
         <TopBar />
         {mode === 'triage' ? <TriageLayout /> : <PlannerLayout />}
-        <MissionBriefingTour />
+        {experience === 'leader' && <MissionBriefingTour />}
+        {experience === 'beginner' && <Beginner />}
       </div>
     </MissionProvider>
   );

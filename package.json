@@ -1,7 +1,7 @@
 {
   "name": "clps-lunar-mission-browser",
   "private": true,
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "CLPS Lunar Mission Browser - Lunar Landing Site Navigator (GISAT UdeC, NASA Space Apps 2026)",
   "type": "module",
   "scripts": {
@@ -20,7 +20,8 @@
     "search-rim": "vite-node scripts/search_crater_rim.ts",
     "build-dem": "python scripts/build_lola_dem.py",
     "compare-horizons": "vite-node scripts/compare_horizons.ts",
-    "measure-micro": "vite-node scripts/measure_micro_hazard.ts"
+    "measure-micro": "vite-node scripts/measure_micro_hazard.ts",
+    "find-scenarios": "vite-node scripts/find-tutorial-scenarios.ts"
   },
   "dependencies": {
     "@astrouxds/astro-web-components": "^8.0.1",

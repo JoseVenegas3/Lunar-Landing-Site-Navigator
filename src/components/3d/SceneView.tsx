@@ -18,7 +18,7 @@ import { DoubleClickLand, EscapeArrow, LandmarkLabels, SiteMarkers, SunBeam } fr
 import { MISSION_SITES } from '../../engine';
 import { Transport } from './Transport';
 import { terrainStatusText } from '../triage/TriageLayout';
-import { LiveSky, RING_ELEVATION_GAIN, dirToScene, hudTags, makeLiveSky, makeSceneFrame, updateLiveSky, useSceneUi } from './sceneMath';
+import { LiveSky, RING_ELEVATION_GAIN, camProbe, dirToScene, hudTags, makeLiveSky, makeSceneFrame, updateLiveSky, useSceneUi } from './sceneMath';
 import { ScenarioBadge } from '../ScenarioBadge';
 
 declare global {
@@ -60,6 +60,19 @@ function CameraRig({ live, result, siteKey }: { live: LiveSky; result: MissionRe
     const c = controls.current;
     if (!c || !live.valid) return;
     const cam = camera as PerspectiveCamera;
+    // Camera aim requested by the Beginner training ("do it for me"): look at the Sun or the Earth, or pull back.
+    const aim = camProbe.aim;
+    if (aim && view === 'orbit') {
+      camProbe.aim = null;
+      if (aim === 'far') cam.position.copy(live.lander).add(dir.set(9, 6, 11));
+      else {
+        dir.copy(aim === 'sun' ? live.sunDir : live.earthDir).setY(0).normalize();
+        const d = aim === 'zoom' ? 0.9 : 2.2;
+        if (aim === 'zoom') dir.copy(cam.position).sub(live.lander).setY(0).normalize().negate();
+        cam.position.copy(live.lander).addScaledVector(dir, -d).add(dir.set(0, d * 0.28, 0));
+      }
+      c.target.copy(live.lander);
+    }
     if (pending.current) {
       pending.current = false;
       if (view === 'orbit') {
@@ -83,6 +96,13 @@ function CameraRig({ live, result, siteKey }: { live: LiveSky; result: MissionRe
       c.target.lerp(live.lander, 0.15);
     }
     c.update();
+    // What the camera looks at, for the Beginner training (angles to the Sun and the Earth, distance).
+    dir.copy(c.target).sub(cam.position);
+    camProbe.dist = dir.length();
+    dir.normalize();
+    camProbe.sunOffDeg = (Math.acos(Math.max(-1, Math.min(1, dir.dot(live.sunDir)))) * 180) / Math.PI;
+    camProbe.earthOffDeg = (Math.acos(Math.max(-1, Math.min(1, dir.dot(live.earthDir)))) * 180) / Math.PI;
+    camProbe.frames++;
   });
 
   const eye = view === 'eye';
@@ -197,7 +217,7 @@ function Segmented<T extends string>({ value, options, onChange, label }: {
   return (
     <div className="seg" role="group" aria-label={label}>
       {options.map((o) => (
-        <button key={o.value} type="button" className={o.value === value ? 'is-on' : ''} aria-pressed={o.value === value} onClick={() => onChange(o.value)}>
+        <button key={o.value} type="button" className={o.value === value ? 'is-on' : ''} aria-pressed={o.value === value} onClick={() => onChange(o.value)} data-testid={`seg-${o.value}`}>
           {o.label}
         </button>
       ))}

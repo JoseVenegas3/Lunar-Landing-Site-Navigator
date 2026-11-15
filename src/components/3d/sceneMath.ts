@@ -109,6 +109,15 @@ export const hudTags: {
   site: HTMLDivElement | null;
 } = { los: null, cursor: null, notice: null, site: null };
 
+/**
+ * Where the camera looks (v3.0 Beginner training): angle between the view
+ * direction and the Sun / the Earth, distance to the target, and a pending
+ * aim request ("do it for me"). Written by the camera rig every frame.
+ */
+export const camProbe: { sunOffDeg: number; earthOffDeg: number; dist: number; frames: number; aim: 'sun' | 'earth' | 'far' | 'zoom' | null } = {
+  sunOffDeg: 180, earthOffDeg: 180, dist: 0, frames: 0, aim: null,
+};
+
 /** Radii (km) of the far-field shells drawn around the lander. */
 export const SKYLINE_RADIUS_KM = 40;
 export const BODY_DISTANCE_KM = 55;

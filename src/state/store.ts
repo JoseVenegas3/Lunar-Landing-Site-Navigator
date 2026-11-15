@@ -8,6 +8,17 @@ export type ScenarioKey = 'A' | 'B';
 export type AppMode = 'planner' | 'triage';
 
 /**
+ * Experience of the v3.0 app: the entry gate (every load), the guided
+ * Beginner training, or Mission Leader (the v2.1 interface, unchanged).
+ * `?mode=leader` / `?mode=beginner` skip the gate (tests, captures, links).
+ */
+export type Experience = 'gate' | 'beginner' | 'leader';
+export function experienceFromUrl(search: string = typeof location === 'undefined' ? '' : location.search): Experience {
+  const m = new URLSearchParams(search).get('mode');
+  return m === 'leader' ? 'leader' : m === 'beginner' ? 'beginner' : 'gate';
+}
+
+/**
  * Mode from any stored or linked value. The Explorer mode of v2.0 was removed in
  * v2.1 (its site cards live in the Sites tab and its tour in the tutorial), so
  * 'explorer', or anything unknown, falls back to the planner without error.
@@ -70,11 +81,8 @@ export const TELEMETRY_KEY = 'clps.telemetry';
 const telemetryOpen = (): boolean => {
   try { return typeof localStorage !== 'undefined' && localStorage.getItem(TELEMETRY_KEY) === '1'; } catch { return false; }
 };
-/** First-visit mission briefing: 'done' once it was taken or skipped. */
+/** Tutorial taken or skipped ('done'); since v3.0 it no longer opens anything by itself (the entry gate does). */
 export const BRIEFING_KEY = 'clps.briefing';
-const briefingDone = (): boolean => {
-  try { return typeof localStorage !== 'undefined' && localStorage.getItem(BRIEFING_KEY) === 'done'; } catch { return true; }
-};
 
 const panelsFor = (s: Subsystem, keep?: PanelState): PanelState => ({
   leftTab: SUBSYSTEMS[s].left[0], rightTab: SUBSYSTEMS[s].right[0], bottomTab: SUBSYSTEMS[s].bottom[0],
@@ -97,6 +105,12 @@ export interface ScenarioCfg {
 }
 
 export interface AppState {
+  /** Gate, Beginner or Mission Leader (v3.0). */
+  experience: Experience;
+  /** Subsystems the user may open. Mission Leader: all of them, always. */
+  unlocked: Subsystem[];
+  /** Beginner only: the "now" of the emergency flow, so the tutorial does not depend on the real date. Null = the real clock. */
+  nowOverride: number | null;
   mode: AppMode;
   lang: Lang;
   scenarios: Record<ScenarioKey, ScenarioCfg>;
@@ -135,6 +149,9 @@ export interface AppState {
   view: ViewKind;
   panels: PanelState;
 
+  setExperience: (e: Experience) => void;
+  setUnlocked: (u: Subsystem[]) => void;
+  setNowOverride: (ms: number | null) => void;
   setSubsystem: (s: Subsystem) => void;
   /** Show a panel, switching to a subsystem that has it when the current one does not. */
   openPanel: (id: PanelId) => void;
@@ -147,6 +164,8 @@ export interface AppState {
   setActive: (k: ScenarioKey) => void;
   /** Start a comparison (B = copy of A) or end it (B disappears). */
   setCompare: (on: boolean) => void;
+  /** v3.0: make scenario B the main scenario (site, window, offset, science inputs) and end the comparison. */
+  adoptB: () => void;
   updateScenario: (k: ScenarioKey, patch: Partial<ScenarioCfg>) => void;
   setRelocation: (k: ScenarioKey, dxM: number, dyM: number) => void;
   setPower: (patch: Partial<PowerConfig>) => void;
@@ -179,6 +198,9 @@ export const maxCursorHours = (s: Pick<AppState, 'scenarios' | 'mode' | 'active'
   (s.mode === 'planner' && s.compare ? Math.max(s.scenarios.A.days, s.scenarios.B.days) : s.scenarios[s.active].days) * 24;
 
 export const useApp = create<AppState>((set) => ({
+  experience: experienceFromUrl(),
+  unlocked: [...SUBSYSTEM_ORDER],
+  nowOverride: null,
   mode: 'planner',
   lang: 'en',
   scenarios: {
@@ -199,7 +221,8 @@ export const useApp = create<AppState>((set) => ({
   science: { A: {}, B: {} },
   rescueDays: 60,
   subsystem: 'overview',
-  briefing: briefingDone() ? 'off' : 'offer',
+  // v3.0: the entry gate replaces the first-visit card; the tutorial stays on the "Mission guide" button.
+  briefing: 'off',
   mastM: 2,
   cursorHours: 96,
   playing: false,
@@ -208,6 +231,10 @@ export const useApp = create<AppState>((set) => ({
   view: 'orbit',
   panels: panelsFor('overview'),
 
+  // Leaving the Beginner always frees every subsystem and the real clock.
+  setExperience: (experience) => set(experience === 'beginner' ? { experience } : { experience, unlocked: [...SUBSYSTEM_ORDER], nowOverride: null }),
+  setUnlocked: (unlocked) => set((s) => ({ unlocked: s.experience === 'beginner' ? unlocked : [...SUBSYSTEM_ORDER] })),
+  setNowOverride: (nowOverride) => set((s) => ({ nowOverride: s.experience === 'beginner' ? nowOverride : null })),
   setSubsystem: (subsystem) => set((s) => (s.subsystem === subsystem ? {} : {
     subsystem, panels: panelsFor(subsystem, s.panels), overlay: SUBSYSTEMS[subsystem].overlay,
   })),
@@ -239,6 +266,10 @@ export const useApp = create<AppState>((set) => ({
   setCompare: (on) => set((s) => (on
     ? { compare: true, scenarios: { ...s.scenarios, B: { ...s.scenarios.A } }, science: { ...s.science, B: { ...s.science.A } } }
     : { compare: false, active: 'A', cursorHours: Math.min(s.cursorHours, s.scenarios.A.days * 24) })),
+  adoptB: () => set((s) => (s.compare ? {
+    scenarios: { ...s.scenarios, A: { ...s.scenarios.B } }, science: { ...s.science, A: { ...s.science.B } }, compare: false, active: 'A',
+    cursorHours: Math.min(s.cursorHours, s.scenarios.B.days * 24),
+  } : {})),
   updateScenario: (k, patch) => set((s) => {
     const next = { ...s.scenarios[k], ...patch };
     // A new site starts from its nominal point.

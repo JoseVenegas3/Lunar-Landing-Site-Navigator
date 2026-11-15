@@ -4,6 +4,8 @@ import { useActiveScenario, useThrottledCursor } from '../state/mission';
 import { AppMode, maxCursorHours, useApp } from '../state/store';
 import { fmtDateTime, fmtDuration, useT } from '../lib/format';
 import { buildTelemetryCsv, downloadText, exportStem } from '../lib/export';
+import { useState } from 'react';
+import { reopenGate } from '../beginner/lifecycle';
 
 export function TopBar() {
   const t = useT();
@@ -16,6 +18,8 @@ export function TopBar() {
   const cursor = useThrottledCursor();
   const data = useActiveScenario();
   const startMs = data.result?.eph.startMs ?? null;
+  const experience = useApp((s) => s.experience);
+  const [sure, setSure] = useState(false);
 
   const switchMode = (m: AppMode): void => {
     if (m !== 'planner') setActive('A');
@@ -47,12 +51,19 @@ export function TopBar() {
       </div>
 
       <button
+        type="button" className="btn btn-link-ver" data-testid="switch-version"
+        onClick={() => { if (experience === 'beginner' && !sure) { setSure(true); window.setTimeout(() => setSure(false), 4000); return; } reopenGate(); }}
+        title={t('Back to the entry question (Beginner or Mission Leader)', 'Volver a la pregunta de entrada (Principiante o Mission Leader)')}
+      >
+        {sure ? t('The training progress is lost. Click again', 'Se pierde el progreso del entrenamiento. Pulsa de nuevo') : t('Switch version', 'Cambiar de versión')}
+      </button>
+      {experience === 'leader' && <button
         type="button" className="btn btn-verif btn-guide" data-testid="briefing-open"
         onClick={() => useApp.getState().setBriefing('confirm')}
         title={t('Tutorial mode: a guided sequence that drives the app by itself', 'Modo tutorial: una secuencia guiada que conduce la app por sí sola')}
       >
         {t('Mission guide', 'Guía de misión')}
-      </button>
+      </button>}
       <button
         type="button" className="btn btn-verif btn-export" data-testid="export-csv" disabled={!data.result}
         onClick={() => { if (data.result) downloadText(`${exportStem(data.name, data.result)}_telemetry.csv`, buildTelemetryCsv(data.result, { site: data.name, scenario: data.key }), 'text/csv;charset=utf-8'); }}

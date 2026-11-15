@@ -35,8 +35,8 @@ export const EMERGENCY_HORIZON_DAYS = Math.ceil(SYNODIC_MONTH_D / 2);
 export const EMERGENCY_HORIZONS = [3, 7, EMERGENCY_HORIZON_DAYS] as const;
 const LAST_START = Date.UTC(2030, 11, 31) - EMERGENCY_HORIZON_DAYS * DAY_MS;
 
-/** The current hour, UTC (clamped to the ephemeris range of the tool). */
-export const nowHourMs = (): number => Math.min(LAST_START, Math.floor(Date.now() / HOUR_MS) * HOUR_MS);
+/** The current hour, UTC (clamped to the ephemeris range of the tool). The Beginner training may fix it (`nowOverride`). */
+export const nowHourMs = (): number => Math.min(LAST_START, Math.floor((useApp.getState().nowOverride ?? Date.now()) / HOUR_MS) * HOUR_MS);
 
 /** Coordinates pasted as text: "-84.79, 29.20", "84.79 S 29.20 E"… */
 export function parseCoords(text: string): { latDeg: number; lonDeg: number } | null {

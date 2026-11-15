@@ -12,6 +12,7 @@ import { CSSProperties, ReactNode, useEffect } from 'react';
 import { create } from 'zustand';
 import { SUBSYSTEMS, SUBSYSTEM_ORDER, Subsystem, useApp } from '../../state/store';
 import { useT } from '../../lib/format';
+import { nudge, useBeginner } from '../../beginner/state';
 
 type T = (en: string, es: string) => string;
 const stroke = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.4, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
@@ -23,6 +24,8 @@ export const SUB_ICON: Record<Subsystem, ReactNode> = {
   terrain: <path d="M2 15.5 7 8l3 4 2.5-3.5L18 15.5ZM2 17.5h16" {...stroke} />,
   science: <path d="M8 2.5v5.2L3.5 15.4A1.4 1.4 0 0 0 4.7 17.5h10.6a1.4 1.4 0 0 0 1.2-2.1L12 7.7V2.5M7 2.5h6M6 12.5h8" {...stroke} />,
 };
+
+const LOCK_ICON = <path d="M6 9V6.5a4 4 0 0 1 8 0V9M4.5 9h11v8h-11zM10 12.3v2.2" {...stroke} />;
 
 export function subsystemLabel(s: Subsystem, t: T): string {
   return {
@@ -46,9 +49,9 @@ export const SWITCH_IN_MS = 300;
 /** Durations of the three phases, ms (about 1 s in all). */
 export const SWITCH_MS = { out: SWITCH_OUT_MS, hold: SWITCH_HOLD_MS, in: SWITCH_IN_MS } as const;
 
-interface SwitchState { phase: SwitchPhase; target: Subsystem | null }
+interface SwitchState { phase: SwitchPhase; target: Subsystem | null; denied: Subsystem | null }
 /** Transition state, kept apart from the app store so a transition only re-renders the tabs and the curtain. */
-export const useSwitch = create<SwitchState>(() => ({ phase: 'idle', target: null }));
+export const useSwitch = create<SwitchState>(() => ({ phase: 'idle', target: null, denied: null }));
 
 let want: Subsystem | null = null;
 let queued: Subsystem | null = null;
@@ -74,8 +77,18 @@ function run(s: Subsystem): void {
   }, ms.out + ms.hold + ms.in);
 }
 
-/** Ask for a console; animated, and safe to call while a transition is running. */
+/** True when the subsystem is locked (Beginner training only; Mission Leader has every subsystem unlocked). */
+export const isLocked = (s: Subsystem): boolean => !useApp.getState().unlocked.includes(s);
+
+/** Ask for a console; animated, and safe to call while a transition is running. A locked console is refused. */
 export function requestSubsystem(s: Subsystem): void {
+  if (isLocked(s)) {
+    const es = useApp.getState().lang === 'es';
+    nudge(es ? 'Aún no: completa la misión actual' : 'Not yet: finish the current mission');
+    useSwitch.setState({ denied: s });
+    window.setTimeout(() => { if (useSwitch.getState().denied === s) useSwitch.setState({ denied: null }); }, 450);
+    return;
+  }
   const { phase } = useSwitch.getState();
   if (phase === 'idle') {
     if (s !== useApp.getState().subsystem) run(s);
@@ -100,19 +113,28 @@ export function SubsystemTabs() {
   const t = useT();
   const subsystem = useApp((s) => s.subsystem);
   const pending = useSwitch((s) => s.target);
+  const denied = useSwitch((s) => s.denied);
+  const unlocked = useApp((s) => s.unlocked);
+  const fresh = useBeginner((s) => s.fresh);
   const shown = pending ?? subsystem;
   return (
     <nav className="subsys-bar" aria-label={t('Mission subsystem', 'Subsistema de misión')} data-testid="subsys-bar">
       <div className="subsys-list" role="tablist">
-        {SUBSYSTEM_ORDER.map((s) => (
-          <button
-            key={s} type="button" role="tab" aria-selected={shown === s} className={`subsys-btn${shown === s ? ' is-on' : ''}`}
-            style={{ '--sub': SUBSYSTEMS[s].accent } as CSSProperties} onClick={() => requestSubsystem(s)} data-testid={`subsys-${s}`}
-          >
-            <svg viewBox="0 0 20 20" width="22" height="22" aria-hidden="true">{SUB_ICON[s]}</svg>
-            <span>{subsystemLabel(s, t)}</span>
-          </button>
-        ))}
+        {SUBSYSTEM_ORDER.map((s) => {
+          const locked = !unlocked.includes(s);
+          return (
+            <button
+              key={s} type="button" role="tab" aria-selected={shown === s} aria-disabled={locked || undefined}
+              className={`subsys-btn${shown === s ? ' is-on' : ''}${locked ? ' is-locked' : ''}${denied === s ? ' is-denied' : ''}${fresh === s ? ' is-fresh' : ''}`}
+              style={{ '--sub': SUBSYSTEMS[s].accent } as CSSProperties} onClick={() => requestSubsystem(s)} data-testid={`subsys-${s}`} data-locked={locked ? '1' : undefined}
+              title={locked ? t('Locked: finish the current mission', 'Bloqueado: completa la misión actual') : undefined}
+            >
+              <svg viewBox="0 0 20 20" width="22" height="22" aria-hidden="true">{locked ? LOCK_ICON : SUB_ICON[s]}</svg>
+              <span>{subsystemLabel(s, t)}</span>
+              {fresh === s && <em className="subsys-new">{t('New!', '¡Nuevo!')}</em>}
+            </button>
+          );
+        })}
       </div>
     </nav>
   );

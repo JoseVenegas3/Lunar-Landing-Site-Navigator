@@ -43,6 +43,10 @@ export function CompareBlock() {
           <div className="compare-b">
             <h4><span className="badge badge-B">B</span>{t('Scenario B', 'Escenario B')}</h4>
             <ScenarioPanel k="B" />
+            <button type="button" className="btn btn-small btn-primary" onClick={() => useApp.getState().adoptB()} data-testid="adopt-b"
+              title={t('Make scenario B the main scenario and end the comparison', 'Convierte el escenario B en el escenario principal y termina la comparación')}>
+              {t('Adopt this site', 'Adoptar este sitio')}
+            </button>
           </div>
           <QuickCompare />
           <KpiMatrix />

@@ -111,7 +111,7 @@ export function ContingencyPanel() {
           label={t('Antenna beamwidth θ3dB', 'Ancho de haz de antena θ3dB')} value={Math.round(beam * 10) / 10} min={2} max={45} step={0.5} unit="°"
           onChange={(v) => setRf({ txDishDiameterM: Math.round(((70 * lambda) / v) * 1000) / 1000 })} testId="att-beam"
         />
-        <Slider label={t('Antenna gimbal range', 'Rango del cardán de antena')} value={attitude.gimbalRangeDeg} min={0} max={60} step={1} unit="°" onChange={(v) => setAttitude({ gimbalRangeDeg: v })} />
+        <Slider label={t('Antenna gimbal range', 'Rango del cardán de antena')} value={attitude.gimbalRangeDeg} min={0} max={60} step={1} unit="°" onChange={(v) => setAttitude({ gimbalRangeDeg: v })} testId="gimbal-range" />
         <p className="kpi-note pad0">
           {t(`A ${fmtNum(beam, 1)}° beam needs a ${fmtNum(rf.txDishDiameterM * 100, 0)} cm dish: narrowing the beam raises the gain and the sensitivity to tilt.`, `Un haz de ${fmtNum(beam, 1)}° exige una antena de ${fmtNum(rf.txDishDiameterM * 100, 0)} cm: estrechar el haz sube la ganancia y la sensibilidad a la inclinación.`)}
         </p>

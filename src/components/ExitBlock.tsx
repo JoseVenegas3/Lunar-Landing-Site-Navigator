@@ -139,7 +139,7 @@ export function ExitBlock({ plan, onMove }: { plan: ExitPlan; onMove: (eastM: nu
           <li key={o.key} className={`is-${o.tone}`} data-option={o.key} data-tone={o.tone}>
             <Icon tone={o.tone} /><span>{o.text}</span>
             {o.key === 'move' && plan.move && (
-              <button type="button" className="btn btn-small" onClick={() => onMove(plan.move?.eastM ?? 0, plan.move?.northM ?? 0)} data-testid="exit-move">{t('Move there', 'Mover ahí')}</button>
+              <button type="button" className="btn btn-small" onClick={() => onMove(plan.move?.eastM ?? 0, plan.move?.northM ?? 0)} data-testid="exit-move">{t('Run this way out', 'Ejecutar esta salida')}</button>
             )}
           </li>
         ))}
