@@ -247,9 +247,9 @@ const gearth = new Mesh(new SphereGeometry(0.27, 48, 32), new MeshStandardMateri
 globe.add(gearth);
 
 // ------------------------------------------------------------------ state, eased every frame
-const SCAL = ['roll', 'gimbal', 'mast', 'sunEl', 'beam', 'rock', 'vo', 'path', 'gTilt', 'gDist', 'gEarth'];
+const SCAL = ['roll', 'gimbal', 'mast', 'sunEl', 'beam', 'rock', 'vo', 'path', 'gTilt', 'gDist', 'gEarth', 'gSpin'];
 const S = { landerY: 0, roll: 0, gimbal: 0, mast: 0, sunEl: SUN_HI, beam: 0, rock: 0, vo: 0.2, path: 0,
-  cam: new Vector3(0.6, 3, 11.5), look: new Vector3(0, 2, 0), gTilt: 0, gDist: 3.4, gEarth: 0 };
+  cam: new Vector3(0.6, 3, 11.5), look: new Vector3(0, 2, 0), gTilt: 0, gDist: 3.4, gEarth: 0, gSpin: 0 };
 const T = { ...S, cam: S.cam.clone(), look: S.look.clone(), tone: 'rf' };
 let scene = 'surface', slideIdx = 0, step = 0, hopT0 = 0;
 const ANCH = {};
@@ -273,15 +273,21 @@ function direct(si, st) {
     T.vo = 0.2; T.sunEl = SUN_MID; T.cam.set(0.5, 10, 27); T.look.set(4.4, 2.2, 0);
     if (st >= 2) T.path = 1;
   } else if (si === 1) {
-    T.gTilt = st >= 1 ? 0.55 : 0.15; T.gDist = st >= 1 ? 3.3 : 4.0; T.gEarth = st >= 2 ? 1 : 0;
+    T.gTilt = st >= 1 ? 0.55 : 0.15; T.gDist = st >= 1 ? 3.6 : 4.3; T.gEarth = st >= 2 ? 1 : 0;
   } else if (si === 6) {
-    T.gTilt = 0.35; T.gDist = 2.9; T.gEarth = 1;
+    T.gTilt = 0.3; T.gDist = 3.3; T.gEarth = 1;
   }
   ridgeFar.visible = si === 0 || si === 3; ridgeNear.visible = si === 5; rock.visible = si === 0 || si === 3;
   if (si === 5 && st >= 3) { if (!hopT0) hopT0 = performance.now(); } else hopT0 = 0;
 }
-/** Jump straight to the targets (after a scene change behind the veil). */
-function snap() { for (const key of SCAL) S[key] = T[key]; S.cam.copy(T.cam); S.look.copy(T.look); }
+/** Jump to the targets after a scene change; with `dolly`, start pulled back so the camera glides in. */
+function snap(dolly = false) {
+  for (const key of SCAL) S[key] = T[key]; S.cam.copy(T.cam); S.look.copy(T.look);
+  if (!dolly || reduced) return;
+  const back = S.cam.clone().sub(S.look).normalize();
+  S.cam.addScaledVector(back, 9).add(new Vector3(-3, 3.5, 0)); S.look.y += 1.2;
+  S.gDist += 1.8; S.gSpin = -0.9; S.gTilt += 0.25;
+}
 
 const v3 = () => new Vector3();
 const tmpQ = new Quaternion();
@@ -356,16 +362,16 @@ function surfaceFrame(t) {
 
 function globeFrame(t) {
   camera.clearViewOffset();
-  for (const key of ['gTilt', 'gDist', 'gEarth']) S[key] += (T[key] - S[key]) * k(0.03);
-  moon.rotation.y = SPIN.y + t * (reduced ? 0 : 0.00004);
+  for (const key of ['gTilt', 'gDist', 'gEarth', 'gSpin']) S[key] += (T[key] - S[key]) * k(0.028);
+  moon.rotation.y = SPIN.y + S.gSpin + t * (reduced ? 0 : 0.00004);
   tilt.rotation.x = -S.gTilt * (Math.PI / 2 - 0.12);
   // the Moon sits left of centre, clear of the data panel; grazing light from the left, as at the pole
-  const off = slideIdx === 1 ? 0.95 : 0;
-  camera.position.set(off, 0, S.gDist); camera.lookAt(off, slideIdx === 6 ? -0.25 : 0, 0);
+  const off = slideIdx === 1 ? 0.95 : -1.0; // act II: Moon left of the data; act VI: Moon right of the closing words
+  camera.position.set(off, 0, S.gDist); camera.lookAt(off, 0, 0);
   gsun.position.set(-3, 0.35 - S.gTilt * 0.3, 0.9);
   // the Earth: rising behind the limb, rocking a little (libration)
   const wob = reduced ? 0 : Math.sin(t * 0.0009) * 0.05;
-  gearth.position.set((slideIdx === 1 ? -1.1 : 1.4) + wob, -1.4 + S.gEarth * 2.6 + wob * 0.5, -6);
+  gearth.position.set((slideIdx === 1 ? -1.1 : 2.2) + wob, -1.4 + S.gEarth * 2.6 + wob * 0.5, -6);
   gearth.visible = S.gEarth > 0.02;
 }
 
@@ -438,18 +444,65 @@ function countUp(el) {
   requestAnimationFrame(tick);
 }
 
-function render() {
-  slides.forEach((s, i) => s.classList.toggle('is-current', i === slideIdx));
+// headline words each get their own mask; kickers decode like a console readout
+function splitWords(root) {
+  let i = 0;
+  const walk = (node) => {
+    for (const n of [...node.childNodes]) {
+      if (n.nodeType === 3) {
+        const frag = document.createDocumentFragment();
+        n.textContent.split(/(\s+)/).forEach((part) => {
+          if (!part) return;
+          if (/^\s+$/.test(part)) { frag.appendChild(document.createTextNode(part)); return; }
+          const w = document.createElement('span'); w.className = 'w';
+          const inner = document.createElement('span'); inner.textContent = part; inner.style.setProperty('--i', i++);
+          w.appendChild(inner); frag.appendChild(w);
+        });
+        n.replaceWith(frag);
+      } else if (n.nodeType === 1 && n.tagName !== 'BR') walk(n);
+    }
+  };
+  walk(root);
+}
+document.querySelectorAll('.split').forEach(splitWords);
+const GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/';
+function decode(el, delay) {
+  if (reduced) return;
+  const final = el.dataset.text || (el.dataset.text = el.textContent);
+  const t0 = performance.now() + delay, dur = 650;
+  const tick = (now) => {
+    const p = Math.max(0, (now - t0) / dur);
+    el.textContent = [...final].map((c, n) => (c === ' ' || n < p * final.length ? c : GLYPHS[(Math.random() * GLYPHS.length) | 0])).join('');
+    if (p < 1) requestAnimationFrame(tick); else el.textContent = final;
+  };
+  requestAnimationFrame(tick);
+}
+
+/** Show the current slide at the current step; `enter` staggers the whole opening group after a scene change. */
+function render(enter = false) {
+  slides.forEach((s, i) => {
+    s.classList.toggle('is-current', i === slideIdx);
+    if (i !== slideIdx) s.querySelectorAll('[data-step].is-in').forEach((el) => el.classList.remove('is-in'));
+  });
   const cur = slides[slideIdx];
+  let order = 0;
   cur.querySelectorAll('[data-step]').forEach((el) => {
-    const on = Number(el.dataset.step) <= step;
+    const on = Number(el.dataset.step) <= step, was = el.classList.contains('is-in');
+    if (on && !was) {
+      const d = enter ? 320 + order * 120 : order * 110; order++;
+      el.style.setProperty('--d', `${d}ms`);
+      if (el.classList.contains('kicker')) decode(el, d);
+      const counts = el.dataset.count ? [el] : [...el.querySelectorAll('[data-count]')];
+      counts.forEach((c) => { delete c.dataset.done; c.textContent = '0'; setTimeout(() => countUp(c), d + 200); });
+    }
+    if (!on) el.style.setProperty('--d', '0ms');
     el.classList.toggle('is-in', on);
-    if (on) el.querySelectorAll('[data-count]').forEach(countUp);
-    if (on && el.dataset.count) countUp(el);
   });
   const m4 = document.getElementById('m4');
   if (slideIdx === 3) {
-    m4.textContent = step >= 2 ? 'Recuperado' : step >= 1 ? '7 %' : '35 %'; m4.classList.toggle('is-ok', step >= 2);
+    const txt = step >= 2 ? 'Recuperado' : step >= 1 ? '7 %' : '35 %';
+    if (m4.textContent !== txt && !reduced) m4.animate([{ transform: 'translateY(-40%)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 650, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
+    m4.textContent = txt; m4.classList.toggle('is-ok', step >= 2);
     m4.nextElementSibling.textContent = step >= 2 ? 'enlace con la Tierra, con el cardán de antena' : step >= 1 ? 'tiempo de enlace con 30° de alabeo (motor)' : 'tiempo de enlace con el módulo nivelado (motor)';
   }
   [...acts.children].forEach((i, n) => { i.firstChild.style.width = n < slideIdx ? '100%' : n === slideIdx ? `${((step + 1) / Number(cur.dataset.steps)) * 100}%` : '0'; });
@@ -459,16 +512,46 @@ function render() {
   setTags();
 }
 
+// scene change: the slide lifts out, a shutter with a sunlit edge wipes across carrying the act title, the next scene glides in
+const edge = document.getElementById('edge'), chapN = document.getElementById('chap-n'), chapT = document.getElementById('chap-t');
+let busy = false;
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+const anim = (el, frames, opts) => el.animate(frames, { fill: 'forwards', ...opts }).finished;
+const E = 'cubic-bezier(0.76, 0, 0.24, 1)', OUT = 'cubic-bezier(0.16, 1, 0.3, 1)', IN = 'cubic-bezier(0.7, 0, 0.84, 0)';
+async function transition(si, st) {
+  busy = true;
+  const out = slides[slideIdx];
+  out.classList.add('is-leaving'); tagEls.forEach((el) => el.classList.remove('is-on'));
+  chapN.textContent = `${String(si + 1).padStart(2, '0')} / ${String(slides.length).padStart(2, '0')}`;
+  chapT.textContent = slides[si].getAttribute('aria-label').replace(/^Acto [IVX]+:\s*/, '');
+  if (reduced) { out.classList.remove('is-leaving'); scene = slides[si].dataset.scene; slideIdx = si; step = st; render(); snap(); busy = false; return; }
+  await wait(280);
+  const vw = innerWidth;
+  edge.style.opacity = 1;
+  await Promise.all([
+    anim(veil, [{ clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0% 0 0)' }], { duration: 620, easing: E }),
+    anim(edge, [{ transform: 'translateX(0)' }, { transform: `translateX(${vw}px)` }], { duration: 620, easing: E }),
+    anim(chapT, [{ transform: 'translateY(105%)' }, { transform: 'translateY(0)' }], { duration: 700, delay: 260, easing: OUT }),
+  ]);
+  edge.style.opacity = 0;
+  out.classList.remove('is-leaving');
+  scene = slides[si].dataset.scene; slideIdx = si; step = st; dust.userData = {};
+  render(true); snap(true);
+  await wait(380);
+  anim(chapT, [{ transform: 'translateY(0)' }, { transform: 'translateY(-105%)' }], { duration: 420, easing: IN });
+  edge.style.opacity = 1;
+  await Promise.all([
+    anim(veil, [{ clipPath: 'inset(0 0 0 0%)' }, { clipPath: 'inset(0 0 0 100%)' }], { duration: 780, delay: 160, easing: E }),
+    anim(edge, [{ transform: 'translateX(0)' }, { transform: `translateX(${vw}px)` }], { duration: 780, delay: 160, easing: E }),
+  ]);
+  edge.style.opacity = 0;
+  busy = false;
+}
+
 function go(si, st) {
-  const nextScene = slides[si].dataset.scene;
-  const change = si !== slideIdx;
-  if (change) dust.userData = {};
-  if (change && nextScene !== scene) {
-    veil.classList.add('is-on');
-    setTimeout(() => { scene = nextScene; slideIdx = si; step = st; render(); snap(); veil.classList.remove('is-on'); }, reduced ? 0 : 430);
-    return;
-  }
-  slideIdx = si; step = st; scene = nextScene; render();
+  if (busy) return;
+  if (si !== slideIdx) { transition(si, st); return; }
+  step = st; render();
 }
 function next() {
   startClock();
@@ -511,5 +594,5 @@ function fromHash() {
   return true;
 }
 fromHash();
-addEventListener('hashchange', () => { if (fromHash()) { render(); snap(); } });
-render(); snap();
+addEventListener('hashchange', () => { if (fromHash()) { render(true); snap(true); } });
+render(true); snap(true);

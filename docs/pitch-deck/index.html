@@ -9,16 +9,17 @@
 <body>
   <canvas id="gl" aria-hidden="true"></canvas>
   <div class="tags" id="tags" aria-hidden="true"></div>
-  <div class="veil" id="veil" aria-hidden="true"></div>
+  <div class="veil" id="veil" aria-hidden="true"><div class="chapter"><span class="n" id="chap-n">01 / 07</span><span class="t"><span id="chap-t">El gancho</span></span></div></div>
+  <div class="edge" id="edge" aria-hidden="true"></div>
 
   <main class="deck" id="deck">
     <!-- ACT I -->
     <section class="slide s1" data-steps="4" data-scene="surface" aria-label="Acto I: el gancho">
       <div class="col-left">
         <p class="kicker" data-step="1">Febrero 2024 · IM-1 Odysseus</p>
-        <h1 class="display" data-step="1">Tocó suelo.<br />Quedó a 30°.</h1>
-        <p class="lede" data-step="2"><span class="mono">Marzo 2025 · IM-2 Athena</span><br />De costado en un cráter en sombra. Sin luz, la misión duró unas 13 horas.</p>
-        <p class="verdict" data-step="3">Llegar a la Luna ya no es el problema.<br /><em>Sobrevivir en su superficie, sí.</em></p>
+        <h1 class="display split" data-step="1">Tocó suelo.<br />Quedó a 30°.</h1>
+        <p class="lede split" data-step="2"><span class="mono">Marzo 2025 · IM-2 Athena</span><br />De costado en un cráter en sombra. Sin luz, la misión duró unas 13 horas.</p>
+        <p class="verdict split" data-step="3">Llegar a la Luna ya no es el problema.<br /><em>Sobrevivir en su superficie, sí.</em></p>
       </div>
       <p class="caption" data-step="1">Escena 3D: módulo con el preajuste de inclinación IM-1 de la app</p>
     </section>
@@ -27,10 +28,10 @@
     <section class="slide s2" data-steps="4" data-scene="globe" aria-label="Acto II: la paradoja polar">
       <div class="col-right rail">
         <p class="kicker" data-step="0">La paradoja polar</p>
-        <h2 class="display sm" data-step="0">Aquí las reglas de la Tierra no aplican</h2>
-        <div class="stat" data-step="1"><b class="mono" data-count="2.0" data-dec="1" data-unit="°">0°</b><span>Lo más alto que sube el Sol a 89,5° S. Roza el horizonte todo el año.</span></div>
-        <div class="stat" data-step="2"><b class="mono">±7,9° × ±6,7°</b><span>La Tierra no sale ni se pone: solo se mece por libración, baja sobre las crestas.</span></div>
-        <div class="stat" data-step="3"><b class="mono" data-count="3.7" data-dec="1" data-unit="×">0×</b><span>Más rápido que en la Tierra cae el horizonte: una cresta oculta Sol y Tierra a la vez.</span></div>
+        <h2 class="display sm split" data-step="0">Aquí las reglas de la Tierra no aplican</h2>
+        <div class="stat panel" data-step="1"><b class="mono" data-count="2.0" data-dec="1" data-unit="°">0°</b><span>Lo más alto que sube el Sol a 89,5° S. Roza el horizonte todo el año.</span></div>
+        <div class="stat panel" data-step="2"><b class="mono">±7,9° × ±6,7°</b><span>La Tierra no sale ni se pone: solo se mece por libración, baja sobre las crestas.</span></div>
+        <div class="stat panel" data-step="3"><b class="mono" data-count="3.7" data-dec="1" data-unit="×">0×</b><span>Más rápido que en la Tierra cae el horizonte: una cresta oculta Sol y Tierra a la vez.</span></div>
         <p class="source" data-step="3">Datos: LRO LOLA (Barker et al. 2023) · efemérides contrastadas con NASA JPL Horizons, error máx. 0,0023°</p>
       </div>
     </section>
@@ -39,20 +40,20 @@
     <section class="slide s3 flat" data-steps="3" data-scene="none" aria-label="Acto III: la solución dual">
       <header class="head">
         <p class="kicker" data-step="0">GISAT UdeC · Lunar Landing Site Navigator v3.2</p>
-        <h2 class="display sm" data-step="0">Una puerta. Dos misiones.</h2>
+        <h2 class="display sm split" data-step="0">Una puerta. Dos misiones.</h2>
       </header>
       <div class="portals">
-        <figure class="portal lead" data-step="0">
+        <figure class="portal lead panel" data-step="0">
           <img src="../img/pitch/gate.png" alt="Puerta de entrada de la app: idioma, unidades y la pregunta inicial" />
           <figcaption>Español / inglés · SI / Imperial desde el primer clic</figcaption>
         </figure>
         <div class="portal-pair">
-          <article class="mode" data-step="1">
+          <article class="mode panel" data-step="1">
             <h3>Modo Guiado</h3>
             <p>Ocho misiones narradas. Cada subsistema dominado entrega su insignia, y «Aprender más» explica por qué 200 m lo cambian todo en la Luna.</p>
             <img class="rack" src="../img/pitch/rack.png" alt="Las ocho insignias de subsistema" />
           </article>
-          <article class="mode" data-step="2">
+          <article class="mode panel" data-step="2">
             <h3>Mission Leader</h3>
             <p>La consola completa de ingeniería: todos los controles, comparación A/B y el mismo motor físico detrás de cada cifra.</p>
             <img class="shot" src="../img/pitch/opt.png" alt="Consola Mission Leader con el índice de aptitud" />
@@ -65,21 +66,21 @@
     <section class="slide s4" data-steps="4" data-scene="surface" aria-label="Acto IV: física de actitud y térmica">
       <div class="col-left">
         <p class="kicker" data-step="0">Física que nadie más modela junta</p>
-        <h2 class="display sm" data-step="0">Inclinado, a oscuras, y aún así a salvo</h2>
+        <h2 class="display sm split" data-step="0">Inclinado, a oscuras, y aún así a salvo</h2>
         <ol class="beats">
-          <li data-step="1"><b>Actitud 6-DOF.</b> Con el alabeo de IM-1, el enlace con la Tierra cae del <span class="mono hot">35 %</span> al <span class="mono hot">7 %</span> de la ventana.</li>
-          <li data-step="2"><b>Cardán de antena.</b> El plato se reorienta solo y recupera la Tierra.</li>
-          <li data-step="3"><b>Térmica criogénica.</b> Calefactores a 0 °C, batería perdida a −20 °C; el mástil de 10 m saca los paneles de la sombra.</li>
+          <li data-step="1"><p class="t"><b>Actitud 6-DOF.</b> Con el alabeo de IM-1, el enlace con la Tierra cae del <span class="mono hot">35 %</span> al <span class="mono hot">7 %</span> de la ventana.</p></li>
+          <li data-step="2"><p class="t"><b>Cardán de antena.</b> El plato se reorienta solo y recupera la Tierra.</p></li>
+          <li data-step="3"><p class="t"><b>Térmica criogénica.</b> Calefactores a 0 °C, batería perdida a −20 °C; el mástil de 10 m saca los paneles de la sombra.</p></li>
         </ol>
       </div>
-      <div class="metric" data-step="1"><b class="mono" id="m4">35 %</b><span>tiempo de enlace con 30° de alabeo (motor)</span></div>
+      <div class="metric panel" data-step="1"><b class="mono" id="m4">35 %</b><span>tiempo de enlace con 30° de alabeo (motor)</span></div>
     </section>
 
     <!-- ACT IV-b -->
     <section class="slide s5 flat" data-steps="4" data-scene="none" aria-label="Acto IV: telecomunicaciones">
       <header class="head">
         <p class="kicker" data-step="0">Telecomunicaciones con física real</p>
-        <h2 class="display sm" data-step="0">La señal no ve una línea: rodea montañas</h2>
+        <h2 class="display sm split" data-step="0">La señal no ve una línea: rodea montañas</h2>
       </header>
       <svg class="rf" viewBox="0 0 1200 420" role="img" aria-label="Corte del terreno: la señal se difracta sobre tres crestas hacia la Tierra, con un relevo orbital y estaciones terrenas">
         <defs>
@@ -101,10 +102,10 @@
       <div class="col-left">
         <p class="kicker" data-step="0">Emergencia en vivo · cerca de Nobile</p>
         <div class="triage">
-          <div class="tri-row" data-step="0"><span class="n">1</span><p class="t">El módulo cae fuera de curso, en una ladera en sombra.</p></div>
-          <div class="tri-row bad" data-step="1"><span class="n">2</span><p class="t"><b>NO SOBREVIVE tal como está.</b> Sale del rango térmico en T+2 d 17 h.</p></div>
-          <div class="tri-row" data-step="2"><span class="n">3</span><p class="t">25 puntos de contacto evaluados. Vector de escape: <b class="mono">250 m al este</b>.<button class="run" type="button" tabindex="-1">Ejecutar esta salida</button></p></div>
-          <div class="tri-row good" data-step="3"><span class="n ok"><svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true"><path d="M4 10.5 8.2 14.5 16 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" /></svg></span><p class="t"><b>SOBREVIVE los 15 días</b> con 13 % de margen de energía.</p></div>
+          <div class="tri-row panel" data-step="0"><span class="n">1</span><p class="t">El módulo cae fuera de curso, en una ladera en sombra.</p></div>
+          <div class="tri-row bad panel" data-step="1"><span class="n">2</span><p class="t"><b>NO SOBREVIVE tal como está.</b> Sale del rango térmico en T+2 d 17 h.</p></div>
+          <div class="tri-row panel" data-step="2"><span class="n">3</span><p class="t">25 puntos de contacto evaluados. Vector de escape: <b class="mono">250 m al este</b>.<button class="run" type="button" tabindex="-1">Ejecutar esta salida</button></p></div>
+          <div class="tri-row good panel" data-step="3"><span class="n ok"><svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true"><path d="M4 10.5 8.2 14.5 16 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" /></svg></span><p class="t"><b>SOBREVIVE los 15 días</b> con 13 % de margen de energía.</p></div>
         </div>
         <a class="live" data-step="0" href="http://localhost:5173/?mode=leader" target="_blank" rel="noopener">Abrir la app para la demo en vivo</a>
       </div>
@@ -113,15 +114,18 @@
     <!-- ACT VI -->
     <section class="slide s7" data-steps="3" data-scene="globe" aria-label="Acto VI: cierre">
       <div class="close">
-        <div class="counters" data-step="0">
-          <div class="ct lead"><b class="mono" data-count="175">0</b><span>pruebas unitarias en verde</span></div>
-          <div class="ct"><b class="mono" data-count="159">0</b><span>comprobaciones en navegador</span></div>
-          <div class="ct"><b class="mono">0</b><span>peticiones a internet: funciona sin conexión</span></div>
-          <div class="ct"><b class="mono" data-count="16">0</b><span>términos de glosario, guía PDF ES / EN</span></div>
+        <div class="close-copy">
+          <p class="kicker" data-step="0">Una aplicación terminada, no una maqueta</p>
+          <p class="closing split" data-step="1">En el Polo Sur lunar, 200 metros o unas pocas horas escriben la historia.</p>
+          <p class="closing big split" data-step="2">Hoy, esa frontera está abierta para todos.</p>
         </div>
-        <p class="closing" data-step="1">En el Polo Sur lunar, 200 metros o unas pocas horas escriben la historia.</p>
-        <p class="closing big" data-step="2">Hoy, esa frontera está abierta para todos.</p>
         <div class="sign" data-step="2"><img src="./assets/logo-gisat.png" alt="GISAT UdeC" width="72" height="72" /><span>GISAT UdeC · NASA Space Apps Challenge 2026 · Concepción</span></div>
+        <div class="counters">
+          <div class="ct lead panel" data-step="0"><b class="mono" data-count="175">0</b><span>pruebas unitarias en verde</span></div>
+          <div class="ct panel" data-step="0"><b class="mono" data-count="159">0</b><span>comprobaciones en navegador</span></div>
+          <div class="ct panel" data-step="0"><b class="mono">0</b><span>peticiones a internet: funciona sin conexión</span></div>
+          <div class="ct panel" data-step="0"><b class="mono" data-count="16">0</b><span>términos de glosario, guía PDF ES / EN</span></div>
+        </div>
       </div>
     </section>
   </main>
