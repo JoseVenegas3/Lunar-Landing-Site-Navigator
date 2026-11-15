@@ -208,7 +208,7 @@ try {
     fps: Boolean(document.querySelector('[data-testid="fps"]')), map: [...document.querySelectorAll('.hud-tr button')].some((b) => b.textContent === 'Map'),
   }));
   check('top bar holds only brand, mode, UTC clock, switch version (v3.0), mission guide, export, language, units (v3.1) and the PDF guide',
-    JSON.stringify(bar.kids) === JSON.stringify(['brand', 'mode-switch', 'clock', 'switch-version', 'briefing-open', 'export-csv', 'lang', 'units', 'pitch-open', 'guide-pdf']) && !bar.verification, bar.kids.join(', '));
+    JSON.stringify(bar.kids) === JSON.stringify(['brand', 'mode-switch', 'clock', 'switch-version', 'briefing-open', 'export-csv', 'lang', 'units', 'guide-pdf']) && !bar.verification, bar.kids.join(', '));
   const logo = await page.evaluate(() => {
     const img = document.querySelector('[data-testid="brand-logo"]');
     const fav = [...document.querySelectorAll('link[rel="icon"]')].map((l) => l.getAttribute('sizes'));
@@ -976,9 +976,9 @@ try {
   await p2.mouse.move(lp.x + 50, lp.y + 25);
   await p2.waitForTimeout(400);
   const reticle = await p2.evaluate(() => { const c = document.querySelector('[data-testid="dbl-cursor"]'); return { shown: c.style.display !== 'none', action: c.dataset.action, text: c.textContent }; });
-  check('the 3-D view states the double-click permanently and the reticle says what will happen', /Double-click the terrain: move the lander \(≤ 500 m\) or create a custom site/.test(hint) && reticle.shown && ((reticle.action === 'move' && /move the lander \(\d+ m\)/.test(reticle.text)) || (reticle.action === 'create' && /creates a custom site/.test(reticle.text))), `${hint} | ${JSON.stringify(reticle)}`);
-  // v3.1 (SR-204): the cursor ruler reads distance, bearing, elevation and slope, and keeps counting outside the ±500 m box
-  check('the cursor ruler reads distance and bearing from the lander, elevation and slope', /^Cursor: [\d,]+ m (\([\d.]+ km\) )?\((N|NE|E|SE|S|SW|W|NW) \d{3}°\).*\| Elev: [+−-]?\d+ m \| Slope: [\d.]+°/.test(reticle.text), reticle.text);
+  check('the 3-D view states the double-click permanently and the reticle says what will happen', /Double-click the terrain: move the lander \(≤ 500 m\) or create a custom site/.test(hint) && reticle.shown && ['move', 'create'].includes(reticle.action) && /^\d+(\.\d+)? (m|km)$/.test(reticle.text), `${hint} | ${JSON.stringify(reticle)}`);
+  // v3.2 (SR-204): the cursor ruler shows only the straight-line distance, and keeps counting outside the ±500 m box
+  check('the cursor ruler shows only the straight-line distance from the lander (v3.2)', /^\d+(\.\d+)? (m|km)$/.test(reticle.text), reticle.text);
   {
     const sbox = await p2.locator('[data-testid="scene"] canvas').boundingBox();
     let far = null;
@@ -989,7 +989,7 @@ try {
       const r = await p2.evaluate(() => { const c = document.querySelector('[data-testid="dbl-cursor"]'); return { shown: c.style.display !== 'none', action: c.dataset.action, d: Number(c.dataset.distM), text: c.textContent, colour: getComputedStyle(c).color }; });
       if (r.shown && r.action === 'create') { far = r; break; }
     }
-    check('outside the ±500 m box the ruler keeps counting, turns amber and says a double-click creates a custom site', far !== null && far.d > 500 && /outside the relocation range/.test(far.text) && far.colour === 'rgb(245, 158, 11)', JSON.stringify(far));
+    check('outside the ±500 m box the ruler keeps counting the distance and turns amber', far !== null && far.d > 500 && /^\d+(\.\d+)? (m|km)$/.test(far.text) && far.colour === 'rgb(245, 158, 11)', JSON.stringify(far));
   }
   const box = await p2.locator('[data-testid="scene"] canvas').boundingBox();
   const before2 = await text2('[data-testid="reloc-readout"]');

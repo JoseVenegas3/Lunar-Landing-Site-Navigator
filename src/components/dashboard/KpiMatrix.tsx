@@ -1,6 +1,6 @@
 /** Side-by-side KPI comparison of scenarios A and B, plus the link budget of the active one. */
 import { useState } from 'react';
-import { AdvancedKpis, Kpis, LinkBudget, groundStation, requiredGroundStation } from '../../engine';
+import { AdvancedKpis, Kpis, LinkBudget, groundStation, requiredGroundStation, stationName } from '../../engine';
 import { useUnits } from '../../lib/units';
 
 type AllKpis = Kpis & AdvancedKpis;
@@ -27,10 +27,10 @@ function useRows(): Row[] {
   const u = useUnits();
   const relayOn = useApp((s) => s.relay.enabled);
   const relayRows: Row[] = relayOn ? [
-    { id: 'relay', label: t('Relay in view', 'Relay a la vista'), hint: t('above terrain and with Earth in view', 'sobre el relieve y con la Tierra a la vista'), value: (k) => k.relayPct, text: (k) => `${fmtNum(k.relayPct)} %`, better: 1, bar: 'relay' },
-    { id: 'anylink', label: t('Any path to Earth', 'Algún camino a la Tierra'), hint: t('DTE or relay', 'DTE o relay'), value: (k) => k.anyLinkPct, text: (k) => `${fmtNum(k.anyLinkPct)} %`, better: 1, bar: 'rf' },
+    { id: 'relay', label: t('Relay in view', 'Relevo a la vista'), hint: t('above terrain and with Earth in view', 'sobre el relieve y con la Tierra a la vista'), value: (k) => k.relayPct, text: (k) => `${fmtNum(k.relayPct)} %`, better: 1, bar: 'relay' },
+    { id: 'anylink', label: t('Any path to Earth', 'Algún camino a la Tierra'), hint: t('DTE or relay', 'DTE o relevo'), value: (k) => k.anyLinkPct, text: (k) => `${fmtNum(k.anyLinkPct)} %`, better: 1, bar: 'rf' },
     { id: 'outage', label: t('Longest total outage', 'Mayor corte total'), value: (k) => k.longestLinkOutageH, text: (k) => fmtDuration(k.longestLinkOutageH), better: -1 },
-    { id: 'relaydata', label: t('Data through the relay', 'Datos por el relay'), hint: t('while DTE is closed', 'mientras el DTE está cerrado'), value: (k) => k.relayDataGb, text: (k) => fmtData(k.relayDataGb), better: 1 },
+    { id: 'relaydata', label: t('Data through the relay', 'Datos por el relevo'), hint: t('while DTE is closed', 'mientras el DTE está cerrado'), value: (k) => k.relayDataGb, text: (k) => fmtData(k.relayDataGb), better: 1 },
   ] : [];
   const base: Row[] = [
     { id: 'sunel', label: t('Solar elevation, max (power KPI)', 'Elevación solar máx. (KPI potencia)'), hint: t('Sun skims the horizon: tenths of a degree change the power', 'el Sol roza el horizonte: décimas de grado cambian la potencia'), value: (k) => k.sunElMaxDeg, text: (k) => `${fmtNum(k.sunElMaxDeg, 2)}° ${t('max', 'máx')}${k.sunElMaxDeg < 5 ? ` · ${t('grazing', 'rasante')}` : ''}`, better: 1 },
@@ -42,7 +42,7 @@ function useRows(): Row[] {
     { id: 'gap', label: t('Longest DTE outage', 'Mayor corte DTE'), value: (k) => k.longestDteGapH, text: (k) => fmtDuration(k.longestDteGapH), better: -1 },
     { id: 'both', label: t('Sun + DTE together', 'Sol + DTE simultáneos'), value: (k) => k.simultaneousPct, text: (k) => `${fmtNum(k.simultaneousPct)} %`, better: 1, bar: 'ops' },
     { id: 'energy', label: t('Energy generated', 'Energía generada'), value: (k) => k.energyWh, text: (k) => fmtEnergy(k.energyWh), better: 1 },
-    { id: 'rfavail', label: t('Downlink closes', 'La descarga cierra'), hint: t('diffraction, multipath, pointing, station in view', 'difracción, multipath, apuntamiento, estación a la vista'), value: (k) => k.rfAvailabilityPct, text: (k) => `${fmtNum(k.rfAvailabilityPct)} %`, better: 1, bar: 'rf' },
+    { id: 'rfavail', label: t('Downlink closes', 'Enlace de descarga disponible'), hint: t('diffraction, multipath, pointing, station in view', 'difracción, multitrayecto, apuntamiento, estación a la vista'), value: (k) => k.rfAvailabilityPct, text: (k) => `${fmtNum(k.rfAvailabilityPct)} %`, better: 1, bar: 'rf' },
     { id: 'data', label: t('Science data return', 'Retorno de datos científicos'), value: (k) => k.dataGb, text: (k) => fmtData(k.dataGb), better: 1 },
     { id: 'attpen', label: t('Attitude penalty', 'Penalización por actitud'), hint: t('power / data lost to the tilt', 'potencia / datos perdidos por la inclinación'), value: (k) => k.attitudePowerPenaltyPct + k.attitudeRfPenaltyPct, text: (k) => `${fmtNum(k.attitudePowerPenaltyPct, 0)} % / ${fmtNum(k.attitudeRfPenaltyPct, 0)} %`, better: -1, alert: (k) => (k.attitudeRfPenaltyPct > 30 || k.attitudePowerPenaltyPct > 30 ? 'crit' : null) },
     { id: 'busmin', label: t('Lowest bus temperature', 'Temperatura mínima del bus'), value: (k) => k.minBusC ?? 0, text: (k) => (k.minBusC === null ? '—' : u.c(k.minBusC, 1)), better: 1, alert: (k) => (k.thermalDeathH !== null ? 'crit' : k.minBusC !== null && k.minBusC < -10 ? 'warn' : null) },
@@ -52,7 +52,7 @@ function useRows(): Row[] {
     },
     {
       id: 'survive', label: t('Survives the window', 'Sobrevive la ventana'), value: (k) => (k.survives ? 1 : 0), better: 1,
-      text: (k) => (k.survives ? (k.dodAlert ? t('Yes, past DoD limit', 'Sí, excede DoD') : t('Yes', 'Sí')) : `${t('No, lost at', 'No, se pierde en')} T+${fmtDuration(k.survivalHours)}`),
+      text: (k) => (k.survives ? (k.dodAlert ? t('Yes, past DoD limit', 'Sí, pero supera el límite de DoD') : t('Yes', 'Sí')) : `${t('No, lost at', 'No, se pierde en')} T+${fmtDuration(k.survivalHours)}`),
       alert: (k) => (!k.survives ? 'crit' : k.dodAlert ? 'warn' : null),
     },
     { id: 'slope', label: t('Ground slope', 'Pendiente del terreno'), value: (k) => k.slopeDeg, text: (k) => `${fmtNum(k.slopeDeg)}°`, better: -1, alert: (k) => (k.slopeDeg > 15 ? 'crit' : k.slopeDeg > 10 ? 'warn' : null) },
@@ -122,20 +122,21 @@ export function KpiMatrix() {
 
 function linkRows(l: LinkBudget, t: (en: string, es: string) => string): [string, string][] {
   return [
-    [t('Lander antenna gain', 'Ganancia antena lander'), `${fmtNum(l.txGainDbi)} dBi`],
+    [t('Lander antenna gain', 'Ganancia de la antena del módulo'), `${fmtNum(l.txGainDbi)} dBi`],
     [t('Beamwidth (-3 dB)', 'Ancho de haz (-3 dB)'), `${fmtNum(l.txBeamwidthDeg, 2)}°`],
     ['EIRP', `${fmtNum(l.eirpDbw)} dBW`],
     [t('Free-space path loss', 'Pérdida de espacio libre'), `${fmtNum(l.fsplDb)} dB`],
-    [t('Station G/T', 'G/T estación'), `${fmtNum(l.gOverTDbK)} dB/K`],
+    [t('Station G/T', 'G/T de la estación'), `${fmtNum(l.gOverTDbK)} dB/K`],
     ['C/N₀', `${fmtNum(l.cn0DbHz)} dB-Hz`],
     [t('Achievable data rate', 'Tasa de datos alcanzable'), fmtRate(l.dataRateBps / 1e6)],
     ['Eb/N₀', `${fmtNum(l.ebN0Db)} dB`],
-    [t('Margin over requirement', 'Margen sobre requisito'), `${fmtNum(l.marginDb)} dB`],
+    [t('Margin over requirement', 'Margen sobre el requisito'), `${fmtNum(l.marginDb)} dB`],
   ];
 }
 
 export function LinkBudgetCard({ data }: { data: ScenarioData }) {
   const t = useT();
+  const lang = useApp((s) => s.lang);
   const u = useUnits();
   const rf = useApp((s) => s.rf);
   const l = data.result?.link ?? null;
@@ -149,16 +150,16 @@ export function LinkBudgetCard({ data }: { data: ScenarioData }) {
       {l ? (
         <>
           <p className="link-cap mono">
-            {rf.band}-band {(l.frequencyHz / 1e9).toFixed(1)} GHz · {groundStation(rf.groundStationId).name} · {u.kmStr(l.rangeKm, 0)}
+            {t(`${rf.band}-band`, `banda ${rf.band}`)} {(l.frequencyHz / 1e9).toFixed(1)} GHz · {stationName(groundStation(rf.groundStationId), lang)} · {u.kmStr(l.rangeKm, 0)}
           </p>
           <dl className="link-grid mono" data-testid="link-budget">
             {linkRows(l, t).map(([k, v]) => (<div key={k}><dt>{k}</dt><dd>{v}</dd></div>))}
           </dl>
           {data.result && (
             <div className="gt-calc" data-testid="deygout">
-              <h3>{t('Ridges between the lander and the Earth', 'Crestas entre el lander y la Tierra')}</h3>
+              <h3>{t('Ridges between the lander and the Earth', 'Crestas entre el módulo y la Tierra')}</h3>
               <dl className="link-grid mono">
-                <div><dt>{t('Downlink closes', 'La descarga cierra')}</dt><dd>{fmtNum(data.result.adv.kpis.rfAvailabilityPct)} %</dd></div>
+                <div><dt>{t('Downlink closes', 'Enlace de descarga disponible')}</dt><dd>{fmtNum(data.result.adv.kpis.rfAvailabilityPct)} %</dd></div>
                 <div><dt>{t('Largest loss added by ridges behind the skyline', 'Mayor pérdida añadida por crestas tras el horizonte')}</dt><dd>{fmtNum(data.result.adv.kpis.maxSecondaryDiffractionDb)} dB</dd></div>
                 <div>
                   <dt>{t('Downlink a single ridge would wrongly count', 'Descarga que una sola cresta contaría de más')}</dt>
@@ -166,7 +167,7 @@ export function LinkBudgetCard({ data }: { data: ScenarioData }) {
                 </div>
               </dl>
               <p className="kpi-note pad0">
-                {t('Diffraction over up to three ridges (Deygout construction, ITU-R P.526). When the skyline is a small rise near the lander with a massif just under it farther away, one knife edge lets too much signal through.', 'Difracción sobre hasta tres crestas (construcción de Deygout, UIT-R P.526). Cuando el horizonte es una loma pequeña cerca del lander con un macizo justo debajo más lejos, un solo filo deja pasar demasiada señal.')}
+                {t('Diffraction over up to three ridges (Deygout construction, ITU-R P.526). When the skyline is a small rise near the lander with a massif just under it farther away, one knife edge lets too much signal through.', 'Difracción sobre hasta tres crestas (construcción de Deygout, UIT-R P.526). Cuando el horizonte es una loma pequeña cerca del módulo con un macizo justo debajo más lejos, un solo filo deja pasar demasiada señal.')}
               </p>
             </div>
           )}

@@ -65,7 +65,7 @@ export function WindowsPanel({ data }: { data: ScenarioData }) {
       <section className="panel block" data-testid="windows-panel">
         <h3><ScenarioBadge k={data.key} />{t('When can we land?', '¿Cuándo podemos alunizar?')}</h3>
         <p className="kpi-note pad0">
-          {t('Every candidate date is flown as a full mission from touchdown. A date is accepted when the lander touches down in sunlight, the downlink closes at touchdown, it survives the mission, and the Sun is neither in front of the descent cameras nor directly behind them.', 'Cada fecha candidata se vuela como una misión completa desde el contacto. Una fecha se acepta si el lander toca la superficie con sol, la descarga cierra al contacto, sobrevive la misión, y el Sol no queda de frente a las cámaras de descenso ni justo detrás.')}
+          {t('Every candidate date is flown as a full mission from touchdown. A date is accepted when the lander touches down in sunlight, the downlink closes at touchdown, it survives the mission, and the Sun is neither in front of the descent cameras nor directly behind them.', 'Cada fecha candidata se vuela como una misión completa desde el contacto. Una fecha se acepta si el módulo toca la superficie con sol, la descarga cierra al contacto, sobrevive la misión, y el Sol no queda de frente a las cámaras de descenso ni justo detrás.')}
         </p>
         <div className="field-row">
           <label className="field">
@@ -93,7 +93,7 @@ export function WindowsPanel({ data }: { data: ScenarioData }) {
         </div>
         {w.progress !== null && (
           <div className="disp-wait">
-            <div className="mono">{t('Flying missions', 'Volando misiones')} {Math.round(w.progress * 100)}%</div>
+            <div className="mono">{t('Flying missions', 'Simulando misiones')} {Math.round(w.progress * 100)}%</div>
             <div className="bar"><i style={{ width: `${Math.round(w.progress * 100)}%` }} /></div>
           </div>
         )}

@@ -266,7 +266,7 @@ export function DispersionBlock({ data }: { data: ScenarioData }) {
             <p className="disp-legend mono">{t('green: survives (link %) · red: does not survive (time alive)', 'verde: sobrevive (% de enlace) · rojo: no sobrevive (tiempo con vida)')}</p>
             {escape ? (
               <div className="escape" data-testid="tri-escape">
-                {grid.best.lost && <strong className="is-crit">{t('No point within 200 m saves the lander. The one that lasts longest:', 'Ningún punto a 200 m salva el lander. El que más aguanta:')}</strong>}
+                {grid.best.lost && <strong className="is-crit">{t('No point within 200 m saves the lander. The one that lasts longest:', 'Ningún punto a 200 m salva el módulo. El que más aguanta:')}</strong>}
                 <output className="mono" data-testid="escape-vector">{u.m(escape.distanceM)} → {cardinal(escape.azimuthDeg)} ({t('azimuth', 'acimut')} {fmtNum(escape.azimuthDeg, 0)}°)</output>
                 <span>
                   {escape.gainHours > 0.5
@@ -274,9 +274,9 @@ export function DispersionBlock({ data }: { data: ScenarioData }) {
                     : escape.gainLinkPct >= 0.05
                       ? t(`Moving there adds ${fmtNum(escape.gainLinkPct, 1)} points of contact with the Earth`, `Moverse ahí suma ${fmtNum(escape.gainLinkPct, 1)} puntos de contacto con la Tierra`)
                       : t(`Moving there only adds ${fmtEnergy(Math.max(0, grid.best.energyWh - grid.centre.energyWh))} of solar energy`, `Moverse ahí solo suma ${fmtEnergy(Math.max(0, grid.best.energyWh - grid.centre.energyWh))} de energía solar`)}
-                  {grid.best.lost ? '.' : t(', and the lander survives the period.', ', y el lander sobrevive el período.')}
+                  {grid.best.lost ? '.' : t(', and the lander survives the period.', ', y el módulo sobrevive el período.')}
                 </span>
-                <button type="button" className="btn btn-rescue" onClick={() => moveTo(grid.best.eastM, grid.best.northM)} data-testid="tri-move">{t('Move the lander there', 'Mover el lander ahí')}</button>
+                <button type="button" className="btn btn-rescue" onClick={() => moveTo(grid.best.eastM, grid.best.northM)} data-testid="tri-move">{t('Move the lander there', 'Mover el módulo ahí')}</button>
               </div>
             ) : (
               <p className="escape-none" data-testid="tri-escape">{t('This is already the best of the 25 points within 200 m. Stay.', 'Este ya es el mejor de los 25 puntos a 200 m. Quedarse.')}</p>
@@ -284,7 +284,7 @@ export function DispersionBlock({ data }: { data: ScenarioData }) {
           </>
         ) : (
           <div className="disp-wait">
-            <div className="mono">{t('Flying 25 missions around the lander', 'Volando 25 misiones alrededor del lander')} {progress !== null ? `${Math.round(progress * 100)}%` : ''}</div>
+            <div className="mono">{t('Flying 25 missions around the lander', 'Simulando 25 misiones alrededor del módulo')} {progress !== null ? `${Math.round(progress * 100)}%` : ''}</div>
             <div className="bar"><i style={{ width: `${Math.round((progress ?? 0) * 100)}%` }} /></div>
           </div>
         )}

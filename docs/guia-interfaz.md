@@ -1,10 +1,10 @@
-# Guía de la interfaz — CLPS Lunar Mission Browser v3.1
+# Guía de la interfaz — CLPS Lunar Mission Browser v3.2
 
 GISAT UdeC · NASA Space Apps 2026 · Navegador de sitios de alunizaje del Polo Sur lunar
 
 Esta guía describe cada botón y cada panel de la versión 2.1, interfaz por interfaz, y cómo usar la aplicación según quién la usa: un ingeniero que planifica, el público general o un docente (modo tutorial y fichas de sitios) y un equipo ante un alunizaje no previsto (modo Emergencia).
 
-> Las cifras salen de un modelo físico propio sobre el relieve LRO LOLA. Sirven para comparar sitios, fechas y diseños de lander; no son la predicción certificada de una misión real. Los umbrales marcados como «supuesto de ingeniería» son elecciones de esta herramienta.
+> Las cifras salen de un modelo físico propio sobre el relieve LRO LOLA. Sirven para comparar sitios, fechas y diseños de módulo; no son la predicción certificada de una misión real. Los umbrales marcados como «supuesto de ingeniería» son elecciones de esta herramienta.
 
 ## 1. Barra superior
 
@@ -27,13 +27,13 @@ De izquierda a derecha:
 
 ## 2. Planificador: la consola
 
-El planificador es la vista de trabajo. Arriba está el veredicto; debajo, la vista 3D ocupa toda la pantalla y los paneles flotan sobre ella como bandejas de cristal que no la redimensionan. La cámara se recentra en el área libre para que el lander nunca quede tapado.
+El planificador es la vista de trabajo. Arriba está el veredicto; debajo, la vista 3D ocupa toda la pantalla y los paneles flotan sobre ella como bandejas de cristal que no la redimensionan. La cámara se recentra en el área libre para que el módulo nunca quede tapado.
 
 ![](img/es/03-resumen.png)
 
 ### 2.1 Veredicto
 
-Una línea en lenguaje claro: **VIABLE**, **RIESGO MODERADO** o **CRÍTICO**, con la causa principal y el día en que ocurre. Si no está en verde, el botón **Optimizar sitio y fecha** prueba los 25 puntos de contacto a 200 m y luego las fechas siguientes (en 30, 60 o 90 días; 60 por defecto), y mueve el lander al primero que sobrevive. Muestra el antes y el después, cuántas misiones evaluó y el tiempo que tardó. Si nada salva la misión, lo dice.
+Una línea en lenguaje claro: **VIABLE**, **RIESGO MODERADO** o **CRÍTICO**, con la causa principal y el día en que ocurre. Si no está en verde, el botón **Optimizar sitio y fecha** prueba los 25 puntos de contacto a 200 m y luego las fechas siguientes (en 30, 60 o 90 días; 60 por defecto), y mueve el módulo al primero que sobrevive. Muestra el antes y el después, cuántas misiones evaluó y el tiempo que tardó. Si nada salva la misión, lo dice.
 
 ### 2.2 Pestañas de subsistema
 
@@ -43,7 +43,7 @@ Cinco pestañas ocupan todo el ancho. Cada una trae sus paneles, su color y lo q
 |---|---|---|---|---|---|
 | Resumen | esmeralda | Sitios y fechas | Signos vitales, Ventanas de aterrizaje | Ventanas de misión | Sombras |
 | Energía / térmico | ámbar | Equipo: energía y térmico | Energía y supervivencia | Potencia y temperatura, Ventanas de misión | Horas de sol, haz solar |
-| Comunicaciones / RF | cian | Equipo: radio y relays | Presupuesto de enlace | Horizonte 360°, Ventanas de misión | Vista de la Tierra, haz a la Tierra destacado |
+| Comunicaciones / RF | cian | Equipo: radio y relevos | Presupuesto de enlace | Horizonte 360°, Ventanas de misión | Vista de la Tierra, haz a la Tierra destacado |
 | Terreno / alunizaje | gris claro | Actitud y vuelco | Dispersión y escape | Horizonte 360°, Ventanas de misión | Pendientes, flecha de escape |
 | Ciencia | violeta | Sitios y fechas | Índice de aptitud, Vista de ingeniería | Línea de tiempo detallada | Sombras |
 
@@ -52,12 +52,12 @@ Cada bandeja tiene un **(?)** con una explicación de una frase y un botón **�
 ### 2.3 Vista 3D
 
 * **Arrastrar** orbita la cámara; la **rueda** acerca y aleja.
-* **Arrastrar el lander** lo mueve dentro del cuadro punteado de ±500 m. Cada posición es una misión nueva.
-* **Doble clic en el terreno**: a ±500 m mueve el lander; más lejos crea un sitio propio. Al pasar el cursor, un retículo dice qué ocurrirá: «Mover el lander (X m)» o «Crear sitio propio aquí». Al norte de 80° S el retículo se pone rojo y el doble clic muestra «Fuera del área». La pista de abajo recuerda esto y se oculta con la **×** (queda recordado).
-* **Órbita / Vista lander**: cámara exterior o desde el mástil del lander.
+* **Arrastrar el módulo** lo mueve dentro del cuadro punteado de ±500 m. Cada posición es una misión nueva.
+* **Doble clic en el terreno**: a ±500 m mueve el módulo; más lejos crea un sitio propio. Al pasar el cursor, un retículo dice qué ocurrirá: «Mover el módulo (X m)» o «Crear sitio propio aquí». Al norte de 80° S el retículo se pone rojo y el doble clic muestra «Fuera del área». La pista de abajo recuerda esto y se oculta con la **×** (queda recordado).
+* **Órbita / Desde el módulo**: cámara exterior o desde el mástil del módulo.
 * **Sombras / Horas de sol / Vista Tierra / Pendiente**: capa de color sobre el terreno, con su escala.
 * **Leyenda**: explica cada símbolo de la escena.
-* Arriba a la izquierda: nombre completo del sitio, coordenadas, altura, pendiente y el desplazamiento del lander (ΔE, ΔN), con **Volver al punto nominal** cuando se movió.
+* Arriba a la izquierda: nombre completo del sitio, coordenadas, altura, pendiente y el desplazamiento del módulo (ΔE, ΔN), con **Volver al punto nominal** cuando se movió.
 * Los nombres de los accidentes del relieve flotan sobre el horizonte con su distancia.
 
 ![](img/es/02-vista-3d.png)
@@ -68,7 +68,7 @@ Abajo al centro: **−1 h**, **Reproducir / Pausa**, **+1 h** y la velocidad: **
 
 ### 2.5 Telemetría
 
-El chip **Telemetría** (abierta / cerrada, se recuerda entre visitas) muestra lo que reportaría el lander a la hora del reloj, en cuatro grupos:
+El chip **Telemetría** (abierta / cerrada, se recuerda entre visitas) muestra lo que reportaría el módulo a la hora del reloj, en cuatro grupos:
 
 * **Sol**: Sol visible (% del disco) y altura del Sol.
 * **Energía**: potencia de los paneles y batería.
@@ -89,7 +89,7 @@ Tres tarjetas grandes contadas desde la hora del reloj: **luz continua** restant
 
 ### 3.3 Ventanas de aterrizaje
 
-Busca en 30, 60, 90 o 180 días qué fechas de contacto sirven para una misión de N días y un rumbo de aproximación. Una fecha se acepta si el lander toca la superficie con sol, la descarga cierra, sobrevive la misión y el Sol no queda de frente ni justo detrás de las cámaras de descenso. La franja de colores muestra cada fecha; la lista da las ventanas con **Alunizar ahí**; la tabla dice por qué se rechazan las demás. El cono de deslumbramiento (±25°), el cono sin sombras (±15°) y la elipse con al menos 50 % de sol son umbrales supuestos de ingeniería, fijos.
+Busca en 30, 60, 90 o 180 días qué fechas de contacto sirven para una misión de N días y un rumbo de aproximación. Una fecha se acepta si el módulo toca la superficie con sol, la descarga cierra, sobrevive la misión y el Sol no queda de frente ni justo detrás de las cámaras de descenso. La franja de colores muestra cada fecha; la lista da las ventanas con **Alunizar ahí**; la tabla dice por qué se rechazan las demás. El cono de deslumbramiento (±25°), el cono sin sombras (±15°) y la elipse con al menos 50 % de sol son umbrales supuestos de ingeniería, fijos.
 
 ### 3.4 Comparar (dentro de Ventanas de aterrizaje)
 
@@ -118,8 +118,8 @@ Cada fila es la ventana completa: día/noche, Tierra visible y ambos a la vez (l
 
 ## 5. Comunicaciones / RF
 
-* **Equipo**: enlace DTE (banda X o S, margen de antena, estación, potencia, antena del lander, ancho de banda, margen de enlace) y **satélites relay**: preset de órbita, número de satélites y tasa lander-relay.
-* **Presupuesto de enlace**: ganancia, ancho de haz, PIRE, pérdida de espacio libre, G/T, C/N₀, tasa alcanzable, Eb/N₀ y margen. **Crestas entre el lander y la Tierra**: difracción sobre hasta tres crestas (Deygout). **¿Qué estación cierra el enlace?**: ingresa la tasa objetivo o usa los chips 10 / 100 / 1000 kbps; da el G/T y la antena equivalente que hacen falta.
+* **Equipo**: enlace DTE (banda X o S, margen de antena, estación, potencia, antena del módulo, ancho de banda, margen de enlace) y **satélites de relevo**: preset de órbita, número de satélites y tasa módulo-relevo.
+* **Presupuesto de enlace**: ganancia, ancho de haz, PIRE, pérdida de espacio libre, G/T, C/N₀, tasa alcanzable, Eb/N₀ y margen. **Crestas entre el módulo y la Tierra**: difracción sobre hasta tres crestas (Deygout). **¿Qué estación cierra el enlace?**: ingresa la tasa objetivo o usa los chips 10 / 100 / 1000 kbps; da el G/T y la antena equivalente que hacen falta.
 * **Horizonte 360°**: el perfil del horizonte con las trayectorias del Sol y de la Tierra.
 
 ![](img/es/05-comunicaciones.png)
@@ -134,7 +134,7 @@ Cada fila es la ventana completa: día/noche, Tierra visible y ambos a la vez (l
 ## 7. Ciencia
 
 * **Índice de aptitud** de 0 a 100, sintetizado: luz, vista a la Tierra, pendiente y FeO, con el peso, la fuente y el rango de cada criterio (al pasar el cursor). Cada rango se ancla a un límite físico; la rugosidad, la proximidad a sombra permanente y la gravedad quedan fuera porque no tienen uno. Datos orbitales del sitio (temperaturas Diviner, hielo estable, PSR).
-* **Vista de ingeniería**: la tabla completa de KPI y la **incertidumbre del terreno** (error de altura RMS, longitud de correlación, N variantes de terreno, probabilidad de sobrevivir y bandas P10/P50/P90) y la tabla **Supuestos del modelo**: cada parámetro, su valor, su unidad, su origen («fuente: …» o «supuesto del equipo») y dónde se usa. En esta consola la línea de tiempo es la **detallada**: Sol, batería, Tierra visible, descarga por estación, relay y operación simultánea.
+* **Vista de ingeniería**: la tabla completa de KPI y la **incertidumbre del terreno** (error de altura RMS, longitud de correlación, N variantes de terreno, probabilidad de sobrevivir y bandas P10/P50/P90) y la tabla **Supuestos del modelo**: cada parámetro, su valor, su unidad, su origen («fuente: …» o «supuesto del equipo») y dónde se usa. En esta consola la línea de tiempo es la **detallada**: Sol, batería, Tierra visible, descarga por estación, relevo y operación simultánea.
 
 ![](img/es/07-ciencia.png)
 
@@ -152,13 +152,13 @@ En Resumen > Sitios y fechas, debajo del escenario, una ficha por cada uno de lo
 
 ## 10. Modo Emergencia
 
-Para un lander que ya está en la superficie en un lugar no previsto. Pregunta solo lo esencial y evalúa desde **ahora** durante los próximos 15 días (una noche lunar; también 3 o 7):
+Para un módulo que ya está en la superficie en un lugar no previsto. Pregunta solo lo esencial y evalúa desde **ahora** durante los próximos 15 días (una noche lunar; también 3 o 7):
 
 1. **Posición actual**: clic en el mapa polar o coordenadas pegadas (por ejemplo −84,79; 29,20). Se acepta cualquier punto al sur de 80° S.
 2. **Energía disponible**: Wh restantes en la batería y carga mínima de supervivencia.
 3. **Inclinación actual** (opcional, plegada): alabeo, cabeceo o «Quedamos apoyados en la pendiente».
 
-Responde primero con un titular en lenguaje llano: **SOBREVIVE**, **SOBREVIVE SI…** o **NO SOBREVIVE**, con fecha y hora (UTC y T+). Justo debajo, el bloque **Salida** dice si hay salida y da las opciones calculadas con el motor: quedarse y reducir la carga, moverse hasta 500 m y esperar la próxima luz; si ninguna alcanza, dice qué faltaría. El criterio de pérdida es el del motor: batería agotada sin sol o, con el modelo térmico, bus bajo −20 °C. Después vienen la fuente y resolución del terreno, el tiempo hasta congelarse y **hacia dónde moverse**: la malla de 25 puntos a 200 m (cada celda es una misión completa), el vector de escape y **Mover el lander ahí**. La flecha verde sobre el terreno es el mismo vector. Los peligros bajo el píxel de 20 m (LOLA + micro-relieve fractal: micro-sombras y rocas) se muestran siempre; son estadísticos, no un mapa.
+Responde primero con un titular en lenguaje llano: **SOBREVIVE**, **SOBREVIVE SI…** o **NO SOBREVIVE**, con fecha y hora (UTC y T+). Justo debajo, el bloque **Salida** dice si hay salida y da las opciones calculadas con el motor: quedarse y reducir la carga, moverse hasta 500 m y esperar la próxima luz; si ninguna alcanza, dice qué faltaría. El criterio de pérdida es el del motor: batería agotada sin sol o, con el modelo térmico, bus bajo −20 °C. Después vienen la fuente y resolución del terreno, el tiempo hasta congelarse y **hacia dónde moverse**: la malla de 25 puntos a 200 m (cada celda es una misión completa), el vector de escape y **Mover el módulo ahí**. La flecha verde sobre el terreno es el mismo vector. Los peligros bajo el píxel de 20 m (LOLA + micro-relieve fractal: micro-sombras y rocas) se muestran siempre; son estadísticos, no un mapa.
 
 ![](img/es/12-salida.png)
 
@@ -168,7 +168,7 @@ Responde primero con un titular en lenguaje llano: **SOBREVIVE**, **SOBREVIVE SI
 
 **Ingeniero de misión.** Fija sitio y fecha en Resumen, dimensiona energía y térmica en Energía, comprueba el enlace en Comunicaciones, revisa actitud, vuelco y escape en Terreno y valida todo en Ciencia > Vista de ingeniería. Usa Ventanas de aterrizaje para elegir la fecha y Comparar para decidir entre dos sitios o dos fechas. Exporta el CSV para las herramientas de la estación terrena.
 
-**Público y docentes.** El modo tutorial y las fichas de sitios cuentan la física del polo sur sin jerga: el Sol rasante, las sombras largas, la Tierra que se esconde tras las montañas y por qué unos cientos de metros cambian el destino de un lander.
+**Público y docentes.** El modo tutorial y las fichas de sitios cuentan la física del polo sur sin jerga: el Sol rasante, las sombras largas, la Tierra que se esconde tras las montañas y por qué unos cientos de metros cambian el destino de un módulo.
 
 **Equipo ante una emergencia.** El modo Emergencia responde en orden: dónde estamos, cuánto tiempo queda y hacia dónde movernos, desde ahora.
 
@@ -187,7 +187,7 @@ Responde primero con un titular en lenguaje llano: **SOBREVIVE**, **SOBREVIVE SI
 
 **Elevación solar efectiva (KPI de potencia).** En Signos vitales, en la tabla de KPI y en la cabecera de Energía / térmico: elevación del centro del disco solar ahora y máxima de la ventana, el disco visible f☉, el factor de incidencia sobre el arreglo y la potencia ahora / pico, sobre un arco de 0° a 5°. En el polo el Sol roza el horizonte: décimas de grado deciden si el disco supera una cresta.
 
-**Telémetro del cursor.** Al pasar el cursor por el terreno 3-D se lee en vivo la distancia y el rumbo desde el lander, la elevación y la pendiente bajo el cursor, dentro y fuera del cuadro de ±500 m. Una línea punteada une el lander con el cursor. Fuera del cuadro el indicador se pone ámbar y dice que el doble clic crea un sitio propio.
+**Telémetro del cursor.** Al pasar el cursor por el terreno 3D se lee en vivo una sola cifra: la distancia en línea recta desde el módulo hasta el punto bajo el cursor, dentro y fuera del cuadro de ±500 m. Una línea punteada une el módulo con el cursor. En verde, el doble clic mueve el módulo; en ámbar (fuera del cuadro), crea un sitio propio.
 
 **Aprender más: Física Lunar vs. Tierra.** Botón en cada celebración de misión y en el diploma del modo Principiante, y botón **Física Lunar vs. Tierra** en la barra de subsistemas del modo Completo. Abre una ventana con dos columnas (En la Tierra / En el Polo Sur lunar), un diagrama simple y cifras calculadas con el motor: cielo y Sol rasante, por qué 200 m lo cambian todo, frío radiativo, radio y libración, polvo balístico, trampas frías y un resumen maestro.
 
@@ -203,7 +203,7 @@ Responde primero con un titular en lenguaje llano: **SOBREVIVE**, **SOBREVIVE SI
 
 Las mismas definiciones aparecen en la app como tooltips: pasa el cursor (o enfoca con el teclado) un término subrayado con puntos, sobre todo en la narración del modo Principiante.
 
-**DTE (directo a la Tierra).** Enlace de radio del lander directo a una antena en la Tierra, sin satélite de relevo. Necesita la Tierra sobre el horizonte local y una estación terrena que vea la Luna.
+**DTE (directo a la Tierra).** Enlace de radio del módulo directo a una antena en la Tierra, sin satélite de relevo. Necesita la Tierra sobre el horizonte local y una estación terrena que vea la Luna.
 
 **LOS (línea de visión / pérdida de señal).** Línea de visión: el camino recto entre la antena y el objetivo. Cuando el relieve la corta, se pierde la señal (también LOS, loss of signal).
 
@@ -225,11 +225,11 @@ Las mismas definiciones aparecen en la app como tooltips: pasa el cursor (o enfo
 
 **Multipath en regolito.** Parte de la señal rebota en el suelo y llega con retraso, sumando o anulando la señal directa. Importa sobre todo con la Tierra baja, como en el polo. El regolito se modela con permitividad εr = 3,7.
 
-**Actitud 6-DOF (alabeo, cabeceo, guiñada).** Un cuerpo tiene seis grados de libertad: tres posiciones y tres giros. La actitud son los tres giros: alabeo, cabeceo y guiñada. Un lander inclinado apunta mal sus paneles y su antena.
+**Actitud 6-DOF (alabeo, cabeceo, guiñada).** Un cuerpo tiene seis grados de libertad: tres posiciones y tres giros. La actitud son los tres giros: alabeo, cabeceo y guiñada. Un módulo inclinado apunta mal sus paneles y su antena.
 
-**Gimbal (cardán).** Montura articulada que deja girar la antena respecto del cuerpo del lander. Su rango (grados) dice cuánto puede alejarse del eje del cuerpo y aún apuntar a la Tierra.
+**Gimbal (cardán).** Montura articulada que deja girar la antena respecto del cuerpo del módulo. Su rango (grados) dice cuánto puede alejarse del eje del cuerpo y aún apuntar a la Tierra.
 
-**PSI (interacción pluma-superficie).** El chorro del motor de un lander al alunizar arrastra el regolito. Sin aire que lo frene, el polvo vuela en trayectorias balísticas rápidas y rasantes que pueden dañar equipos lejanos.
+**PSI (interacción pluma-superficie).** El chorro del motor de un módulo al alunizar arrastra el regolito. Sin aire que lo frene, el polvo vuela en trayectorias balísticas rápidas y rasantes que pueden dañar equipos lejanos.
 
 **ELFO (órbita lunar elíptica congelada).** Órbita muy alargada cuya forma se mantiene casi fija por años, con su punto lejano sobre el polo sur: un satélite de relevo ahí ve el polo muchas horas por órbita.
 

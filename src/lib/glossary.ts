@@ -18,7 +18,7 @@ export const GLOSSARY: GlossEntry[] = [
   {
     id: 'dte', term: ['DTE (Direct-to-Earth)', 'DTE (directo a la Tierra)'], match: /\bDTE\b/,
     def: ['A radio link from the lander straight to an antenna on Earth, with no relay satellite. It needs the Earth above the local horizon and a ground station that can see the Moon.',
-      'Enlace de radio del lander directo a una antena en la Tierra, sin satélite de relevo. Necesita la Tierra sobre el horizonte local y una estación terrena que vea la Luna.'],
+      'Enlace de radio del módulo directo a una antena en la Tierra, sin satélite de relevo. Necesita la Tierra sobre el horizonte local y una estación terrena que vea la Luna.'],
   },
   {
     id: 'los', term: ['LOS (Line of Sight / Loss of Signal)', 'LOS (línea de visión / pérdida de señal)'], match: /\bLOS\b/,
@@ -73,17 +73,17 @@ export const GLOSSARY: GlossEntry[] = [
   {
     id: '6dof', term: ['6-DOF attitude (roll, pitch, yaw)', 'Actitud 6-DOF (alabeo, cabeceo, guiñada)'], match: /\b6-DOF\b/,
     def: ['A body has six degrees of freedom: three positions and three rotations. The attitude is the three rotations: roll, pitch and yaw. A tilted lander points its panels and antenna the wrong way.',
-      'Un cuerpo tiene seis grados de libertad: tres posiciones y tres giros. La actitud son los tres giros: alabeo, cabeceo y guiñada. Un lander inclinado apunta mal sus paneles y su antena.'],
+      'Un cuerpo tiene seis grados de libertad: tres posiciones y tres giros. La actitud son los tres giros: alabeo, cabeceo y guiñada. Un módulo inclinado apunta mal sus paneles y su antena.'],
   },
   {
     id: 'gimbal', term: ['Gimbal', 'Gimbal (cardán)'], match: /\bgimbal\b|\bcard[aá]n\b/i,
     def: ['A pivoting mount that lets the antenna turn relative to the lander body. Its range (degrees) says how far from the body axis it can still point at the Earth.',
-      'Montura articulada que deja girar la antena respecto del cuerpo del lander. Su rango (grados) dice cuánto puede alejarse del eje del cuerpo y aún apuntar a la Tierra.'],
+      'Montura articulada que deja girar la antena respecto del cuerpo del módulo. Su rango (grados) dice cuánto puede alejarse del eje del cuerpo y aún apuntar a la Tierra.'],
   },
   {
     id: 'psi', term: ['PSI (Plume-Surface Interaction)', 'PSI (interacción pluma-superficie)'], match: /\bPSI\b/,
     def: ['The rocket exhaust of a landing lander blasts the regolith. With no air to slow it, the dust flies in fast, low ballistic paths that can sand-blast hardware far away.',
-      'El chorro del motor de un lander al alunizar arrastra el regolito. Sin aire que lo frene, el polvo vuela en trayectorias balísticas rápidas y rasantes que pueden dañar equipos lejanos.'],
+      'El chorro del motor de un módulo al alunizar arrastra el regolito. Sin aire que lo frene, el polvo vuela en trayectorias balísticas rápidas y rasantes que pueden dañar equipos lejanos.'],
   },
   {
     id: 'elfo', term: ['ELFO (Elliptical Lunar Frozen Orbit)', 'ELFO (órbita lunar elíptica congelada)'], match: /\bELFO\b/,

@@ -60,6 +60,8 @@ export interface Units {
   mSigned: (m: number, digits?: number) => string;
   /** A distance that switches to km / mi when long: "320 m", "1,840 m (1.84 km)" / "6,037 ft (1.14 mi)". */
   dist: (m: number) => string;
+  /** One linear distance, one number: "320 m" / "1.84 km"; "1050 ft" / "1.14 mi". */
+  span: (m: number) => string;
   /** A distance given in km: "12.4 km" / "7.7 mi". */
   kmStr: (km: number, digits?: number) => string;
   /** A temperature in °C: "−20 °C" / "−4 °F". */
@@ -90,6 +92,11 @@ export function makeUnits(sys: UnitSystem): Units {
       const a = Math.abs(m);
       if (a < 1000) return `${fix(len(m), 0)} ${lenU}`;
       return `${group(len(m), 0)} ${lenU} (${fix(km(m / 1000), 2)} ${kmU})`;
+    },
+    span: (m) => {
+      const a = Math.abs(m);
+      if (imp) return mToFt(a) < 5280 ? `${fix(mToFt(a), 0)} ft` : `${fix(kmToMi(a / 1000), 2)} mi`;
+      return a < 1000 ? `${fix(a, 0)} m` : `${fix(a / 1000, 2)} km`;
     },
     kmStr: (k, d = 1) => `${fix(km(k), d)} ${kmU}`,
     c: (c, d = 0) => `${fix(tempC(c), d)} ${tempU}`.replace(/^-/, '−'),

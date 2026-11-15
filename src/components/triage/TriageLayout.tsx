@@ -42,7 +42,7 @@ export function TriageLayout() {
   return (
     <main className="triage" data-testid="triage">
       <aside className="tri-side tri-left">
-        <header className="tri-head"><h2>{t('Lander down: what do we know?', 'Lander en superficie: ¿qué sabemos?')}</h2></header>
+        <header className="tri-head"><h2>{t('Lander down: what do we know?', 'Módulo en superficie: ¿qué sabemos?')}</h2></header>
         <EmergencyInputs data={data} />
       </aside>
 

@@ -177,7 +177,7 @@ export function PolarMap({ latDeg, lonDeg, onPick, size = 356 }: { latDeg: numbe
   return (
     <canvas
       ref={ref} width={size} height={size} className="polar-map" data-testid="polar-map" role="img"
-      aria-label={t('Map of the lunar south pole, 80° S to 90° S. Click to place the lander.', 'Mapa del polo sur lunar, 80° S a 90° S. Haz clic para situar el lander.')}
+      aria-label={t('Map of the lunar south pole, 80° S to 90° S. Click to place the lander.', 'Mapa del polo sur lunar, 80° S a 90° S. Haz clic para situar el módulo.')}
       onClick={(e) => pick(e.clientX, e.clientY)}
       onMouseMove={(e) => { const id = nearest(e.clientX, e.clientY); if (id !== hover) setHover(id); }}
       onMouseLeave={() => setHover(null)}

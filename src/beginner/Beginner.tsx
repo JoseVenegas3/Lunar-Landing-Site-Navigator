@@ -355,7 +355,7 @@ export function Beginner() {
           <p>{text}</p>
           <div className="beg-cel-actions">
             <LearnButton topic="master" big testid="learn-dip" />
-            <button type="button" className="btn beg-pro" onClick={finishTraining} data-testid="beg-to-pro" autoFocus>{t('Open the Pro console (Mission Leader)', 'Acceder a la consola Pro (Mission Leader)')}</button>
+            <button type="button" className="btn beg-pro" onClick={finishTraining} data-testid="beg-to-pro" autoFocus>{t('Open Full mode (Mission Leader)', 'Abrir el Modo Completo (Mission Leader)')}</button>
           </div>
         </div>
       )}

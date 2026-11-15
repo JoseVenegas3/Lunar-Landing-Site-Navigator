@@ -26,13 +26,13 @@ export function VitalCards({ data, testId = 'vitals', showSolar = true }: { data
   const u = useUnits();
   const cursor = useThrottledCursor();
   const r = data.result;
-  if (!r) return <div className="vitals" data-testid={testId}><p className="kpi-note pad0">{t('Flying the mission…', 'Volando la misión…')}</p></div>;
+  if (!r) return <div className="vitals" data-testid={testId}><p className="kpi-note pad0">{t('Flying the mission…', 'Simulando la misión…')}</p></div>;
   const c = emergencyCountdown(r, cursor);
   const windowH = (r.count - 1) * r.stepHours;
   const left = Math.max(0, windowH - cursor);
 
   const light: [string, string, Tone] = !c.aliveNow
-    ? ['—', t('the lander is lost', 'el lander está perdido'), 'crit']
+    ? ['—', t('the lander is lost', 'el módulo está perdido'), 'crit']
     : c.sunNow
       ? [c.toDarkH === null ? fmtDuration(left) : fmtDuration(c.toDarkH), c.toDarkH === null ? t('sunlit to the end of the window', 'con sol hasta el final de la ventana') : t('of sunlight before the next shadow', 'de sol antes de la próxima sombra'), c.toDarkH !== null && c.toDarkH < 24 ? 'warn' : 'ok']
       : ['0 h', c.toSunH === null ? t('dark, no sunrise in this window', 'a oscuras, sin amanecer en esta ventana') : t(`dark now, sunrise in ${fmtDuration(c.toSunH)}`, `a oscuras, amanece en ${fmtDuration(c.toSunH)}`), c.toSunH === null ? 'crit' : 'warn'];

@@ -284,7 +284,7 @@ export const SCRIPT: Step[] = [
   },
   {
     id: 'm1-eye', mission: 1, focus: '[data-testid="seg-eye"]', click: '[data-testid="seg-eye"]',
-    say: (_c, t) => t('Before authorising the descent, let us see what the lander will see: click "Lander eye".', 'Antes de autorizar el descenso, veamos qué verá la nave: haz clic en «Vista lander».'),
+    say: (_c, t) => t('Before authorising the descent, let us see what the lander will see: click "Lander eye".', 'Antes de autorizar el descenso, veamos qué verá la nave: haz clic en «Desde el módulo».'),
   },
   {
     id: 'm1-vitals', mission: 1, auto: 0, focus: '[data-testid="vitals"]',
@@ -359,7 +359,7 @@ export const SCRIPT: Step[] = [
   },
   {
     id: 'm2-variants', mission: 2, focus: '[data-testid="unc-run"]', click: '[data-testid="unc-run"]',
-    say: (_c, t) => t('Press the button to re-fly the mission on many statistical variants of the ground.', 'Pulsa el botón para volver a volar la misión sobre muchas variantes estadísticas del suelo.'),
+    say: (_c, t) => t('Press the button to re-fly the mission on many statistical variants of the ground.', 'Pulsa el botón para volver a simular la misión sobre muchas variantes estadísticas del suelo.'),
     until: () => Boolean(document.querySelector('[data-testid="unc-stats"]')),
   },
   {
@@ -531,7 +531,7 @@ export const SCRIPT: Step[] = [
   {
     id: 'm5-preset', mission: 5, focus: '[data-testid="preset-im1"]',
     enter: (c) => { c.memo.rf0 = c.A.result?.adv.kpis.rfAvailabilityPct ?? 0; if (s0().panels.leftTab !== 'contingency') s0().openPanel('contingency'); },
-    say: (_c, t) => t(`In February 2024 IM-1 Odysseus touched down with sideways speed and came to rest tilted about ${fmtNum(im1Attitude().rollDeg, 0)}°. Click the "IM-1 Odysseus" preset.`, `En febrero de 2024, IM-1 Odysseus tocó suelo con velocidad lateral y quedó inclinado unos ${fmtNum(im1Attitude().rollDeg, 0)}°. Haz clic en el preset «IM-1 Odysseus».`),
+    say: (_c, t) => t(`In February 2024 IM-1 Odysseus touched down with sideways speed and came to rest tilted about ${fmtNum(im1Attitude().rollDeg, 0)}°. Click the "IM-1 Odysseus" preset.`, `En febrero de 2024, IM-1 Odysseus tocó suelo con velocidad lateral y quedó inclinado unos ${fmtNum(im1Attitude().rollDeg, 0)}°. Haz clic en el preajuste «IM-1 Odysseus».`),
     until: (c) => c.app.attitude.rollDeg === im1Attitude().rollDeg,
   },
   {
@@ -539,7 +539,7 @@ export const SCRIPT: Step[] = [
     until: (c) => ready(c) && (c.A.input?.attitude?.rollDeg ?? 0) === im1Attitude().rollDeg,
     say: (c, t) => {
       const a = c.A.result?.adv.kpis;
-      return t(`The tilted antenna points at the ground: the downlink closes ${fmtNum(a?.rfAvailabilityPct ?? 0, 0)} % of the time (it was ${fmtNum(c.memo.rf0 || 0, 0)} % level), mean pointing loss ${fmtNum(a?.meanPointingLossDb ?? 0, 1)} dB.`, `La antena inclinada mira al suelo: la descarga cierra el ${fmtNum(a?.rfAvailabilityPct ?? 0, 0)} % del tiempo (nivelada era el ${fmtNum(c.memo.rf0 || 0, 0)} %), pérdida media de apuntamiento ${fmtNum(a?.meanPointingLossDb ?? 0, 1)} dB.`);
+      return t(`The tilted antenna points at the ground: the downlink closes ${fmtNum(a?.rfAvailabilityPct ?? 0, 0)} % of the time (it was ${fmtNum(c.memo.rf0 || 0, 0)} % level), mean pointing loss ${fmtNum(a?.meanPointingLossDb ?? 0, 1)} dB.`, `La antena inclinada mira al suelo: el enlace de descarga funciona el ${fmtNum(a?.rfAvailabilityPct ?? 0, 0)} % del tiempo (nivelada era el ${fmtNum(c.memo.rf0 || 0, 0)} %), pérdida media de apuntamiento ${fmtNum(a?.meanPointingLossDb ?? 0, 1)} dB.`);
     },
   },
   {
@@ -568,7 +568,7 @@ export const SCRIPT: Step[] = [
   },
   {
     id: 'm5-distance', mission: 5, focus: '[data-testid="asset-distance"]',
-    say: (_c, t) => t('Drag the "Distance from the lander" until the asset is outside the exclusion radius (the red alert goes away).', 'Arrastra la «Distancia al lander» hasta dejar el activo fuera del radio de exclusión (desaparece la alerta roja).'),
+    say: (_c, t) => t('Drag the "Distance from the lander" until the asset is outside the exclusion radius (the red alert goes away).', 'Arrastra la «Distancia al módulo» hasta dejar el activo fuera del radio de exclusión (desaparece la alerta roja).'),
     until: (c) => c.app.asset.enabled && Boolean(document.querySelector('[data-testid="asset-kpis"]')) && !document.querySelector('[data-testid="psi-alert"]'),
     doIt: () => {
       const r = Number((document.querySelector('[data-testid="asset-kpis"] .stat output')?.textContent ?? '').replace(/[^\d]/g, ''));
@@ -661,7 +661,7 @@ export const SCRIPT: Step[] = [
   {
     id: 'm7-slope', mission: 7, focus: '[data-testid="tri-slope"]', click: '[data-testid="tri-slope"]',
     enter: () => window.setTimeout(() => { const d = document.querySelector('.emg-tilt') as HTMLDetailsElement | null; if (d) d.open = true; }, 300),
-    say: (_c, t) => t('Step 1, where and how: it came to rest leaning on the slope. Click "We came to rest on the slope" to take the real attitude.', 'Paso 1, dónde y cómo quedó: quedó apoyado en la ladera. Haz clic en «Quedamos apoyados en la pendiente» para tomar la actitud real.'),
+    say: (_c, t) => t('Step 1, where and how: it came to rest leaning on the slope. Click "We came to rest on the slope" to take the real attitude.', 'Paso 1, dónde y cómo quedó: está apoyada en la ladera. Haz clic en «Quedamos apoyados en la pendiente» para tomar la actitud real.'),
   },
   {
     id: 'm7-micro', mission: 7, auto: 0, focus: '[data-testid="micro-hazard"]',

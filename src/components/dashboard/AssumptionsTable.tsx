@@ -28,11 +28,11 @@ export const ASSUMPTIONS: Row[] = [
   // thermal
   { p: ['Survival heaters switch on below', 'Calefactores de supervivencia se encienden bajo'], value: C(T_FREEZE_K), unit: '°C', source: TEAM, where: ['Thermal model, telemetry', 'Modelo térmico, telemetría'] },
   { p: ['Battery starts losing capacity below', 'La batería empieza a perder capacidad bajo'], value: C(T_DERATE_START_K), unit: '°C', source: TEAM, where: ['Thermal model', 'Modelo térmico'] },
-  { p: ['Battery frozen, lander lost at', 'Batería congelada, lander perdido a'], value: C(T_BATTERY_DEATH_K), unit: '°C', source: TEAM, where: ['Thermal model, verdict, emergency headline', 'Modelo térmico, veredicto, titular de emergencia'] },
+  { p: ['Battery frozen, lander lost at', 'Batería congelada, módulo perdido a'], value: C(T_BATTERY_DEATH_K), unit: '°C', source: TEAM, where: ['Thermal model, verdict, emergency headline', 'Modelo térmico, veredicto, titular de emergencia'] },
   { p: ['Usable capacity left at −20 °C', 'Capacidad utilizable a −20 °C'], value: fmtNum(100 * CAPACITY_AT_DEATH, 0), unit: '%', source: TEAM, where: ['Thermal model', 'Modelo térmico'] },
   // landing windows
   { p: ['Glare cone around the direction of flight', 'Cono de deslumbramiento en la dirección de vuelo'], value: `±${DEFAULT_WINDOW_CONFIG.glareHalfDeg}`, unit: '°', source: TEAM, where: ['Landing windows', 'Ventanas de aterrizaje'] },
-  { p: ['Washout cone behind the lander (no shadows)', 'Cono sin sombras detrás del lander'], value: `±${DEFAULT_WINDOW_CONFIG.washoutHalfDeg}`, unit: '°', source: TEAM, where: ['Landing windows', 'Ventanas de aterrizaje'] },
+  { p: ['Washout cone behind the lander (no shadows)', 'Cono sin sombras detrás del módulo'], value: `±${DEFAULT_WINDOW_CONFIG.washoutHalfDeg}`, unit: '°', source: TEAM, where: ['Landing windows', 'Ventanas de aterrizaje'] },
   { p: ['Sunlit share of the landing ellipse', 'Fracción con sol de la elipse de alunizaje'], value: `≥ ${DEFAULT_WINDOW_CONFIG.minEllipseLitPct}`, unit: '%', source: TEAM, where: ['Landing windows', 'Ventanas de aterrizaje'] },
   { p: ['Landing ellipse radius', 'Radio de la elipse de alunizaje'], value: String(DEFAULT_WINDOW_CONFIG.ellipseRadiusM), unit: 'm', source: TEAM, where: ['Landing windows', 'Ventanas de aterrizaje'] },
   // verdict

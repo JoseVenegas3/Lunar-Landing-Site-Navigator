@@ -157,7 +157,7 @@ function Body({ topic, t }: { topic: LearnTopic; t: T }) {
               <dl className="learn-dl"><Row k={t('Surface pressure', 'Presión en superficie')} v={`${EARTH_SURFACE_PRESSURE_TORR} Torr`} /><Row k={t('Highest Sun', 'Sol más alto')} v={`${fmtNum(earthSun, 0)}°`} /></dl>
             </>}
             moon={<>
-              <p>{t(`No atmosphere (about ${MOON_SURFACE_PRESSURE_TORR.toExponential(0)} Torr): no scattering, so the sky is black even with the Sun up, and no refraction, so the app draws the Sun exactly where geometry puts it. The Moon's axis is tilted only ${fmtNum(MOON_SPIN_TILT_DEG, 2)}°: at this lander (${fmtNum(Math.abs(lat), 2)}° S) the Sun can never climb above ${fmtNum(moonSun, 2)}°, so it circles the horizon like a lighthouse and a hill casts shadows kilometres long.`, `Sin atmósfera (unos ${MOON_SURFACE_PRESSURE_TORR.toExponential(0)} Torr): no hay dispersión, así que el cielo es negro aunque el Sol esté arriba, y no hay refracción, así que la app dibuja el Sol justo donde lo pone la geometría. El eje lunar se inclina solo ${fmtNum(MOON_SPIN_TILT_DEG, 2)}°: en este lander (${fmtNum(Math.abs(lat), 2)}° S) el Sol nunca puede subir más de ${fmtNum(moonSun, 2)}°, así que gira rozando el horizonte como un faro y una colina proyecta sombras de kilómetros.`)}</p>
+              <p>{t(`No atmosphere (about ${MOON_SURFACE_PRESSURE_TORR.toExponential(0)} Torr): no scattering, so the sky is black even with the Sun up, and no refraction, so the app draws the Sun exactly where geometry puts it. The Moon's axis is tilted only ${fmtNum(MOON_SPIN_TILT_DEG, 2)}°: at this lander (${fmtNum(Math.abs(lat), 2)}° S) the Sun can never climb above ${fmtNum(moonSun, 2)}°, so it circles the horizon like a lighthouse and a hill casts shadows kilometres long.`, `Sin atmósfera (unos ${MOON_SURFACE_PRESSURE_TORR.toExponential(0)} Torr): no hay dispersión, así que el cielo es negro aunque el Sol esté arriba, y no hay refracción, así que la app dibuja el Sol justo donde lo pone la geometría. El eje lunar se inclina solo ${fmtNum(MOON_SPIN_TILT_DEG, 2)}°: en la posición de este módulo (${fmtNum(Math.abs(lat), 2)}° S) el Sol nunca puede subir más de ${fmtNum(moonSun, 2)}°, así que gira rozando el horizonte como un faro y una colina proyecta sombras de kilómetros.`)}</p>
               <dl className="learn-dl">
                 <Row k={t('Highest possible Sun here', 'Sol más alto posible aquí')} v={`${fmtNum(moonSun, 2)}°`} />
                 {r && <Row k={t('Highest Sun in this window (engine)', 'Sol más alto en esta ventana (motor)')} v={`${fmtNum(r.kpis.sunElMaxDeg, 2)}°`} />}
@@ -175,15 +175,15 @@ function Body({ topic, t }: { topic: LearnTopic; t: T }) {
           <Cols
             earth={<>
               <p>{t('Walk 200 m in a city and nothing changes: same weather, same hours of daylight, same sky. The air spreads heat around and the Sun climbs high, so neighbouring places get the same light.', 'Camina 200 m en una ciudad y nada cambia: mismo clima, mismas horas de luz, mismo cielo. El aire reparte el calor y el Sol sube alto, así que lugares vecinos reciben la misma luz.')}</p>
-              <dl className="learn-dl"><Row k={t('Gravity', 'Gravedad')} v={`${fmtNum(G_EARTH_M_S2, 2)} m/s²`} /><Row k={t('Sideways speed that tips this lander', 'Velocidad lateral que vuelca este lander')} v={u.ms(vEarth, 2)} /></dl>
+              <dl className="learn-dl"><Row k={t('Gravity', 'Gravedad')} v={`${fmtNum(G_EARTH_M_S2, 2)} m/s²`} /><Row k={t('Sideways speed that tips this lander', 'Velocidad lateral que vuelca este módulo')} v={u.ms(vEarth, 2)} /></dl>
             </>}
             moon={<>
-              <p>{t('With the Sun a degree or two above the horizon, 200 m can take you from the floor of a crater in permanent shadow (no Sun at all, below −170 °C) to a ridge lit most of the year with the Earth in view. In weak gravity a lander also tips over at a much lower sideways speed.', 'Con el Sol a uno o dos grados del horizonte, 200 m pueden llevarte del fondo de un cráter en sombra permanente (sin Sol, bajo −170 °C) a una cresta iluminada casi todo el año y con la Tierra a la vista. Con gravedad débil, además, un lander vuelca a una velocidad lateral mucho menor.').replace('−170 °C', u.c(-170))}</p>
+              <p>{t('With the Sun a degree or two above the horizon, 200 m can take you from the floor of a crater in permanent shadow (no Sun at all, below −170 °C) to a ridge lit most of the year with the Earth in view. In weak gravity a lander also tips over at a much lower sideways speed.', 'Con el Sol a uno o dos grados del horizonte, 200 m pueden llevarte del fondo de un cráter en sombra permanente (sin Sol, bajo −170 °C) a una cresta iluminada casi todo el año y con la Tierra a la vista. Con gravedad débil, además, un módulo vuelca a una velocidad lateral mucho menor.').replace('−170 °C', u.c(-170))}</p>
               <dl className="learn-dl">
                 <Row k={t('Gravity', 'Gravedad')} v={`${fmtNum(G_MOON_M_S2, 2)} m/s²`} />
-                <Row k={t('Sideways speed that tips this lander', 'Velocidad lateral que vuelca este lander')} v={u.ms(vMoon, 2)} />
+                <Row k={t('Sideways speed that tips this lander', 'Velocidad lateral que vuelca este módulo')} v={u.ms(vMoon, 2)} />
                 {disp && worst && <Row k={t(`Inside this ${u.m(disp.radiusM)} ellipse (engine)`, `Dentro de esta elipse de ${u.m(disp.radiusM)} (motor)`)} v={t(`best: ${disp.best.lost ? fmtDuration(disp.best.survivalHours) : `${fmtNum(disp.best.linkPct, 0)} % link`} · worst: ${worst.lost ? `lost at ${fmtDuration(worst.survivalHours)}` : `${fmtNum(worst.linkPct, 0)} % link`}`, `mejor: ${disp.best.lost ? fmtDuration(disp.best.survivalHours) : `${fmtNum(disp.best.linkPct, 0)} % enlace`} · peor: ${worst.lost ? `perdido a las ${fmtDuration(worst.survivalHours)}` : `${fmtNum(worst.linkPct, 0)} % enlace`}`)} />}
-                {disp && <Row k={t('Cells where the lander is lost', 'Celdas donde se pierde el lander')} v={`${lost} / ${disp.cells.length}`} />}
+                {disp && <Row k={t('Cells where the lander is lost', 'Celdas donde se pierde el módulo')} v={`${lost} / ${disp.cells.length}`} />}
               </dl>
               {!disp && <p className="learn-note">{t('Open the landing dispersion grid (Terrain) and this window shows how much the 25 points 200 m apart differ.', 'Abre la grilla de dispersión (Terreno) y esta ventana mostrará cuánto difieren los 25 puntos separados 200 m.')}</p>}
             </>}
@@ -244,7 +244,7 @@ function Body({ topic, t }: { topic: LearnTopic; t: T }) {
               <dl className="learn-dl">
                 {ranges.map((x) => <Row key={x.v} k={t(`Range of a grain at ${u.ms(x.v, 0)}`, `Alcance de un grano a ${u.ms(x.v, 0)}`)} v={x.km < 1 ? u.m(x.km * 1000) : u.kmStr(x.km, 1)} />)}
               </dl>
-              <p className="learn-note">{t('Ejecta are reported to travel more than 20 km even for small landers (literature cited in the Contingency panel).', 'Se reporta eyección a más de 20 km incluso con landers pequeños (literatura citada en el panel de Contingencia).').replace('20 km', u.kmStr(20, 0))}</p>
+              <p className="learn-note">{t('Ejecta are reported to travel more than 20 km even for small landers (literature cited in the Contingency panel).', 'Se reporta eyección a más de 20 km incluso con módulos pequeños (literatura citada en el panel de Contingencia).').replace('20 km', u.kmStr(20, 0))}</p>
             </>}
           />
         </>

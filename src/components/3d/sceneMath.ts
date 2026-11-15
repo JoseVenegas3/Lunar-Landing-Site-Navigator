@@ -125,9 +125,6 @@ export const camProbe: { sunOffDeg: number; earthOffDeg: number; dist: number; f
  * engine uses (0 = deck, 1 = 10 m mast) and is eased by the model itself.
  * Mission Leader keeps deploy = 1 and drop = 0.
  */
-/** Effects asked for by the video pitch (v3.1) outside the training: sunlight beads and radio rings. */
-export const fxCue = { sun: false, radio: false };
-
 export const landerAnim = { deploy: 1, drop: 0, mastK: 0, size: 1, sizeTarget: 1, dustAt: 0, drawn: new Vector3(), hasDrawn: false };
 
 /** Radii (km) of the far-field shells drawn around the lander. */

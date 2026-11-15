@@ -26,10 +26,10 @@ function causeText(c: VerdictCause, v: Verdict, t: T): string {
     case 'thermal': return t(`Thermal failure on ${dayHour(v.survivalHours, t)}: a long shadow drains the battery and the bus freezes at ${currentUnits().c(-20)}.`, `Falla térmica en ${dayHour(v.survivalHours, t)}: una sombra prolongada agota la batería y el bus se congela a ${currentUnits().c(-20)}.`);
     case 'battery': return t(`Battery empty on ${dayHour(v.survivalHours, t)}: the shadows last longer than the stored energy.`, `Batería agotada en ${dayHour(v.survivalHours, t)}: las sombras duran más que la energía almacenada.`);
     case 'no-link': return t('No contact with the Earth: the terrain hides it for the whole mission.', 'Sin contacto con la Tierra: el terreno la oculta durante toda la misión.');
-    case 'needs-relay': return t(`It loses contact with the Earth for ${fmtDuration(v.longestLinkGapH)} in a row. It needs a relay satellite.`, `Pierde contacto con la Tierra ${fmtDuration(v.longestLinkGapH)} seguidas. Necesita un satélite relay.`);
-    case 'link-gap': return t(`Even with the relay it is out of contact for ${fmtDuration(v.longestLinkGapH)} in a row.`, `Aun con relay queda sin contacto ${fmtDuration(v.longestLinkGapH)} seguidas.`);
+    case 'needs-relay': return t(`It loses contact with the Earth for ${fmtDuration(v.longestLinkGapH)} in a row. It needs a relay satellite.`, `Pierde contacto con la Tierra durante ${fmtDuration(v.longestLinkGapH)} sin interrupción. Necesita un satélite de relevo.`);
+    case 'link-gap': return t(`Even with the relay it is out of contact for ${fmtDuration(v.longestLinkGapH)} in a row.`, `Aun con relevo queda sin contacto durante ${fmtDuration(v.longestLinkGapH)} sin interrupción.`);
     case 'deep-discharge': return t('The battery goes below its safe depth of discharge.', 'La batería baja de su profundidad de descarga segura.');
-    case 'tilt': return t(`The lander rests tilted ${fmtNum(v.tiltDeg, 0)}°.`, `El lander queda inclinado ${fmtNum(v.tiltDeg, 0)}°.`);
+    case 'tilt': return t(`The lander rests tilted ${fmtNum(v.tiltDeg, 0)}°.`, `El módulo queda inclinado ${fmtNum(v.tiltDeg, 0)}°.`);
     case 'tipover': return t(`Risk of tipping over at touchdown: ${fmtNum(100 * (v.tipoverP ?? 0), 0)} %.`, `Riesgo de vuelco al contacto: ${fmtNum(100 * (v.tipoverP ?? 0), 0)} %.`);
     case 'slope': return t(`Steep ground: ${fmtNum(v.slopeDeg, 0)}° of slope.`, `Terreno empinado: ${fmtNum(v.slopeDeg, 0)}° de pendiente.`);
     case 'low-sun': return t(`Little sunlight: ${fmtNum(v.illuminationPct, 0)} % of the time.`, `Poca luz solar: ${fmtNum(v.illuminationPct, 0)} % del tiempo.`);
@@ -41,7 +41,7 @@ function causeText(c: VerdictCause, v: Verdict, t: T): string {
 export function verdictSentence(v: Verdict, t: T): string {
   const days = fmtNum(v.windowHours / 24, 0);
   if (v.level === 'go') {
-    return t(`The lander survives the ${days} days. Sunlight ${fmtNum(v.illuminationPct, 0)} % of the time and contact with the Earth ${fmtNum(v.linkPct, 0)} %.`, `El lander sobrevive los ${days} días. Luz solar el ${fmtNum(v.illuminationPct, 0)} % del tiempo y contacto con la Tierra el ${fmtNum(v.linkPct, 0)} %.`);
+    return t(`The lander survives the ${days} days. Sunlight ${fmtNum(v.illuminationPct, 0)} % of the time and contact with the Earth ${fmtNum(v.linkPct, 0)} %.`, `El módulo sobrevive los ${days} días. Luz solar el ${fmtNum(v.illuminationPct, 0)} % del tiempo y contacto con la Tierra el ${fmtNum(v.linkPct, 0)} %.`);
   }
   const lead = v.level === 'caution' && v.survives ? t(`It survives the ${days} days, but: `, `Sobrevive los ${days} días, pero: `) : '';
   const rest = v.also.slice(0, 1).map((c) => ` ${causeText(c, v, t)}`).join('');

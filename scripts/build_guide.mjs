@@ -109,8 +109,8 @@ figure img { width: 100%; border: 0.6pt solid #b7c2d2; border-radius: 2pt; displ
 `;
 
 const GUIDES = [
-  { lang: 'es', src: 'guia-interfaz.md', pdf: 'guia-interfaz-es.pdf', footer: 'Guía de la interfaz · CLPS Lunar Mission Browser v3.1 · GISAT UdeC' },
-  { lang: 'en', src: 'guia-interfaz.en.md', pdf: 'guia-interfaz-en.pdf', footer: 'Interface guide · CLPS Lunar Mission Browser v3.1 · GISAT UdeC' },
+  { lang: 'es', src: 'guia-interfaz.md', pdf: 'guia-interfaz-es.pdf', footer: 'Guía de la interfaz · CLPS Lunar Mission Browser v3.2 · GISAT UdeC' },
+  { lang: 'en', src: 'guia-interfaz.en.md', pdf: 'guia-interfaz-en.pdf', footer: 'Interface guide · CLPS Lunar Mission Browser v3.2 · GISAT UdeC' },
 ];
 
 const browser = await chromium.launch();

@@ -1,4 +1,4 @@
-# Interface guide — CLPS Lunar Mission Browser v3.1
+# Interface guide — CLPS Lunar Mission Browser v3.2
 
 GISAT UdeC · NASA Space Apps 2026 · Lunar South Pole landing site navigator
 
@@ -187,7 +187,7 @@ It answers first with a plain-language headline: **SURVIVES**, **SURVIVES IF…*
 
 **Effective solar elevation (power KPI).** In Vital signs, in the KPI table and at the head of Power / thermal: elevation of the centre of the solar disc now and the highest of the window, the visible disc f☉, the incidence factor on the array and the power now / peak, on a 0° to 5° arc. At the pole the Sun skims the horizon: tenths of a degree decide whether the disc clears a ridge.
 
-**Cursor ruler.** Moving the cursor over the 3-D terrain reads, live, the distance and bearing from the lander, the elevation and the slope under the cursor, inside and outside the ±500 m box. A dashed line joins the lander and the cursor. Outside the box the read-out turns amber and says that a double-click creates a custom site.
+**Cursor ruler.** Moving the cursor over the 3-D terrain reads, live, a single figure: the straight-line distance from the lander to the point under the cursor, inside and outside the ±500 m box. A dashed line joins the lander and the cursor. In green a double-click moves the lander; in amber (outside the box) it creates a custom site.
 
 **Learn more: Lunar vs Earth physics.** A button on every mission celebration and on the diploma of the Beginner mode, and a **Lunar vs Earth physics** button in the subsystem bar of the Full mode. It opens a window with two columns (On Earth / At the lunar south pole), a simple diagram and numbers computed by the engine: sky and grazing Sun, why 200 m change everything, radiative cold, radio and libration, ballistic dust, cold traps and a master summary.
 

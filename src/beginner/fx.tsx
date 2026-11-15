@@ -13,7 +13,7 @@ import { useEffect, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { AdditiveBlending, DoubleSide, Group, Mesh, MeshBasicMaterial, Quaternion, RingGeometry, SphereGeometry, Vector3 } from 'three';
 import { useApp } from '../state/store';
-import { LiveSky, fxCue, landerAnim } from '../components/3d/sceneMath';
+import { LiveSky, landerAnim } from '../components/3d/sceneMath';
 import { useBeginner } from './state';
 import { SCRIPT } from './script';
 
@@ -66,7 +66,7 @@ export function BeginnerFx({ live, linkOpen }: { live: LiveSky; linkOpen: () => 
       dm.opacity = 0.75 * (1 - age);
     } else dm.opacity = 0;
     // Sunlight pulses running down the Sun direction onto the array.
-    const sunOn = (fxCue.sun || SUN_STEPS.has((st.step >= 0 ? SCRIPT[st.step]?.id : '') ?? '')) && live.sunFrac > 0;
+    const sunOn = SUN_STEPS.has((st.step >= 0 ? SCRIPT[st.step]?.id : '') ?? '') && live.sunFrac > 0;
     const tt = performance.now() / 1000;
     beads.forEach((bd, k) => {
       bd.visible = sunOn;
@@ -80,7 +80,7 @@ export function BeginnerFx({ live, linkOpen }: { live: LiveSky; linkOpen: () => 
     // Radio waves towards the Earth (one ring every 0.6 s, under 2 per second).
     const step = st.step >= 0 ? SCRIPT[st.step]?.id : '';
     const relay = useApp.getState().relay.enabled;
-    const on = (fxCue.radio || RADIO_STEPS.has(step ?? '')) && (linkOpen() || relay);
+    const on = RADIO_STEPS.has(step ?? '') && (linkOpen() || relay);
     const t = performance.now() / 1000;
     waves.forEach((w, k) => {
       w.visible = on;

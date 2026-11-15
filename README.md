@@ -1,4 +1,4 @@
-# CLPS Lunar Mission Browser v3.1
+# CLPS Lunar Mission Browser v3.2
 
 ## Quick Start (clonar y ejecutar en 1 minuto)
 
@@ -28,13 +28,9 @@ entrenamiento guiado de ocho misiones, con narración, sonido y consolas que se
 desbloquean una a una. **Mission Leader** es la consola completa (la interfaz
 v2.1). Para saltar la puerta: `?mode=leader` o `?mode=beginner`.
 
-## Video pitch (3 minutos)
+## Presentación
 
-Abre <http://localhost:5173/?pitch=true> (o el botón **Video pitch (3:00)** de la barra superior de Mission Leader). Pantalla completa (F11), **Reproducir el pitch** y listo: seis actos sobre la app real con teleprompter. Atajos: Espacio reproducir / pausa, ← → escena, R reiniciar, H ocultar controles, C subtítulos, M sonido. `?lang=es` o `?lang=en` fija el idioma; `&hud=0` lo deja sin controles para proyectar.
-
-- **Grabar desde el navegador**: botón **Grabar video (1080p)**; el navegador pide compartir la pestaña y al llegar a 3:00 descarga un WebM con sonido.
-- **Grabar automáticamente**: `npm run build && npm run record-pitch` (ES; `-- --en` en inglés) deja el video en `public/pitch/`; con ffmpeg (`FFMPEG_PATH`) también un MP4.
-- Guion del orador: [docs/pitch-guion.md](docs/pitch-guion.md).
+Para el pitch de la hackathon hay una presentación de 7 diapositivas con capturas reales de la app y notas del orador ([docs/pitch-gisat-lunar-navigator.pptx](docs/pitch-gisat-lunar-navigator.pptx)) y una grabación de 3 minutos de la app ([docs/video/gisat-lunar-navigator-3min.mp4](docs/video/gisat-lunar-navigator-3min.mp4)). Ninguna forma parte de la app.
 
 ## Cómo ejecutarlo
 
@@ -111,10 +107,10 @@ enunciado; el porqué está en la sección 4.2 de [ARCHITECTURE.md](ARCHITECTURE
 | `npm run dev` | servidor de desarrollo |
 | `npm run build` | verificación de tipos y build de producción en `dist/` |
 | `npm run typecheck` / `npm run lint` | `tsc --noEmit` (el proyecto no usa ESLint) |
-| `npm test` | 181 tests del motor, el catálogo de sitios, la emergencia, la exportación y la interfaz (vitest) |
+| `npm test` | 175 tests del motor, el catálogo de sitios, la emergencia, la exportación y la interfaz (vitest) |
 | `npm run guide` | toma las capturas reales de la app (`npm run guide-shots`, ES y EN) y regenera `public/guide/guia-interfaz-es.pdf` y `-en.pdf` desde `docs/guia-interfaz*.md` |
 | `npm run measure-micro` | mide el costo del peligro bajo el píxel en los cinco sitios |
-| `npm run e2e` | verificación en navegador con Playwright (requiere `npm run build`): 170 comprobaciones: 132 de Mission Leader (`e2e:leader`, incluida la prueba sin red), 25 del Principiante (`e2e:beginner`) y 13 del video pitch (`e2e:pitch`, 3:00 en tiempo real) |
+| `npm run e2e` | verificación en navegador con Playwright (requiere `npm run build`): 158 comprobaciones: 132 de Mission Leader (`e2e:leader`, incluida la prueba sin red) y 26 del Modo Guiado (`e2e:beginner`) |
 | `npm run find-scenarios` | busca con el motor los escenarios del entrenamiento y escribe `src/beginner/scenarios.ts` |
 | `npm run perf` | medición de cuadros por segundo |
 | `npm run build-dem` | regenera las mallas LOLA de `public/dem/` (requiere `pip install rasterio numpy`) |

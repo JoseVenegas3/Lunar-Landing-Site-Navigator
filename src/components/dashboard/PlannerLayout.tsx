@@ -55,18 +55,18 @@ function panelLabel(id: PanelId, t: T, subsystem?: string): string {
 
 function panelHint(id: PanelId, t: T): string {
   return {
-    sites: t('Where and when the lander touches down: site, date, window length and the offset from the nominal point.', 'Dónde y cuándo aluniza el lander: sitio, fecha, duración de la ventana y desplazamiento desde el punto nominal.'),
-    hardware: t('Solar panels, battery, heaters, radio and relays. Bigger panels and battery survive longer shadows.', 'Paneles, batería, calefactores, radio y relays. Paneles y batería más grandes resisten sombras más largas.'),
-    contingency: t('What happens if the lander ends up tilted, tips over, or lands next to another vehicle.', 'Qué pasa si el lander queda inclinado, vuelca o aluniza junto a otro vehículo.'),
+    sites: t('Where and when the lander touches down: site, date, window length and the offset from the nominal point.', 'Dónde y cuándo aluniza el módulo: sitio, fecha, duración de la ventana y desplazamiento desde el punto nominal.'),
+    hardware: t('Solar panels, battery, heaters, radio and relays. Bigger panels and battery survive longer shadows.', 'Paneles, batería, calefactores, radio y relevos. Paneles y batería más grandes resisten sombras más largas.'),
+    contingency: t('What happens if the lander ends up tilted, tips over, or lands next to another vehicle.', 'Qué pasa si el módulo queda inclinado, vuelca o aluniza junto a otro vehículo.'),
     vitals: t('Hours of sunlight left, whether the Earth is reachable, and the time until the battery freezes, from the time on the clock.', 'Horas de sol restantes, si la Tierra está al alcance y el tiempo hasta que se congele la batería, desde la hora del reloj.'),
     windows: t('Which landing dates work, what rules out the others, and the comparison with a second site or date.', 'Qué fechas de alunizaje sirven, qué descarta a las demás y la comparación con otro sitio o fecha.'),
     energy: t('Whether the battery and the electronics get through the cold of the shadows.', 'Si la batería y la electrónica resisten el frío de las sombras.'),
     link: t('Whether the radio signal reaches the Earth: power, distance, antenna, mountains in the way.', 'Si la señal de radio llega a la Tierra: potencia, distancia, antena y montañas en el camino.'),
-    survival: t('Where the lander can come down within 200 m of the aim point (25 full missions, best cell and escape vector) and how much the answer depends on the error of the terrain model. The emergency flow lives in the Emergency mode only.', 'Dónde puede posarse el lander a 200 m del punto de mira (25 misiones completas, mejor celda y vector de escape) y cuánto depende la respuesta del error del modelo de terreno. El flujo de emergencia está solo en el modo Emergencia.'),
-    engineering: t('Every KPI of the mission in one table, with the detailed timeline below: one row per ground station, the relay and simultaneous operations.', 'Todos los KPI de la misión en una tabla, con la línea de tiempo detallada abajo: una fila por estación terrena, el relay y las operaciones simultáneas.'),
+    survival: t('Where the lander can come down within 200 m of the aim point (25 full missions, best cell and escape vector) and how much the answer depends on the error of the terrain model. The emergency flow lives in the Emergency mode only.', 'Dónde puede posarse el módulo a 200 m del punto de mira (25 misiones completas, mejor celda y vector de escape) y cuánto depende la respuesta del error del modelo de terreno. El flujo de emergencia está solo en el modo Emergencia.'),
+    engineering: t('Every KPI of the mission in one table, with the detailed timeline below: one row per ground station, the relay and simultaneous operations.', 'Todos los KPI de la misión en una tabla, con la línea de tiempo detallada abajo: una fila por estación terrena, el relevo y las operaciones simultáneas.'),
     score: t('A single 0–100 mark that weighs sunlight, Earth view, slope and science interest, with the orbital layers behind it.', 'Una nota de 0 a 100 que pondera luz, vista a la Tierra, pendiente e interés científico, con las capas orbitales detrás.'),
     timeline: t('Sun, Earth and both at once over the window. Green is the golden window.', 'Sol, Tierra y ambos a la vez en la ventana. El verde es la ventana de oro.'),
-    horizon: t('The skyline all around the lander with the paths of the Sun and the Earth.', 'El horizonte alrededor del lander con las trayectorias del Sol y la Tierra.'),
+    horizon: t('The skyline all around the lander with the paths of the Sun and the Earth.', 'El horizonte alrededor del módulo con las trayectorias del Sol y la Tierra.'),
     thermal: t('Array power, battery charge and bus temperature against time.', 'Potencia del panel, carga de batería y temperatura del bus en el tiempo.'),
   }[id];
 }
@@ -84,7 +84,7 @@ function ConsoleTools() {
     <div className="subsys-tools">
       <button
         type="button" className={`tm-chip${telemetry ? ' is-on' : ''}`} aria-pressed={telemetry} aria-expanded={telemetry} onClick={() => setPanels({ telemetry: !telemetry })} data-testid="dock-telemetry"
-        title={telemetry ? t('Hide the live telemetry', 'Ocultar la telemetría en vivo') : t('Show what the lander reports at the time on the clock', 'Mostrar lo que reporta el lander a la hora del reloj')}
+        title={telemetry ? t('Hide the live telemetry', 'Ocultar la telemetría en vivo') : t('Show what the lander reports at the time on the clock', 'Mostrar lo que reporta el módulo a la hora del reloj')}
       >
         <i className="tm-dot" aria-hidden="true" />
         {t('Telemetry', 'Telemetría')}

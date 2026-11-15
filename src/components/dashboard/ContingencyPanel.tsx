@@ -128,7 +128,7 @@ export function ContingencyPanel() {
             <Stat label={t('Attitude power penalty', 'Penalización de potencia')} value={`${fmtNum(a.attitudePowerPenaltyPct, 1)} %`} tone={a.attitudePowerPenaltyPct > 30 ? 'crit' : a.attitudePowerPenaltyPct > 5 ? 'warn' : 'ok'} />
             <Stat label={t('Attitude RF penalty', 'Penalización de RF')} value={`${fmtNum(a.attitudeRfPenaltyPct, 1)} %`} tone={a.attitudeRfPenaltyPct > 30 ? 'crit' : a.attitudeRfPenaltyPct > 5 ? 'warn' : 'ok'} />
             <Stat label={t('Mean depointing loss', 'Pérdida media por desapuntamiento')} value={`${fmtNum(a.meanPointingLossDb, 1)} dB`} />
-            <Stat label={t('Earth hidden by the lander body', 'Tierra oculta por el propio lander')} value={`${fmtNum(a.selfOccludedPct, 0)} %`} tone={a.selfOccludedPct > 0 ? 'crit' : undefined} />
+            <Stat label={t('Earth hidden by the lander body', 'Tierra oculta por el propio módulo')} value={`${fmtNum(a.selfOccludedPct, 0)} %`} tone={a.selfOccludedPct > 0 ? 'crit' : undefined} />
             <Stat label={t('Science data, level vs actual', 'Datos científicos, nivelado vs real')} value={`${fmtNum(a.nominalDataGb, 0)} → ${fmtNum(r.kpis.dataGb, 0)} GB`} />
           </div>
         )}
@@ -142,7 +142,7 @@ export function ContingencyPanel() {
       <section className="panel block" data-testid="tipover-panel">
         <h3>{t('Probability of tipping over at touchdown', 'Probabilidad de vuelco al contacto')}</h3>
         <p className="kpi-note pad0">
-          {t('Energy criterion: the lander tips when its sideways speed at touchdown is enough to lift the centre of mass over the downhill footpads. The slope comes from the terrain model at each point of the landing ellipse.', 'Criterio de energía: el lander vuelca si su velocidad lateral al contacto basta para levantar el centro de masa por sobre las patas cuesta abajo. La pendiente sale del modelo de terreno en cada punto de la elipse de alunizaje.')}
+          {t('Energy criterion: the lander tips when its sideways speed at touchdown is enough to lift the centre of mass over the downhill footpads. The slope comes from the terrain model at each point of the landing ellipse.', 'Criterio de energía: el módulo vuelca si su velocidad lateral al contacto basta para levantar el centro de masa por sobre las patas cuesta abajo. La pendiente sale del modelo de terreno en cada punto de la elipse de alunizaje.')}
         </p>
         <Slider label={t('Centre of mass above the footpads', 'Centro de masa sobre las patas')} value={tipover.cgHeightM} min={0.5} max={4} step={0.1} unit="m" onChange={(v) => setTipover({ cgHeightM: v })} testId="tip-cg" />
         <Slider label={t('Centre of mass to the tipping line', 'Centro de masa a la línea de vuelco')} value={tipover.tipRadiusM} min={0.5} max={4} step={0.1} unit="m" onChange={(v) => setTipover({ tipRadiusM: v })} />
@@ -178,14 +178,14 @@ export function ContingencyPanel() {
           </>
         )}
         <p className="kpi-note pad0">
-          {t('The default vehicle is illustrative, not a real lander. The model assumes the footpads stop dead and all the sideways energy goes into the rotation; it leaves out leg stroke, crushable absorbers, sliding and vertical speed, and it cannot see rocks or craters smaller than the terrain pixel. Read it as a comparison between sites and vehicle shapes, not as a certified probability.', 'El vehículo por defecto es ilustrativo, no un lander real. El modelo supone que las patas se detienen en seco y que toda la energía lateral se va a la rotación; omite la carrera de las patas, los absorbedores, el deslizamiento y la velocidad vertical, y no ve rocas ni cráteres más pequeños que el píxel del terreno. Léelo como comparación entre sitios y formas de vehículo, no como una probabilidad certificada.')}
+          {t('The default vehicle is illustrative, not a real lander. The model assumes the footpads stop dead and all the sideways energy goes into the rotation; it leaves out leg stroke, crushable absorbers, sliding and vertical speed, and it cannot see rocks or craters smaller than the terrain pixel. Read it as a comparison between sites and vehicle shapes, not as a certified probability.', 'El vehículo por defecto es ilustrativo, no un módulo real. El modelo supone que las patas se detienen en seco y que toda la energía lateral se va a la rotación; omite la carrera de las patas, los absorbedores, el deslizamiento y la velocidad vertical, y no ve rocas ni cráteres más pequeños que el píxel del terreno. Léelo como comparación entre sitios y formas de vehículo, no como una probabilidad certificada.')}
         </p>
       </section>
 
       <section className="panel block" data-testid="replay-panel">
         <h3>{t('Replay a real landing', 'Reproducir un alunizaje real')}</h3>
         <p className="alert" data-testid="replay-caveat">
-          {t('Validation only. This model does not reproduce the loss of IM-2 Athena: the lander came to rest in a small crater in shadow that the 20 m terrain does not contain, so here the site looks sunlit.', 'Solo para validación. Este modelo no reproduce la pérdida de IM-2 Athena: el lander quedó en un cráter pequeño en sombra que el terreno de 20 m no contiene, así que aquí el sitio aparece soleado.')}
+          {t('Validation only. This model does not reproduce the loss of IM-2 Athena: the lander came to rest in a small crater in shadow that the 20 m terrain does not contain, so here the site looks sunlit.', 'Solo para validación. Este modelo no reproduce la pérdida de IM-2 Athena: el módulo quedó en un cráter pequeño en sombra que el terreno de 20 m no contiene, así que aquí el sitio aparece soleado.')}
         </p>
         {HISTORICAL_LANDINGS.map((h) => {
           const on = siteId === h.id;
@@ -200,7 +200,7 @@ export function ContingencyPanel() {
                   <div className="stat-grid" data-testid="replay-result">
                     <Stat label={t('What happened: surface operation', 'Lo ocurrido: operación en superficie')} value={`≈ ${fmtNum(h.actualSurfaceHours, 0)} h`} />
                     <Stat
-                      label={t('This model: lander lost at', 'Este modelo: el lander se pierde en')}
+                      label={t('This model: lander lost at', 'Este modelo: el módulo se pierde en')}
                       value={r.kpis.survives ? t('survives 10 days', 'sobrevive 10 días') : `T+${fmtDuration(a.survivalHours)}`}
                       tone={r.kpis.survives ? 'warn' : 'crit'}
                     />
@@ -211,15 +211,15 @@ export function ContingencyPanel() {
                   </div>
                   {r.kpis.survives || a.survivalHours > 3 * h.actualSurfaceHours ? (
                     <p className="alert" role="alert" data-testid="replay-verdict">
-                      {t(`The model does not reproduce this loss: it keeps the lander alive far longer than the ${fmtNum(h.actualSurfaceHours, 0)} h it lasted. The lander fell into a crater a few tens of metres across, in shadow; the 20 m terrain model does not contain it, so here the site looks sunlit.`, `El modelo no reproduce esta pérdida: mantiene vivo el lander mucho más que las ${fmtNum(h.actualSurfaceHours, 0)} h que duró. El lander cayó en un cráter de pocas decenas de metros, en sombra; el modelo de terreno de 20 m no lo contiene, así que aquí el sitio aparece soleado.`)}
+                      {t(`The model does not reproduce this loss: it keeps the lander alive far longer than the ${fmtNum(h.actualSurfaceHours, 0)} h it lasted. The lander fell into a crater a few tens of metres across, in shadow; the 20 m terrain model does not contain it, so here the site looks sunlit.`, `El modelo no reproduce esta pérdida: mantiene vivo el módulo mucho más que las ${fmtNum(h.actualSurfaceHours, 0)} h que duró. El módulo cayó en un cráter de pocas decenas de metros, en sombra; el modelo de terreno de 20 m no lo contiene, así que aquí el sitio aparece soleado.`)}
                     </p>
                   ) : (
                     <p className="kpi-note pad0" data-testid="replay-verdict">
-                      {t('The model loses the lander within the same order of time as the real mission.', 'El modelo pierde el lander en el mismo orden de tiempo que la misión real.')}
+                      {t('The model loses the lander within the same order of time as the real mission.', 'El modelo pierde el módulo en el mismo orden de tiempo que la misión real.')}
                     </p>
                   )}
                   <p className="kpi-note pad0">
-                    {t('A plausibility check, not a reconstruction. The lander here is this app\'s default (4 kWh battery, 180 W load), not the real vehicle; the 20 m terrain cannot resolve the small crater it came to rest in; and the tilt is a preset. Compare orders of magnitude only.', 'Una comprobación de plausibilidad, no una reconstrucción. El lander es el de esta app por defecto (batería de 4 kWh, carga de 180 W), no el vehículo real; el terreno de 20 m no resuelve el pequeño cráter donde quedó; y la inclinación es un preset. Compara solo órdenes de magnitud.')}
+                    {t('A plausibility check, not a reconstruction. The lander here is this app\'s default (4 kWh battery, 180 W load), not the real vehicle; the 20 m terrain cannot resolve the small crater it came to rest in; and the tilt is a preset. Compare orders of magnitude only.', 'Una comprobación de plausibilidad, no una reconstrucción. El módulo es el de esta app por defecto (batería de 4 kWh, carga de 180 W), no el vehículo real; el terreno de 20 m no resuelve el pequeño cráter donde quedó; y la inclinación es un preset. Compara solo órdenes de magnitud.')}
                   </p>
                 </>
               )}
@@ -242,16 +242,16 @@ export function ContingencyPanel() {
                 {(Object.keys(ASSET_SHAPES) as AssetKind[]).map((k) => <option key={k} value={k}>{ASSET_SHAPES[k].name[lang]}</option>)}
               </select>
             </label>
-            <Slider label={t('Distance from the lander', 'Distancia al lander')} value={asset.distanceM} min={20} max={3000} step={10} unit="m" onChange={(v) => setAsset({ distanceM: v })} testId="asset-distance" />
+            <Slider label={t('Distance from the lander', 'Distancia al módulo')} value={asset.distanceM} min={20} max={3000} step={10} unit="m" onChange={(v) => setAsset({ distanceM: v })} testId="asset-distance" />
             <Slider label={t('Bearing from north', 'Rumbo desde el norte')} value={asset.azimuthDeg} min={0} max={355} step={5} unit="°" onChange={(v) => setAsset({ azimuthDeg: v })} />
             <Slider label={t('Landing engine thrust', 'Empuje del motor de descenso')} value={asset.thrustKN} min={0.5} max={50} step={0.5} unit="kN" onChange={(v) => setAsset({ thrustKN: v })} />
             {co && (
               <>
                 <div className="stat-grid" data-testid="asset-kpis">
-                  <Stat label={t('NASA exclusion radius, scaled', 'Radio de exclusión NASA, escalado')} value={u.m(co.psi.hazardRadiusM)} />
+                  <Stat label={t('NASA exclusion radius, scaled', 'Radio de exclusión de la NASA, escalado')} value={u.m(co.psi.hazardRadiusM)} />
                   <Stat label={t('Ejecta fluence at the asset', 'Fluencia de eyección en el activo')} value={`${fmtNum(co.psi.fluenceRatio, co.psi.fluenceRatio < 10 ? 2 : 0)} × ${t('limit', 'límite')}`} tone={co.psi.violated ? 'crit' : 'ok'} />
-                  <Stat label={t('Lander shaded by the asset', 'Lander sombreado por el activo')} value={`${fmtNum(co.landerShadedPct, 2)} %`} tone={co.landerShadedPct > 1 ? 'warn' : undefined} />
-                  <Stat label={t('Asset shaded by the lander', 'Activo sombreado por el lander')} value={`${fmtNum(co.assetShadedPct, 2)} %`} tone={co.assetShadedPct > 1 ? 'warn' : undefined} />
+                  <Stat label={t('Lander shaded by the asset', 'Módulo sombreado por el activo')} value={`${fmtNum(co.landerShadedPct, 2)} %`} tone={co.landerShadedPct > 1 ? 'warn' : undefined} />
+                  <Stat label={t('Asset shaded by the lander', 'Activo sombreado por el módulo')} value={`${fmtNum(co.assetShadedPct, 2)} %`} tone={co.assetShadedPct > 1 ? 'warn' : undefined} />
                 </div>
                 {co.psi.violated && (
                   <p className="alert" role="alert" data-testid="psi-alert">
@@ -259,7 +259,7 @@ export function ContingencyPanel() {
                   </p>
                 )}
                 <p className="kpi-note pad0">
-                  {t('This is a normative radius, not a physical damage boundary: the 2 km it scales from was chosen to put a lander just beyond the horizon, and ejecta are reported to travel more than 20 km even for small landers. Being outside it does not make an asset safe.', 'Es un radio normativo, no un límite físico de daño: los 2 km de los que se escala se eligieron para dejar el lander justo tras el horizonte, y se reporta eyección a más de 20 km incluso con landers pequeños. Estar fuera no hace seguro a un activo.')}
+                  {t('This is a normative radius, not a physical damage boundary: the 2 km it scales from was chosen to put a lander just beyond the horizon, and ejecta are reported to travel more than 20 km even for small landers. Being outside it does not make an asset safe.', 'Es un radio normativo, no un límite físico de daño: los 2 km de los que se escala se eligieron para dejar el módulo justo tras el horizonte, y se reporta eyección a más de 20 km incluso con módulos pequeños. Estar fuera no hace seguro a un activo.')}
                 </p>
               </>
             )}

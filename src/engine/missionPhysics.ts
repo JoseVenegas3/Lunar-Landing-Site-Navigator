@@ -162,6 +162,8 @@ export const BAND_FREQUENCY_HZ: Record<RfBand, number> = { X: 8.4e9, S: 2.2e9 };
 export interface GroundStationPreset {
   id: string;
   name: string;
+  /** Spanish name, when it differs. */
+  nameEs?: string;
   dishDiameterM: number;
   apertureEfficiency: number;
   /** System noise temperature when pointing at the Moon, K. */
@@ -176,10 +178,10 @@ export interface GroundStationPreset {
 export const GROUND_STATIONS: GroundStationPreset[] = [
   { id: 'dsn34', name: 'DSN 34 m BWG', dishDiameterM: 34, apertureEfficiency: 0.7, systemNoiseK: { X: 140, S: 110 } },
   { id: 'estrack35', name: 'ESA ESTRACK 35 m', dishDiameterM: 35, apertureEfficiency: 0.7, systemNoiseK: { X: 140, S: 110 } },
-  { id: 'com13', name: 'Commercial 13 m network', dishDiameterM: 13, apertureEfficiency: 0.62, systemNoiseK: { X: 150, S: 130 } },
+  { id: 'com13', name: 'Commercial 13 m network', nameEs: 'Red comercial de 13 m', dishDiameterM: 13, apertureEfficiency: 0.62, systemNoiseK: { X: 150, S: 130 } },
   { id: 'ssc13', name: 'SSC Santiago 13 m', dishDiameterM: 13, apertureEfficiency: 0.62, systemNoiseK: { X: 150, S: 130 } },
   // Hypothetical: a 3.7 m dish with an X / S-band receive chain. Confirm what the real station operates before quoting rates.
-  { id: 'gisat37', name: 'GISAT UdeC 3.7 m (hypothetical X/S)', dishDiameterM: 3.7, apertureEfficiency: 0.55, systemNoiseK: { X: 190, S: 170 } },
+  { id: 'gisat37', name: 'GISAT UdeC 3.7 m (hypothetical X/S)', nameEs: 'GISAT UdeC 3,7 m (hipotética X/S)', dishDiameterM: 3.7, apertureEfficiency: 0.55, systemNoiseK: { X: 190, S: 170 } },
 ];
 
 export interface RfConfig {
@@ -244,6 +246,9 @@ export function dishGainDbi(diameterM: number, apertureEfficiency: number, frequ
 export function beamwidthDeg(diameterM: number, frequencyHz: number): number {
   return (70 * wavelengthM(frequencyHz)) / diameterM;
 }
+
+/** Display name of a ground station in a language. */
+export const stationName = (g: GroundStationPreset, lang: 'en' | 'es'): string => (lang === 'es' && g.nameEs ? g.nameEs : g.name);
 
 export function groundStation(id: string): GroundStationPreset {
   return GROUND_STATIONS.find((g) => g.id === id) ?? GROUND_STATIONS[0];

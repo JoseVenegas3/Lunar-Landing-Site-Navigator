@@ -36,6 +36,7 @@ export function HorizonPanorama({ data }: { data: ScenarioData }) {
     horizon: t('horizon', 'horizonte'),
     az: t('Azimuth', 'Azimut'),
     el: t('Elevation', 'Elevación'),
+    elShort: t('el', 'elev'),
   };
 
   const { ref, invalidate } = useCanvas({
@@ -278,7 +279,7 @@ function drawOverlay(
     ctx.arc(hover.x, Y(he), 3, 0, Math.PI * 2);
     ctx.fillStyle = C.text;
     ctx.fill();
-    const text = `az ${az.toFixed(0)}° ${cardinal(az)}   el ${el >= 0 ? '+' : ''}${el.toFixed(1)}°   ${labels.horizon} ${he >= 0 ? '+' : ''}${he.toFixed(2)}° @ ${currentUnits().kmStr(hd, hd < 10 ? 2 : 0)}`;
+    const text = `az ${az.toFixed(0)}° ${cardinal(az)}   ${labels.elShort} ${el >= 0 ? '+' : ''}${el.toFixed(1)}°   ${labels.horizon} ${he >= 0 ? '+' : ''}${he.toFixed(2)}° @ ${currentUnits().kmStr(hd, hd < 10 ? 2 : 0)}`;
     ctx.font = `10.5px ${FONT_MONO}`;
     const tw = ctx.measureText(text).width + 14;
     const tx = Math.min(Math.max(PAD.l + 2, hover.x - tw / 2), PAD.l + pw - tw - 2);

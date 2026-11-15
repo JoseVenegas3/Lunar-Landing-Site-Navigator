@@ -57,7 +57,7 @@ export function ScorePanel() {
   const sourceText = (c: Criterion): string => {
     if (c.source === 'computed') return t('computed', 'calculado');
     if (c.source === 'input') return t('entered', 'ingresado');
-    if (!layers) return c.id === 'psrProximity' ? t('window-shadow proxy', 'sustituto por ventana') : t('layer not loaded', 'capa no cargada');
+    if (!layers) return c.id === 'psrProximity' ? t('window-shadow proxy', 'aproximado con la ventana') : t('layer not loaded', 'capa no cargada');
     return c.id === 'psrProximity' ? 'LOLA PSR' : c.id === 'feo' ? 'LP GRS' : 'GRAIL';
   };
   const dv = act.site?.diviner ?? null;
@@ -102,7 +102,7 @@ export function ScorePanel() {
           <dl className="link-grid mono" data-testid="orbital-data">
             <div><dt>{t('Annual mean surface temperature', 'Temperatura superficial media anual')}</dt><dd>{u.k(dv.tAvgK)}</dd></div>
             <div><dt>{t('Annual maximum temperature', 'Temperatura máxima anual')}</dt><dd>{u.k(dv.tMaxK)}</dd></div>
-            <div><dt>{t('Water ice stable under the lander', 'Hielo de agua estable bajo el lander')}</dt><dd>{dv.iceDepthM === null ? t('no', 'no') : dv.iceDepthM < 1e-6 ? t('at the surface', 'en superficie') : `${t('below', 'bajo')} ${fmtNum(dv.iceDepthM * 100, 0)} cm`}</dd></div>
+            <div><dt>{t('Water ice stable under the lander', 'Hielo de agua estable bajo el módulo')}</dt><dd>{dv.iceDepthM === null ? t('no', 'no') : dv.iceDepthM < 1e-6 ? t('at the surface', 'en superficie') : `${t('below', 'bajo')} ${fmtNum(dv.iceDepthM * 100, 0)} cm`}</dd></div>
             <div><dt>{t('Nearest ice-stable ground', 'Terreno con hielo estable más cercano')}</dt><dd>{dv.nearestIceStableKm === null ? `> ${u.kmStr(dv.searchRadiusKm, 0)}` : u.kmStr(dv.nearestIceStableKm, 2)}</dd></div>
             <div><dt>{t('Nearest surface cold trap', 'Trampa fría superficial más cercana')}</dt><dd>{dv.nearestSurfaceIceKm === null ? `> ${u.kmStr(dv.searchRadiusKm, 0)}` : u.kmStr(dv.nearestSurfaceIceKm, 2)}</dd></div>
             <div><dt>{t('Nearest PSR (20 m mask)', 'PSR más cercana (máscara de 20 m)')}</dt><dd>{psr.distanceKm === null ? `> ${u.kmStr(8, 0)}` : u.kmStr(psr.distanceKm, 2)}</dd></div>

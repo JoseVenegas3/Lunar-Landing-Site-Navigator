@@ -68,7 +68,7 @@ export function SurvivalPanel({ data }: { data: ScenarioData }) {
           </>
         ) : <p className="kpi-note pad0">{t('Waiting for the terrain model.', 'Esperando el modelo de terreno.')}</p>}
         <p className="kpi-note pad0" data-testid="hibernation-note">
-          {t(`With the current battery the lander can hibernate about ${fmtDuration(battH)} without sunlight (${fmtNum(power.batteryCapacityWh, 0)} Wh ÷ ${fmtNum(power.survivalLoadW, 0)} W survival load; ignores the depth-of-discharge limit and the heaters).`, `Con la batería actual el lander puede hibernar unas ${fmtDuration(battH)} sin luz solar (${fmtNum(power.batteryCapacityWh, 0)} Wh ÷ ${fmtNum(power.survivalLoadW, 0)} W de carga de supervivencia; no cuenta el límite de descarga ni los calefactores).`)}
+          {t(`With the current battery the lander can hibernate about ${fmtDuration(battH)} without sunlight (${fmtNum(power.batteryCapacityWh, 0)} Wh ÷ ${fmtNum(power.survivalLoadW, 0)} W survival load; ignores the depth-of-discharge limit and the heaters).`, `Con la batería actual el módulo puede hibernar unas ${fmtDuration(battH)} sin luz solar (${fmtNum(power.batteryCapacityWh, 0)} Wh ÷ ${fmtNum(power.survivalLoadW, 0)} W de carga de supervivencia; no cuenta el límite de descarga ni los calefactores).`)}
         </p>
       </section>
 

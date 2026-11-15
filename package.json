@@ -1,7 +1,7 @@
 {
   "name": "clps-lunar-mission-browser",
   "private": true,
-  "version": "3.1.0",
+  "version": "3.2.0",
   "description": "CLPS Lunar Mission Browser - Lunar Landing Site Navigator (GISAT UdeC, NASA Space Apps 2026)",
   "type": "module",
   "scripts": {
@@ -11,11 +11,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "calibrate": "vite-node scripts/calibrate_sites.ts",
-    "e2e": "node e2e/verify.mjs && node e2e/beginner.mjs && node e2e/pitch.mjs",
+    "e2e": "node e2e/verify.mjs && node e2e/beginner.mjs",
     "e2e:leader": "node e2e/verify.mjs",
     "e2e:beginner": "node e2e/beginner.mjs",
-    "e2e:pitch": "node e2e/pitch.mjs",
-    "record-pitch": "vite-node scripts/record-pitch-video.ts",
     "perf": "node e2e/perf-probe.mjs",
     "guide": "npm run guide-shots && node scripts/build_guide.mjs",
     "guide-shots": "vite-node scripts/guide-shots.ts",

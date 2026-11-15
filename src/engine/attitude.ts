@@ -44,7 +44,7 @@ export const ATTITUDE_PRESETS: AttitudePreset[] = [
   {
     id: 'nominal', rollDeg: 0, pitchDeg: 0, yawDeg: 0,
     name: { en: 'Nominal touchdown (0° tilt)', es: 'Alunizaje nominal (0° de inclinación)' },
-    note: { en: 'Level lander: the reference case.', es: 'Lander nivelado: el caso de referencia.' },
+    note: { en: 'Level lander: the reference case.', es: 'Módulo nivelado: el caso de referencia.' },
   },
   {
     id: 'im1', rollDeg: 30, pitchDeg: 0, yawDeg: 0,

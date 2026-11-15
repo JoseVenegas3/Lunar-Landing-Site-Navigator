@@ -8,6 +8,7 @@ import { ScenarioData } from '../../state/mission';
 import { C, FONT_MONO, FONT_UI, useCanvas } from '../../lib/useCanvas';
 import { fmtDateTime, useT } from '../../lib/format';
 import { currentUnits, useUnits } from '../../lib/units';
+import { useApp } from '../../state/store';
 import { ScenarioBadge } from '../ScenarioBadge';
 
 const PAD = { l: 46, r: 52, t: 14, b: 22 };
@@ -175,8 +176,10 @@ function drawOverlay(ctx: CanvasRenderingContext2D, w: number, h: number, r: Mis
   ctx.beginPath(); ctx.moveTo(x, PAD.t); ctx.lineTo(x, PAD.t + s.ph); ctx.stroke();
   const th = r.adv.thermal;
   const cap = Math.max(1, r.input.power.batteryCapacityWh);
-  const parts = [fmtDateTime(r.eph.startMs + idx * r.stepHours * HOUR_MS), `array ${r.powerW[i].toFixed(0)} W`, `SoC ${((100 * r.battery.socWh[i]) / cap).toFixed(0)} %`];
-  if (th) parts.push(`bus ${currentUnits().c(th.tBusK[i] - 273.15, 1)}`, `env ${currentUnits().k(th.tEnvK[i])}`, `heater ${th.heaterW[i].toFixed(0)} W`);
+  const es = useApp.getState().lang === 'es';
+  const L = (en: string, sp: string): string => (es ? sp : en);
+  const parts = [fmtDateTime(r.eph.startMs + idx * r.stepHours * HOUR_MS), `${L('array', 'panel')} ${r.powerW[i].toFixed(0)} W`, `${L('charge', 'carga')} ${((100 * r.battery.socWh[i]) / cap).toFixed(0)} %`];
+  if (th) parts.push(`bus ${currentUnits().c(th.tBusK[i] - 273.15, 1)}`, `${L('sink', 'sumidero')} ${currentUnits().k(th.tEnvK[i])}`, `${L('heaters', 'calefactores')} ${th.heaterW[i].toFixed(0)} W`);
   const text = parts.join('   ');
   ctx.font = `10.5px ${FONT_MONO}`;
   const tw = ctx.measureText(text).width + 12;

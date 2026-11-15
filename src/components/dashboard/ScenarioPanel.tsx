@@ -2,7 +2,7 @@
 import { ReactNode, useEffect, useState } from 'react';
 import {
   ALL_SITES, CANDIDATE_SITES, HISTORICAL_LANDINGS, MISSION_SITES, MissionSite, REFERENCE_MARKERS, CUSTOM_LAT_MAX, CUSTOM_LAT_MIN, DAY_MS, GROUND_STATIONS, MAX_RELAYS, MountType, RELAY_PRESETS, RELOCATION_LIMIT_M,
-  DEFAULT_POWER, RelayPresetId, RfBand, apoapsisAltKm, clamp, latLonToXY, orbitalPeriodS, periapsisAltKm, relayShape,
+  DEFAULT_POWER, RelayPresetId, RfBand, apoapsisAltKm, clamp, latLonToXY, orbitalPeriodS, periapsisAltKm, relayShape, stationName,
 } from '../../engine';
 import { ScenarioKey, scenarioLatLon, useApp } from '../../state/store';
 import { useMission } from '../../state/mission';
@@ -212,7 +212,7 @@ export function HardwarePanel({ focus = 'all' }: { focus?: 'all' | 'power' | 'co
         <label className="field">
           <span className="field-label">{t('Array and antenna height', 'Altura de paneles y antena')}</span>
           <select value={mastM} onChange={(e) => setMast(Number(e.target.value))} data-testid="mast">
-            <option value={2}>{t(`${u.m(2)}, on the lander deck`, `${u.m(2)}, sobre la cubierta del lander`)}</option>
+            <option value={2}>{t(`${u.m(2)}, on the lander deck`, `${u.m(2)}, sobre la cubierta del módulo`)}</option>
             <option value={10}>{t(`${u.m(10)}, on a mast`, `${u.m(10)}, sobre un mástil`)}</option>
           </select>
         </label>
@@ -236,7 +236,7 @@ export function HardwarePanel({ focus = 'all' }: { focus?: 'all' | 'power' | 'co
           <NumberField label={t('Battery', 'Batería')} unit="Wh" value={power.batteryCapacityWh} min={50} max={200000} step={50} onChange={(v) => setPower({ batteryCapacityWh: v })} testId="battery" />
           <NumberField label={t('DoD limit', 'Límite DoD')} unit="%" value={Math.round(power.maxDepthOfDischarge * 100)} min={10} max={100} step={5} onChange={(v) => setPower({ maxDepthOfDischarge: v / 100 })} />
         </div>
-        <p className="kpi-note pad0" data-testid="vehicle-example">{t(`Starting values (${fmtNum(DEFAULT_POWER.batteryCapacityWh / 1000, 0)} kWh battery, ${fmtNum(DEFAULT_POWER.baseLoadW, 0)} W operating load, ${fmtNum(DEFAULT_POWER.panelAreaM2, 1)} m² of cells) are an illustrative example, not the data sheet of a real lander. Every field here can be edited.`, `Los valores iniciales (batería de ${fmtNum(DEFAULT_POWER.batteryCapacityWh / 1000, 0)} kWh, consumo operativo de ${fmtNum(DEFAULT_POWER.baseLoadW, 0)} W, ${fmtNum(DEFAULT_POWER.panelAreaM2, 1)} m² de celdas) son un ejemplo ilustrativo, no la ficha de un lander real. Todos los campos se pueden editar.`)}</p>
+        <p className="kpi-note pad0" data-testid="vehicle-example">{t(`Starting values (${fmtNum(DEFAULT_POWER.batteryCapacityWh / 1000, 0)} kWh battery, ${fmtNum(DEFAULT_POWER.baseLoadW, 0)} W operating load, ${fmtNum(DEFAULT_POWER.panelAreaM2, 1)} m² of cells) are an illustrative example, not the data sheet of a real lander. Every field here can be edited.`, `Los valores iniciales (batería de ${fmtNum(DEFAULT_POWER.batteryCapacityWh / 1000, 0)} kWh, consumo operativo de ${fmtNum(DEFAULT_POWER.baseLoadW, 0)} W, ${fmtNum(DEFAULT_POWER.panelAreaM2, 1)} m² de celdas) son un ejemplo ilustrativo, no la ficha de un módulo real. Todos los campos se pueden editar.`)}</p>
       </Group>}
 
       {showComms && <Group title={t('DTE radio link', 'Enlace de radio DTE')} open={focus === 'comms'}>
@@ -253,12 +253,12 @@ export function HardwarePanel({ focus = 'all' }: { focus?: 'all' | 'power' | 'co
         <label className="field">
           <span className="field-label">{t('Ground station', 'Estación terrena')}</span>
           <select value={rf.groundStationId} onChange={(e) => setRf({ groundStationId: e.target.value })} data-testid="station">
-            {GROUND_STATIONS.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
+            {GROUND_STATIONS.map((g) => <option key={g.id} value={g.id}>{stationName(g, lang)}</option>)}
           </select>
         </label>
         <div className="field-row">
           <NumberField label={t('Transmit power', 'Potencia de transmisión')} unit="W" value={rf.txPowerW} min={0.1} max={500} step={1} onChange={(v) => setRf({ txPowerW: v })} />
-          <NumberField label={t('Lander dish', 'Antena del lander')} unit="m" value={rf.txDishDiameterM} min={0.1} max={5} step={0.05} onChange={(v) => setRf({ txDishDiameterM: v })} />
+          <NumberField label={t('Lander dish', 'Antena del módulo')} unit="m" value={rf.txDishDiameterM} min={0.1} max={5} step={0.05} onChange={(v) => setRf({ txDishDiameterM: v })} />
         </div>
         <div className="field-row">
           <NumberField label={t('Bandwidth', 'Ancho de banda')} unit="MHz" value={rf.bandwidthHz / 1e6} min={0.01} max={500} step={0.5} onChange={(v) => setRf({ bandwidthHz: v * 1e6 })} />
@@ -290,9 +290,9 @@ export function HardwarePanel({ focus = 'all' }: { focus?: 'all' | 'power' | 'co
               <dl className="link-grid mono">
                 <div><dt>{t('Heaters switch on below', 'Calefactores se encienden bajo')}</dt><dd>{u.c(0)}</dd></div>
                 <div><dt>{t('Battery starts losing capacity below', 'La batería pierde capacidad bajo')}</dt><dd>{u.c(-10)}</dd></div>
-                <div><dt>{t('Battery frozen, lander lost at', 'Batería congelada, lander perdido a')}</dt><dd>{u.c(-20)}</dd></div>
+                <div><dt>{t('Battery frozen, lander lost at', 'Batería congelada, módulo perdido a')}</dt><dd>{u.c(-20)}</dd></div>
               </dl>
-              <p className="kpi-note pad0">{t('Engineering assumption of this tool, typical of lithium-ion cells; not the specification of a real lander.', 'Supuesto de ingeniería de esta herramienta, típico de celdas de ion-litio; no es la especificación de un lander real.')}</p>
+              <p className="kpi-note pad0">{t('Engineering assumption of this tool, typical of lithium-ion cells; not the specification of a real lander.', 'Supuesto de ingeniería de esta herramienta, típico de celdas de ion-litio; no es la especificación de un módulo real.')}</p>
             </details>
           </>
         )}
@@ -301,7 +301,7 @@ export function HardwarePanel({ focus = 'all' }: { focus?: 'all' | 'power' | 'co
       {showComms && <Group title={t('Relay satellites', 'Satélites de retransmisión')} open={focus === 'comms'}>
         <label className="check">
           <input type="checkbox" checked={relay.enabled} onChange={(e) => setRelay({ enabled: e.target.checked })} data-testid="relay-enable" />
-          <span>{t('Add a relay constellation in lunar orbit', 'Añadir una constelación de relays en órbita lunar')}</span>
+          <span>{t('Add a relay constellation in lunar orbit', 'Añadir una constelación de relevos en órbita lunar')}</span>
         </label>
         {relay.enabled && (
           <>
@@ -311,8 +311,8 @@ export function HardwarePanel({ focus = 'all' }: { focus?: 'all' | 'power' | 'co
                 {RELAY_PRESETS.map((p) => <option key={p.id} value={p.id}>{p.name[lang]}</option>)}
               </select>
             </label>
-            <NumberField label={t('Number of relay satellites', 'Número de satélites relay')} value={relay.count} min={1} max={MAX_RELAYS} step={1} onChange={(v) => setRelay({ count: Math.round(v), planes: Math.min(relay.planes, Math.round(v)) })} testId="relay-count" />
-            <NumberField label={t('Lander-to-relay data rate', 'Tasa lander-relay')} unit="Mbps" value={relay.rateMbps} min={0.01} max={500} step={0.5} onChange={(v) => setRelay({ rateMbps: v })} />
+            <NumberField label={t('Number of relay satellites', 'Número de satélites de relevo')} value={relay.count} min={1} max={MAX_RELAYS} step={1} onChange={(v) => setRelay({ count: Math.round(v), planes: Math.min(relay.planes, Math.round(v)) })} testId="relay-count" />
+            <NumberField label={t('Lander-to-relay data rate', 'Tasa módulo → relevo')} unit="Mbps" value={relay.rateMbps} min={0.01} max={500} step={0.5} onChange={(v) => setRelay({ rateMbps: v })} />
             <p className="orbit-note mono" data-testid="relay-orbit">
               {t('Period', 'Período')} {(orbitalPeriodS(shape.aKm) / 3600).toFixed(2)} h · {t('altitude', 'altitud')} {periapsisAltKm(shape).toFixed(0)}–{apoapsisAltKm(shape).toFixed(0)} km
             </p>

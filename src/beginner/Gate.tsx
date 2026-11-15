@@ -56,7 +56,6 @@ export function Gate({ ready, progress, onEnter }: { ready: boolean; progress: n
             <button type="button" className={lang === 'es' ? 'is-on' : ''} aria-pressed={lang === 'es'} onClick={() => setLang('es')} data-testid="gate-lang-es">ES</button>
           </div>
           <UnitToggle long testid="gate-units" />
-          {!useApp.getState().pitch && <a className="btn btn-small gate-pitch" href={`${import.meta.env.BASE_URL}?pitch=true`} data-testid="gate-pitch">{t('Video pitch (3:00)', 'Video pitch (3:00)')}</a>}
         </div>
 
         {pending ? (
@@ -70,7 +69,7 @@ export function Gate({ ready, progress, onEnter }: { ready: boolean; progress: n
             <h2 id="gate-q">{t('Without the training you will see every engineering control at once. Are you sure?', 'Sin el entrenamiento verás todos los controles de ingeniería a la vez. ¿Seguro?')}</h2>
             <div className="gate-actions">
               <button ref={first} type="button" className="btn gate-main" onClick={() => go('beginner')} data-testid="gate-back-training">{t('Back to the training', 'Volver al entrenamiento')}</button>
-              <button type="button" className="btn btn-small gate-minor" onClick={() => go('leader')} data-testid="gate-pro-confirm">{t('Yes, open Pro', 'Sí, abrir Pro')}</button>
+              <button type="button" className="btn btn-small gate-minor" onClick={() => go('leader')} data-testid="gate-pro-confirm">{t('Yes, open Full mode', 'Sí, abrir el Modo Completo')}</button>
             </div>
           </div>
         ) : (
@@ -83,7 +82,7 @@ export function Gate({ ready, progress, onEnter }: { ready: boolean; progress: n
             {step === 'no' && (
               <div className="gate-actions">
                 <button ref={first} type="button" className="btn gate-main" onClick={() => go('beginner')} data-testid="gate-start-training">{t('Start training (Guided mode)', 'Comenzar entrenamiento (Modo Guiado)')}</button>
-                <button type="button" className="btn btn-small gate-minor" onClick={() => setStep('confirm-pro')} data-testid="gate-skip-pro">{t('Go straight to the Pro version', 'Ir directo a la versión Pro')}</button>
+                <button type="button" className="btn btn-small gate-minor" onClick={() => setStep('confirm-pro')} data-testid="gate-skip-pro">{t('Go straight to Full mode', 'Ir directo al Modo Completo')}</button>
               </div>
             )}
             {step === 'yes' && (

@@ -9,7 +9,7 @@ import {
   SpriteMaterial, Vector2, Vector3,
 } from 'three';
 import {
-  ALL_SITES, CUSTOM_LAT_MAX, DemStack, MissionResult, NAMED_LANDFORMS, RELOCATION_LIMIT_M, demHeight, latLonToXY, localAxes, slopeDeg, xyToLatLon,
+  ALL_SITES, CUSTOM_LAT_MAX, DemStack, MissionResult, NAMED_LANDFORMS, RELOCATION_LIMIT_M, demHeight, latLonToXY, localAxes, xyToLatLon,
 } from '../../engine';
 import { siteColour } from '../PolarMap';
 import { useInsights } from '../../state/insights';
@@ -204,8 +204,8 @@ export interface DoubleClickText {
   move: (m: number) => string;
   create: string;
   outside: string;
-  /** Live cursor ruler (SR-204): distance and bearing from the lander, ground elevation and slope under the cursor. */
-  ruler: (r: { distM: number; bearingDeg: number; elevM: number; slopeDeg: number; inBox: boolean }) => string;
+  /** Live cursor ruler (SR-204): the straight-line distance from the lander to the point under the cursor. */
+  ruler: (distM: number) => string;
 }
 
 /**
@@ -254,12 +254,9 @@ export function DoubleClickLand({ result, frame, scenarioKey, text, dem }: { res
       if (!c) return;
       if (!p || useSceneUi.getState().dragging) { c.style.display = 'none'; hideTether(); return; }
       const cfg = useApp.getState().scenarios[scenarioKey];
-      const dE = p.eastM - cfg.dxM, dN = p.northM - cfg.dyM;
-      const distM = Math.hypot(dE, dN);
-      const bearingDeg = (((Math.atan2(dE, dN) * 180) / Math.PI) + 360) % 360;
-      const ruler = text.ruler({ distM, bearingDeg, elevM: demHeight(dem, p.x, p.y) * 1000, slopeDeg: slopeDeg(dem, p.x, p.y), inBox: p.inBox });
-      const action = p.outside ? text.outside : p.inBox ? text.move(Math.round(distM)) : text.create;
-      const label = `${ruler} — ${action}`;
+      const distM = Math.hypot(p.eastM - cfg.dxM, p.northM - cfg.dyM);
+      // only the straight-line distance; the colour says what a double-click does (green: move, amber: new site)
+      const label = text.ruler(distM);
       c.style.display = 'block';
       c.style.transform = `translate(${Math.round(p.px)}px, ${Math.round(p.py)}px)`;
       c.dataset.action = p.outside ? 'outside' : p.inBox ? 'move' : 'create';

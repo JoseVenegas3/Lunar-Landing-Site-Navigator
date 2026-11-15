@@ -104,7 +104,7 @@ try {
   // The training runs in Spanish (the narration is kept as the final script, docs/guion-principiante.md).
   await p.click('[data-testid="lang-es"]');
   const seen = [];
-  let lockedChecked = false, doItUsed = 0, last = '', sameSince = Date.now(), learnChecked = false, unitsChecked = false;
+  let lockedChecked = false, doItUsed = 0, last = '', sameSince = Date.now(), learnChecked = false, unitsChecked = false, fitChecked = false;
   const t0 = Date.now();
   while (Date.now() - t0 < 900000) {
     const st = await p.evaluate(() => ({
@@ -126,6 +126,25 @@ try {
       await p.waitForTimeout(300);
       const locked = await p.evaluate(() => ({ sub: document.querySelector('[data-testid="planner"]')?.dataset.subsystem, nudge: document.querySelector('[data-testid="beg-nudge"]')?.textContent ?? '', lock: document.querySelector('[data-testid="subsys-power"]')?.dataset.locked }));
       check('a locked subsystem does not open, and says why', locked.sub === 'overview' && locked.lock === '1', JSON.stringify(locked));
+    }
+    if (st.step === 'celebrate' && !fitChecked) {
+      // v3.2: the badge window fits a short laptop screen (1366 × 680), scrolling inside if needed
+      fitChecked = true;
+      const vp = p.viewportSize();
+      await p.setViewportSize({ width: 1366, height: 680 });
+      await p.waitForTimeout(700);
+      const fit = await p.evaluate(() => {
+        const el = document.querySelector('[data-testid="beg-big"]');
+        const r = el.getBoundingClientRect();
+        const btn = el.querySelector('[data-testid="beg-continue"]');
+        el.scrollTop = el.scrollHeight;
+        const b = btn.getBoundingClientRect();
+        return { top: Math.round(r.top), bottom: Math.round(r.bottom), vh: innerHeight, btnBottom: Math.round(b.bottom), btnVisible: b.bottom <= r.bottom + 1 && b.top >= r.top - 1 };
+      });
+      await p.screenshot({ path: join(shots, 'celebrate-1366x680.png') });
+      await p.setViewportSize(vp);
+      await p.waitForTimeout(300);
+      check('the badge window is never cut: it fits a 1366 × 680 screen and its Continue button can be reached', fit.top >= 0 && fit.bottom <= fit.vh && fit.btnVisible, JSON.stringify(fit));
     }
     if (st.step === 'celebrate' && !learnChecked && /Insignia 2/.test(st.text)) {
       // v3.1 (SR-502 / SR-708): "Learn more" next to Continue, opening the 200 m comparison

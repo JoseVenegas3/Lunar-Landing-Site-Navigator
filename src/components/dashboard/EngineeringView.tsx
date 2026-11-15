@@ -34,7 +34,7 @@ export function UncertaintyBlock() {
     <section className="panel block" data-testid="uncertainty-panel">
       <h3>{t('Terrain uncertainty (LOLA)', 'Incertidumbre del terreno (LOLA)')}</h3>
       <p className="kpi-note pad0">
-        {t(`The elevation model has an error of a few decimetres. With the Sun on the skyline that is enough to change the answer: ${u.m(unc.config.sigmaM, 1)} on a rise ${u.m(50)} away moves the horizon ${fmtNum(skylineShiftDeg(unc.config.sigmaM, 50), 2)}°, and the solar disc is 0.53° wide. Each run re-flies the mission on terrain perturbed within ${u.kmStr(2, 0)} of the lander.`, `El modelo de elevación tiene un error de pocos decímetros. Con el Sol en el horizonte eso basta para cambiar la respuesta: ${u.m(unc.config.sigmaM, 1)} en una elevación a ${u.m(50)} mueve el horizonte ${fmtNum(skylineShiftDeg(unc.config.sigmaM, 50), 2)}°, y el disco solar mide 0,53°. Cada corrida repite la misión sobre un terreno perturbado dentro de ${u.kmStr(2, 0)} del lander.`)}
+        {t(`The elevation model has an error of a few decimetres. With the Sun on the skyline that is enough to change the answer: ${u.m(unc.config.sigmaM, 1)} on a rise ${u.m(50)} away moves the horizon ${fmtNum(skylineShiftDeg(unc.config.sigmaM, 50), 2)}°, and the solar disc is 0.53° wide. Each run re-flies the mission on terrain perturbed within ${u.kmStr(2, 0)} of the lander.`, `El modelo de elevación tiene un error de pocos decímetros. Con el Sol en el horizonte eso basta para cambiar la respuesta: ${u.m(unc.config.sigmaM, 1)} en una elevación a ${u.m(50)} mueve el horizonte ${fmtNum(skylineShiftDeg(unc.config.sigmaM, 50), 2)}°, y el disco solar mide 0,53°. Cada corrida repite la misión sobre un terreno perturbado dentro de ${u.kmStr(2, 0)} del módulo.`)}
       </p>
       <div className="field-row">
         <label className="field">
@@ -61,7 +61,7 @@ export function UncertaintyBlock() {
           <div className="band band-cap"><span /><output className="mono">P10 · <b>P50</b> · P90</output></div>
           <Band label={t('Sunlight', 'Luz solar')} q={unc.stats.illuminationPct} unit="%" digits={1} />
           <Band label={t('Earth in view', 'Tierra a la vista')} q={unc.stats.dtePct} unit="%" digits={1} />
-          <Band label={t('Downlink closes', 'La descarga cierra')} q={unc.stats.downlinkPct} unit="%" digits={1} />
+          <Band label={t('Downlink closes', 'Enlace de descarga disponible')} q={unc.stats.downlinkPct} unit="%" digits={1} />
           <Band label={t('Time alive', 'Tiempo con vida')} q={unc.stats.survivalHours} unit="h" />
           <Band label={t('Science data', 'Datos científicos')} q={unc.stats.dataGb} unit="GB" />
           {unc.stale && <p className="kpi-note pad0">{t('The scenario changed since this run.', 'El escenario cambió desde esta corrida.')}</p>}
@@ -81,7 +81,7 @@ export function EngineeringView() {
     <div data-testid="engineering-view">
       <KpiMatrix />
       <p className="kpi-note">
-        {t('The timeline below is the detailed one in this console: sunlight, battery, Earth in view, the downlink coloured by ground station, the relay when there is one, and the hours of simultaneous operations. The other consoles show the simple three-row version.', 'La línea de tiempo de abajo es la detallada en esta consola: luz solar, batería, Tierra visible, la descarga coloreada por estación terrena, el relay si lo hay y las horas de operación simultánea. Las demás consolas muestran la versión simple de tres filas.')}
+        {t('The timeline below is the detailed one in this console: sunlight, battery, Earth in view, the downlink coloured by ground station, the relay when there is one, and the hours of simultaneous operations. The other consoles show the simple three-row version.', 'La línea de tiempo de abajo es la detallada en esta consola: luz solar, batería, Tierra visible, la descarga coloreada por estación terrena, el relevo si lo hay y las horas de operación simultánea. Las demás consolas muestran la versión simple de tres filas.')}
       </p>
       <UncertaintyBlock />
       <AssumptionsTable />

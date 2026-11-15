@@ -97,7 +97,7 @@ export function Readout({ data, engineering = false }: { data: ScenarioData; eng
   const u = useUnits();
   const cursor = useThrottledCursor();
   const v = useInstant(data, cursor);
-  if (!v) return <div className="telemetry" data-testid="readout"><p className="kpi-note pad0">{t('Flying the mission…', 'Volando la misión…')}</p></div>;
+  if (!v) return <div className="telemetry" data-testid="readout"><p className="kpi-note pad0">{t('Flying the mission…', 'Simulando la misión…')}</p></div>;
   const yes = t('yes', 'sí'), no = t('no', 'no');
   return (
     <div className="telemetry" data-testid="readout">
@@ -117,7 +117,7 @@ export function Readout({ data, engineering = false }: { data: ScenarioData; eng
       {v.busC !== null && (
         <Group icon="thermal" id="thermal" title={t('Thermal', 'Térmico')}>
           <Reading id="bus" label={t('Electronics temperature', 'Temperatura de la electrónica')} value={u.cSigned(v.busC, 1)} tone={busTone(v.busC)}
-            tip={t(`Temperature of the lander body: heaters switch on at ${u.c(0)}, the battery freezes at ${u.c(-20)}.`, `Temperatura del cuerpo del lander: los calefactores se encienden a ${u.c(0)} y la batería se congela a ${u.c(-20)}.`)} />
+            tip={t(`Temperature of the lander body: heaters switch on at ${u.c(0)}, the battery freezes at ${u.c(-20)}.`, `Temperatura del cuerpo del módulo: los calefactores se encienden a ${u.c(0)} y la batería se congela a ${u.c(-20)}.`)} />
           <Reading id="heater" label={t('Heaters', 'Calefactores')} value={`${fmtNum(v.heaterW, 0)} W`} tone={v.heaterW > 0 ? 'warn' : undefined}
             tip={t('Power spent keeping the electronics warm.', 'Potencia gastada en mantener tibia la electrónica.')} />
         </Group>
@@ -133,7 +133,7 @@ export function Readout({ data, engineering = false }: { data: ScenarioData; eng
           tip={t('Science data sent to the Earth per second.', 'Datos científicos enviados a la Tierra por segundo.')} />
         {engineering && <Reading id="clearance" label={t('Line-of-sight clearance', 'Despeje de línea de vista')} value={`${fmtSigned(v.clear, 2)}°`} tip={t('Angle between the Earth and the skyline behind it, minus the antenna margin.', 'Ángulo entre la Tierra y el horizonte detrás, menos el margen de antena.')} />}
         {engineering && <Reading id="excess" label={t('Excess loss', 'Pérdida extra')} value={v.excessLossDb === null ? '—' : `${fmtNum(v.excessLossDb, 1)} dB`} tip={t('Diffraction, multipath and pointing losses added to free space.', 'Pérdidas por difracción, multitrayecto y apuntamiento añadidas al espacio libre.')} />}
-        {engineering && <Reading id="earth-angles" label={t('Earth az / el', 'Tierra az / el')} value={`${fmtNum(v.earthAz, 1)}° / ${fmtSigned(v.earthEl, 2)}°`} tip={t('Direction and height of the Earth in the sky.', 'Dirección y altura de la Tierra en el cielo.')} />}
+        {engineering && <Reading id="earth-angles" label={t('Earth az / el', 'Tierra az / elev')} value={`${fmtNum(v.earthAz, 1)}° / ${fmtSigned(v.earthEl, 2)}°`} tip={t('Direction and height of the Earth in the sky.', 'Dirección y altura de la Tierra en el cielo.')} />}
       </Group>
     </div>
   );

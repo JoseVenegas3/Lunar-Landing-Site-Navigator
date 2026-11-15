@@ -43,6 +43,11 @@ describe('unit system (SR-711)', () => {
     expect(si.dist(320)).toBe('320 m');
     expect(si.dist(1840)).toBe('1,840 m (1.84 km)');
     expect(imp.dist(1840)).toBe('6,037 ft (1.14 mi)');
+    // the cursor ruler: one number only
+    expect(si.span(320)).toBe('320 m');
+    expect(si.span(1840)).toBe('1.84 km');
+    expect(imp.span(320)).toBe('1050 ft');
+    expect(imp.span(1840)).toBe('1.14 mi');
     expect(imp.kmStr(10, 1)).toBe('6.2 mi');
     expect(si.ms(0.5, 2)).toBe('0.50 m/s');
     expect(imp.ms(0.5, 2)).toBe('1.64 ft/s');

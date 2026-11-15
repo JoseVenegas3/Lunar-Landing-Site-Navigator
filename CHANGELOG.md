@@ -1,8 +1,11 @@
 # Cambios
 
-## v3.1 + video pitch (2026-11-15)
+## v3.2 (2026-11-15)
 
-- **Video pitch de 3:00** (`?pitch=true`, botón «Video pitch (3:00)» en la barra superior de Mission Leader y en la puerta): seis actos y diecisiete escenas sobre la app real, tipografía cinética con valores del motor, teleprompter ES / EN, sonido procedural, HUD con marcas y atajos, y grabador a WebM. `npm run record-pitch` exporta el video (MP4 con ffmpeg); `npm run e2e:pitch` lo verifica en tiempo real. Guion del orador en `docs/pitch-guion.md`.
+- El reproductor de video pitch (`?pitch=true`) se retiró de la app: no es parte del producto. La presentación (`docs/pitch-gisat-lunar-navigator.pptx`) y la grabación de 3 minutos (`docs/video/`) quedan como material aparte.
+- Modo Guiado: la ventana de celebración (insignia ganada), el diploma y la portada de misión ya no se cortan en pantallas bajas; se ajustan a la ventana y se desplazan dentro.
+- El cursor sobre el terreno 3D muestra solo la distancia lineal al módulo.
+- Revisión de las traducciones ES / EN.
 
 ## v3.1 final (2026-11-15): entrega NASA Space Apps Concepción
 

@@ -41,7 +41,7 @@ export function Timeline({ scenarios, simple = false }: { scenarios: ScenarioDat
   const rowLabels = simple
     ? [t('Day / night', 'Día / noche'), t('Earth', 'Tierra'), t('Sun + Earth', 'Sol + Tierra')]
     : relayOn
-    ? [t('Sun', 'Sol'), t('Battery', 'Batería'), t('Earth in view', 'Tierra visible'), t('Downlink', 'Descarga'), t('Relay', 'Relay'), t('Sun + link', 'Sol + enlace')]
+    ? [t('Sun', 'Sol'), t('Battery', 'Batería'), t('Earth in view', 'Tierra visible'), t('Downlink', 'Descarga'), t('Relay', 'Relevo'), t('Sun + link', 'Sol + enlace')]
     : [t('Sun', 'Sol'), t('Battery', 'Batería'), t('Earth in view', 'Tierra visible'), t('Downlink', 'Descarga'), t('Sun + link', 'Sol + enlace')];
   const stations = scenarios[0]?.result?.adv.contact.sites ?? [];
   const rows = rowLabels.length;
@@ -154,7 +154,7 @@ export function Timeline({ scenarios, simple = false }: { scenarios: ScenarioDat
           {!simple && <li><i className="sw sw-crit" />{t('Below DoD limit / frozen', 'Bajo límite DoD / congelado')}</li>}
           <li><i className="sw sw-rf sw-faint" />{t('Earth above terrain', 'Tierra sobre el relieve')}</li>
           {!simple && stations.map((s, k) => <li key={s.id}><i className="sw" style={{ background: `rgb(${STATION_RGB[k % 3]})` }} />{s.name}</li>)}
-          {relayOn && <li><i className="sw sw-relay" />{t('Relay in view', 'Relay a la vista')}</li>}
+          {relayOn && <li><i className="sw sw-relay" />{t('Relay in view', 'Relevo a la vista')}</li>}
           <li><i className="sw sw-ops" />{simple ? t('Success: Sun and Earth at once', 'Éxito: Sol y Tierra a la vez') : t('Simultaneous operations', 'Operación simultánea')}</li>
         </ul>
       </header>

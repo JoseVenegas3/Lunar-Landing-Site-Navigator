@@ -55,7 +55,7 @@ export function SolarKpi({ data, compact = false }: { data: ScenarioData; compac
       <dl className="solar-kpi-dl">
         <div><dt>{t('Visible solar disc', 'Disco solar visible')} f☉</dt><dd className="mono" data-testid="solar-frac">{fmtNum(100 * k.fracNow, 0)} %</dd></div>
         <div><dt>{t('Incidence factor on the array', 'Factor de incidencia en el arreglo')}</dt><dd className="mono">{fmtNum(k.incidenceNow, 3)}</dd></div>
-        <div><dt>{t('Array power now / peak', 'Potencia del arreglo ahora / pico')}</dt><dd className="mono" data-testid="solar-power">{fmtNum(k.powerNowW, 0)} W / {fmtNum(k.powerPeakW, 0)} W</dd></div>
+        <div><dt>{t('Array power now / peak', 'Potencia ahora / pico')}</dt><dd className="mono" data-testid="solar-power">{fmtNum(k.powerNowW, 0)} W / {fmtNum(k.powerPeakW, 0)} W</dd></div>
       </dl>
       {!compact && (
         <p className="vital-sub solar-kpi-note">
