@@ -25,12 +25,7 @@ export function TopBar() {
   return (
     <header className="topbar">
       <div className="brand">
-        <svg viewBox="0 0 28 28" width="26" height="26" aria-hidden="true">
-          <circle cx="14" cy="14" r="9.5" fill="none" stroke="#C9D4E3" strokeWidth="1.4" />
-          <path d="M14 4.5a9.5 9.5 0 0 0 0 19c-3-2.6-4.4-5.8-4.4-9.5S11 7.100 14 4.5Z" fill="#C9D4E3" />
-          <path d="M2 21.5 26 12" stroke="#06B6D4" strokeWidth="1.3" />
-          <circle cx="26" cy="12" r="1.6" fill="#06B6D4" />
-        </svg>
+        <img className="brand-logo" src={`${import.meta.env.BASE_URL}brand/logo-gisat.png`} alt="GISAT UDEC" width="38" height="38" data-testid="brand-logo" />
         <div>
           <strong>CLPS Lunar Mission Browser</strong>
           <span>GISAT UdeC · {t('South Pole landing site navigator', 'Navegador de sitios de alunizaje del Polo Sur')}</span>

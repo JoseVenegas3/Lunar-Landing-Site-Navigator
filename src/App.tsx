@@ -36,6 +36,7 @@ function BootScreen({ progress }: { progress: number }) {
   return (
     <div className="boot" role="status" data-testid="boot">
       <div className="boot-inner">
+        <img className="boot-logo" src={`${import.meta.env.BASE_URL}brand/logo-gisat.png`} alt="GISAT UDEC" width="96" height="96" data-testid="boot-logo" />
         <strong>CLPS Lunar Mission Browser</strong>
         <p>{t('Loading the south-polar terrain (LRO LOLA)', 'Cargando el terreno del polo sur (LRO LOLA)')}</p>
         <div className="bar"><i style={{ width: `${Math.round(progress * 100)}%` }} /></div>

@@ -207,6 +207,13 @@ try {
   }));
   check('top bar holds only brand, mode, UTC clock, mission guide, export, language and the PDF guide',
     JSON.stringify(bar.kids) === JSON.stringify(['brand', 'mode-switch', 'clock', 'briefing-open', 'export-csv', 'lang', 'guide-pdf']) && !bar.verification, bar.kids.join(', '));
+  const logo = await page.evaluate(() => {
+    const img = document.querySelector('[data-testid="brand-logo"]');
+    const fav = [...document.querySelectorAll('link[rel="icon"]')].map((l) => l.getAttribute('sizes'));
+    return { alt: img?.alt, loaded: img?.complete && img.naturalWidth > 0, h: img?.getBoundingClientRect().height, name: document.querySelector('.brand strong')?.textContent, fav };
+  });
+  check('the official GISAT UDEC badge is the brand: logo 36–40 px with alt text, app name beside it, favicons 32 and 192 px',
+    logo.alt === 'GISAT UDEC' && logo.loaded && logo.h >= 36 && logo.h <= 40 && /CLPS Lunar Mission Browser/.test(logo.name) && logo.fav.includes('32x32') && logo.fav.includes('192x192'), JSON.stringify(logo));
   check('time transport lives in the 3-D view: −1 h, play, +1 h and 1 / 24 / 72 h/s (24 by default), no ±1 d',
     !bar.transportInBar && bar.transportInScene && bar.speeds.join() === '1,24,72' && bar.speedOn === '24' && bar.dayButtons === 0 && bar.hourButtons === 2, JSON.stringify(bar));
   check('no frame-rate counter and no "Map" camera in the HUD', !bar.fps && !bar.map);
