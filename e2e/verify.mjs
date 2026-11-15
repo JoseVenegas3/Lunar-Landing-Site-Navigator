@@ -480,21 +480,21 @@ try {
   check('returning to the nominal point restores the KPIs', (await kpi('illum', 0)) === before.illum, await kpi('illum', 0));
 
   // ------------------------------------------------------ overlays and views
-  await page.getByRole('button', { name: 'Sun hours' }).click();
+  await page.getByTestId('scene').getByRole('button', { name: 'Sun hours', exact: true }).click();
   await page.waitForFunction(() => /of the window/.test(document.querySelector('.ramp-labels')?.textContent ?? ''), null, { timeout: 60000 });
   await page.waitForTimeout(400);
   await shot('06-insolation-map.png');
-  await page.getByRole('button', { name: 'Earth view' }).click();
+  await page.getByTestId('scene').getByRole('button', { name: 'Earth view', exact: true }).click();
   await page.waitForFunction(() => /of the window/.test(document.querySelector('.ramp-labels')?.textContent ?? ''), null, { timeout: 60000 });
   await page.waitForTimeout(400);
   await shot('08-earth-visibility-map.png');
   lay = await overlaps();
   check('HUD with overlay legend has no overlaps', lay.out.length === 0, lay.out.join('; '));
-  await page.getByRole('button', { name: 'Shadows' }).click();
-  await page.getByRole('button', { name: 'Lander eye' }).click();
+  await page.getByTestId('scene').getByRole('button', { name: 'Shadows', exact: true }).click();
+  await page.getByTestId('scene').getByRole('button', { name: 'Lander eye', exact: true }).click();
   await page.waitForTimeout(1200);
   await shot('09-lander-eye.png');
-  await page.getByRole('button', { name: 'Orbit' }).click();
+  await page.getByTestId('scene').getByRole('button', { name: 'Orbit', exact: true }).click();
   await page.waitForTimeout(900);
 
   // hardware: a deck-mounted array is nearly useless at the pole

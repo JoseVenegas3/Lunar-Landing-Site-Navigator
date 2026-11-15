@@ -1,8 +1,8 @@
-# Guía de la interfaz — CLPS Lunar Mission Browser v2.0
+# Guía de la interfaz — CLPS Lunar Mission Browser v2.1
 
 GISAT UdeC · NASA Space Apps 2026 · Navegador de sitios de alunizaje del Polo Sur lunar
 
-Esta guía describe cada botón y cada panel de la versión 2.0, interfaz por interfaz, y cómo usar la aplicación según quién la usa: un ingeniero que planifica, el público general o un docente (modo tutorial y fichas de sitios) y un equipo ante un alunizaje no previsto (modo Emergencia).
+Esta guía describe cada botón y cada panel de la versión 2.1, interfaz por interfaz, y cómo usar la aplicación según quién la usa: un ingeniero que planifica, el público general o un docente (modo tutorial y fichas de sitios) y un equipo ante un alunizaje no previsto (modo Emergencia).
 
 > Las cifras salen de un modelo físico propio sobre el relieve LRO LOLA. Sirven para comparar sitios, fechas y diseños de lander; no son la predicción certificada de una misión real. Los umbrales marcados como «supuesto de ingeniería» son elecciones de esta herramienta.
 

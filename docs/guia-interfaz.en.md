@@ -1,8 +1,8 @@
-# Interface guide — CLPS Lunar Mission Browser v2.0
+# Interface guide — CLPS Lunar Mission Browser v2.1
 
 GISAT UdeC · NASA Space Apps 2026 · Lunar South Pole landing site navigator
 
-This guide describes every button and panel of version 2.0, interface by interface, and how to use the application depending on who uses it: an engineer planning a mission, the general public or a teacher (tutorial mode and site cards), and a team facing an unplanned touchdown (Emergency mode).
+This guide describes every button and panel of version 2.1, interface by interface, and how to use the application depending on who uses it: an engineer planning a mission, the general public or a teacher (tutorial mode and site cards), and a team facing an unplanned touchdown (Emergency mode).
 
 > The figures come from this project's own physical model on the LRO LOLA terrain. They are meant to compare sites, dates and lander designs; they are not the certified prediction of a real mission. Thresholds labelled "engineering assumption" are choices of this tool.
 
