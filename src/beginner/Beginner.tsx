@@ -5,7 +5,7 @@
  * (state predicate, click on the target, gesture on the 3-D view).
  *
  * Screens: the opening cinematic (Intro), the splash of each mission (its
- * patch, goal and reward), the CAPCOM transmission panel for every step
+ * patch, goal and reward), the transmission panel for every step
  * (typewriter text the user reads at their own pace, then "Continue" or the
  * objective to carry out), and the celebration of each finished mission
  * (stitched patch, stars, points, the console unlocked and what comes next).
@@ -140,7 +140,7 @@ export function Beginner() {
       if (allow.includes(kind)) return;
       e.preventDefault();
       e.stopImmediatePropagation();
-      if (b.phase === 'step') nudge(es ? 'Ahora no: sigue la indicación de CAPCOM' : 'Not now: follow CAPCOM’s instruction');
+      if (b.phase === 'step') nudge(es ? 'Ahora no: sigue la indicación del mensaje' : 'Not now: follow the instruction in the message');
     };
     const down = block('drag'), wheel = block('wheel'), dbl = block('dblclick');
     el.addEventListener('pointerdown', down, true);
@@ -321,7 +321,6 @@ export function Beginner() {
         <section className={`capcom${panelAtTop ? ' is-top' : ''}${isAction ? ' is-action' : ''}`} role="status" aria-live="polite" data-testid="beg-card">
           <header className="capcom-head">
             <span className={`capcom-wave${typedAll ? '' : ' is-live'}`} aria-hidden="true">{Array.from({ length: 7 }, (_, k) => <i key={k} style={{ '--k': k } as CSSProperties} />)}</span>
-            <span className="capcom-who">CAPCOM</span>
             <span className="capcom-where">{t('Mission', 'Misión')} {m} · {MISSION_TITLES[m][li]}</span>
           </header>
           <p className="capcom-text" onClick={finishTyping}>{typed}<span className="sr-only">{typed === text ? '' : text}</span></p>

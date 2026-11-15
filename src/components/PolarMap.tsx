@@ -11,7 +11,7 @@ import { getRegional } from '../state/dem';
 import { useT } from '../lib/format';
 
 /** Half-width of the map, km: 80 S is 303 km from the pole. */
-const HALF_KM = 318;
+export const HALF_KM = 318;
 
 /** Dot colour of a catalogue site, by group. Names appear only under the pointer, so 20 dots never pile up into unreadable labels. */
 export function siteColour(id: string): string {
@@ -25,7 +25,7 @@ const LABELS: Record<string, [number, number, CanvasTextAlign]> = {
   Nobile: [6, 0, 'left'], Amundsen: [6, 0, 'left'], Cabeus: [-6, 0, 'right'], 'Malapert Massif': [0, -10, 'center'], 'Mons Mouton': [6, -3, 'left'],
 };
 
-function shadedRelief(px: number): ImageData | null {
+export function shadedRelief(px: number): ImageData | null {
   const g = getRegional();
   if (!g || typeof ImageData === 'undefined') return null;
   const img = new ImageData(px, px);

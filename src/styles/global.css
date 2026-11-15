@@ -1034,7 +1034,10 @@ input[type="range"] { width: 100%; accent-color: var(--rock); height: 18px; marg
 
 /* Opening cinematic */
 .intro { position: fixed; inset: 0; z-index: 90; background: #03050a; pointer-events: auto; }
-.intro-canvas { width: 100%; height: 100%; display: block; }
+.intro-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.intro-fade { position: absolute; inset: 0; background: #03050a; opacity: var(--fade, 0); pointer-events: none; z-index: 1; }
+.intro-caption, .intro-skip, .intro-credit { z-index: 2; }
+.intro-credit { position: absolute; left: 20px; bottom: 16px; margin: 0; font: 11.5px var(--ui); color: rgba(201, 212, 227, 0.55); }
 .intro-caption { position: absolute; left: 50%; bottom: 14vh; transform: translateX(-50%); width: min(760px, 90vw); text-align: center; color: #e6edf7; font: 400 clamp(20px, 2.6vw, 30px)/1.35 var(--ui); text-shadow: 0 2px 18px #000; }
 .intro-caption span { display: none; animation: intro-in 900ms ease-out both; }
 .intro-caption[data-phase="moon"] .intro-moon, .intro-caption[data-phase="pole"] .intro-pole, .intro-caption[data-phase="dive"] .intro-dive { display: block; }
@@ -1065,7 +1068,7 @@ input[type="range"] { width: 100%; accent-color: var(--rock); height: 18px; marg
 .capcom-wave.is-live i { animation: capcom-wave 0.9s ease-in-out infinite; animation-delay: calc(var(--k) * 90ms); }
 @keyframes capcom-wave { 50% { height: 16px; } }
 .capcom-who { font: 700 13px var(--ui); color: var(--capcom); letter-spacing: 0.06em; }
-.capcom-where { margin-left: auto; font: 13px var(--ui); color: var(--dim); }
+.capcom-where { font: 13px var(--ui); color: var(--dim); }
 .capcom-text { margin: 0; font: 400 clamp(17px, 1.35vw, 20px)/1.5 var(--ui); color: #f1f5fb; min-height: 3em; cursor: default; }
 .capcom-goal { margin: 0; display: flex; gap: 10px; align-items: center; font: 15px var(--ui); color: #fde7c2; }
 .capcom-goal b { background: var(--sun); color: #0b0d12; border-radius: 6px; padding: 3px 10px; font-weight: 700; }

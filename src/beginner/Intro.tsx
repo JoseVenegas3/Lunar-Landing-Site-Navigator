@@ -1,70 +1,37 @@
 /**
- * Opening cinematic of the Beginner training (v3.0): the whole Moon turning
- * in the dark, the view tilting to the south pole and diving towards the
- * landing site; then the 3-D scene takes over for the powered descent and the
- * touchdown (Beginner.tsx drives the lander drop and the camera).
+ * Opening cinematic of the Beginner training (v3.0): the real Moon turning
+ * in the dark, the globe tilting to show the south pole, and the camera
+ * diving towards it; then the 3-D scene takes over for the powered descent
+ * and the touchdown (Beginner.tsx drives the lander drop and the camera).
  *
- * The Moon is drawn on a 2-D canvas from a procedural albedo map (maria,
- * highlands and craters from a seeded hash): no image file, no network. With
- * prefers-reduced-motion the sequence is three still frames that cross-fade.
- * "Skip" is always there.
+ * WebGL (three.js): a sphere with the LRO LROC WAC colour mosaic and the LOLA
+ * relief as bump map (public domain, NASA SVS CGI Moon Kit, see
+ * public/beginner/SOURCES.md), lit by a low Sun as at the pole, over a star
+ * field. Over the south pole lies a cap with the real LOLA relief of the app
+ * (80–90° S, hillshaded), so the dive ends on the true polar terrain instead
+ * of the stretched pole of a global map. The sequence is driven by the clock, and a timer ends it even if the
+ * page stops drawing, so it can never get stuck. With prefers-reduced-motion
+ * it is three still shots. "Skip" is always there.
  */
 import { useEffect, useRef } from 'react';
+import {
+  AmbientLight, BufferAttribute, BufferGeometry, Color, DirectionalLight, Group, Mesh, MeshStandardMaterial, PerspectiveCamera, Points,
+  PointsMaterial, SRGBColorSpace, Scene, SphereGeometry, Texture, TextureLoader, WebGLRenderer, CanvasTexture, DoubleSide,
+} from 'three';
+import { HALF_KM, shadedRelief } from '../components/PolarMap';
+import { R_MOON_KM } from '../engine';
 import { fmtNum, useT } from '../lib/format';
 import { useMission } from '../state/mission';
-import { play } from './audio';
 import { useApp } from '../state/store';
+import { play } from './audio';
 import { useBeginner } from './state';
 
-const TEX_W = 512, TEX_H = 256;
-
-function hash(x: number, y: number): number {
-  let h = Math.imul(x | 0, 0x27d4eb2d) ^ Math.imul(y | 0, 0x165667b1);
-  h = Math.imul(h ^ (h >>> 15), 0x85ebca6b);
-  return ((h ^ (h >>> 13)) >>> 0) / 4294967296;
-}
-
-/** Equirectangular albedo map of a plausible Moon: dark maria on the near side, bright cratered highlands. */
-function moonTexture(): Float32Array {
-  const a = new Float32Array(TEX_W * TEX_H);
-  const smooth = (x: number, y: number, s: number): number => {
-    const fx = x / s, fy = y / s, ix = Math.floor(fx), iy = Math.floor(fy), tx = fx - ix, ty = fy - iy;
-    const v = (i: number, j: number): number => hash(((i % 64) + 64) % 64, j);
-    const u = (t: number): number => t * t * (3 - 2 * t);
-    return v(ix, iy) * (1 - u(tx)) * (1 - u(ty)) + v(ix + 1, iy) * u(tx) * (1 - u(ty)) + v(ix, iy + 1) * (1 - u(tx)) * u(ty) + v(ix + 1, iy + 1) * u(tx) * u(ty);
-  };
-  for (let j = 0; j < TEX_H; j++) {
-    for (let i = 0; i < TEX_W; i++) {
-      const n = 0.5 * smooth(i, j, 48) + 0.3 * smooth(i, j, 20) + 0.2 * smooth(i, j, 7);
-      const lat = (0.5 - j / TEX_H) * Math.PI;
-      // maria: darker blotches, mostly on the near side and away from the poles
-      const nearSide = Math.max(0, Math.cos(((i / TEX_W) * 2 - 1) * Math.PI));
-      const mare = n > 0.55 && Math.abs(lat) < 1.0 ? 0.42 * nearSide : 0;
-      a[j * TEX_W + i] = 0.78 - 0.18 * n - mare;
-    }
-  }
-  // craters: darker floors with a bright rim
-  for (let k = 0; k < 900; k++) {
-    // uniform on the sphere: latitude from asin of a uniform value
-    const lat = Math.asin(2 * hash(k, 2) - 1);
-    const cx = hash(k, 1) * TEX_W, cy = (0.5 - lat / Math.PI) * TEX_H, r = 1.2 + Math.pow(hash(k, 3), 3) * 11;
-    const rx = Math.min(TEX_W / 2, r / Math.max(0.08, Math.cos(lat)));
-    for (let y = Math.floor(cy - r - 2); y <= cy + r + 2; y++) {
-      if (y < 0 || y >= TEX_H) continue;
-      for (let x = Math.floor(cx - rx - 2); x <= cx + rx + 2; x++) {
-        const d = Math.hypot((x - cx) * (r / rx), y - cy) / r;
-        const xi = ((x % TEX_W) + TEX_W) % TEX_W;
-        if (d < 0.85) a[y * TEX_W + xi] *= 0.86;
-        else if (d < 1.15) a[y * TEX_W + xi] = Math.min(1, a[y * TEX_W + xi] * 1.12);
-      }
-    }
-  }
-  return a;
-}
+const ease = (x: number): number => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
+const span = (p: number, a: number, b: number): number => ease((p - a) / (b - a));
 
 export function Intro({ onDone }: { onDone: () => void }) {
   const t = useT();
-  const ref = useRef<HTMLCanvasElement>(null);
+  const host = useRef<HTMLDivElement>(null);
   const caption = useRef<HTMLDivElement>(null);
   const doneRef = useRef(onDone);
   doneRef.current = onDone;
@@ -74,90 +41,146 @@ export function Intro({ onDone }: { onDone: () => void }) {
   const rangeKm = A.result ? A.result.earthRangeKm[0] : null;
 
   useEffect(() => {
-    const c = ref.current;
-    const ctx = c?.getContext('2d');
-    if (!c || !ctx) return;
-    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    const tex = moonTexture();
-    const stars = Array.from({ length: 260 }, (_, k) => [hash(k, 7), hash(k, 8), 0.3 + hash(k, 9) * 0.7]);
-    const DUR = fast ? 900 : 9000;
-    const t0 = performance.now();
-    const lang = useApp.getState().lang;
-    play('whoosh', lang);
-    let raf = 0, done = false;
-    const S = 360; // sphere render resolution
-    const img = ctx.createImageData(S, S);
-    const off = document.createElement('canvas');
-    off.width = off.height = S;
-    const octx = off.getContext('2d') as CanvasRenderingContext2D;
+    const el = host.current;
+    if (!el) return;
+    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    const DUR = fast ? 900 : 10000;
+    let finished = false;
+    const finish = (): void => { if (!finished) { finished = true; doneRef.current(); } };
+    // Whatever happens to the drawing, the intro ends.
+    const guard = window.setTimeout(finish, DUR + 2500);
 
+    let renderer: WebGLRenderer;
+    try {
+      renderer = new WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    } catch {
+      window.clearTimeout(guard);
+      finish();
+      return;
+    }
+    renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+    renderer.outputColorSpace = SRGBColorSpace;
+    el.prepend(renderer.domElement);
+    renderer.domElement.className = 'intro-canvas';
+
+    const scene = new Scene();
+    scene.background = new Color('#02040a');
+    const camera = new PerspectiveCamera(35, 1, 0.01, 100);
+    const resize = (): void => {
+      const w = el.clientWidth, h = el.clientHeight;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / Math.max(1, h);
+      camera.updateProjectionMatrix();
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    // stars
+    const n = 2500, pos = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) {
+      const u = Math.random() * 2 - 1, a = Math.random() * Math.PI * 2, r = 40;
+      const s = Math.sqrt(1 - u * u);
+      pos.set([r * s * Math.cos(a), r * u, r * s * Math.sin(a)], i * 3);
+    }
+    const sg = new BufferGeometry();
+    sg.setAttribute('position', new BufferAttribute(pos, 3));
+    const stars = new Points(sg, new PointsMaterial({ color: 0xe6edf7, size: 0.09, sizeAttenuation: true, transparent: true, opacity: 0.85 }));
+    scene.add(stars);
+
+    // the Moon
+    const loader = new TextureLoader();
+    const base = import.meta.env.BASE_URL;
+    const mat = new MeshStandardMaterial({ color: 0xffffff, roughness: 1, metalness: 0 });
+    const textures: Texture[] = [];
+    loader.load(`${base}beginner/moon-color.jpg`, (tx) => { tx.colorSpace = SRGBColorSpace; tx.anisotropy = 8; mat.map = tx; mat.needsUpdate = true; textures.push(tx); });
+    loader.load(`${base}beginner/moon-relief.jpg`, (tx) => { mat.bumpMap = tx; mat.bumpScale = 6; mat.needsUpdate = true; textures.push(tx); });
+    const geo = new SphereGeometry(1, 160, 120);
+    const moon = new Mesh(geo, mat);
+    const tilt = new Group();
+    tilt.add(moon);
+
+    // Real polar relief (LOLA, the app's regional grid) on a spherical cap over the south pole.
+    const capRad = HALF_KM / R_MOON_KM;
+    let cap: Mesh | null = null, capTex: CanvasTexture | null = null;
+    const relief = shadedRelief(1024);
+    if (relief) {
+      const cv = document.createElement('canvas');
+      cv.width = cv.height = 1024;
+      const cx2 = cv.getContext('2d') as CanvasRenderingContext2D;
+      cx2.putImageData(relief, 0, 0);
+      // fade the edge into the global map
+      cx2.globalCompositeOperation = 'destination-in';
+      const g = cx2.createRadialGradient(512, 512, 300, 512, 512, 512);
+      g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+      cx2.fillStyle = g; cx2.fillRect(0, 0, 1024, 1024);
+      capTex = new CanvasTexture(cv);
+      capTex.colorSpace = SRGBColorSpace;
+      capTex.anisotropy = 8;
+      const cg = new SphereGeometry(1.0015, 256, 48, 0, Math.PI * 2, Math.PI - capRad, capRad);
+      const p3 = cg.getAttribute('position'), uv = cg.getAttribute('uv');
+      for (let i = 0; i < p3.count; i++) {
+        const x = p3.getX(i), y = p3.getY(i), z = p3.getZ(i);
+        const colat = Math.acos(Math.max(-1, Math.min(1, -y / 1.0015)));
+        // longitude as in the global map of three's sphere (lon 0 = +X, east towards -Z); azimuthal equidistant like latLonToXY
+        const lon = Math.atan2(-z, x);
+        const rKm = colat * R_MOON_KM;
+        uv.setXY(i, 0.5 + (rKm * Math.sin(lon)) / (2 * HALF_KM), 0.5 + (rKm * Math.cos(lon)) / (2 * HALF_KM));
+      }
+      uv.needsUpdate = true;
+      // warm tint and a little self-light so the grey hillshade matches the colour mosaic around it
+      cap = new Mesh(cg, new MeshStandardMaterial({ map: capTex, color: 0xd9cdb8, emissive: 0xffffff, emissiveMap: capTex, emissiveIntensity: 0.32, transparent: true, roughness: 1, metalness: 0, side: DoubleSide, depthWrite: false }));
+      moon.add(cap);
+    }
+    scene.add(tilt);
+    scene.add(new AmbientLight(0x2a3242, 0.35));
+    const sun = new DirectionalLight(0xfff4e0, 2.6);
+    scene.add(sun);
+
+    const t0 = performance.now();
+    play('whoosh', useApp.getState().lang);
+    let raf = 0;
     const frame = (now: number): void => {
-      const w = (c.width = c.clientWidth), h = (c.height = c.clientHeight);
       let p = Math.min(1, (now - t0) / DUR);
-      if (reduced) p = p < 0.33 ? 0.1 : p < 0.66 ? 0.5 : 0.95;
-      const ease = (x: number): number => x * x * (3 - 2 * x);
-      // phases: 0-0.35 turn, 0.35-0.65 tilt to the pole, 0.65-1 dive
-      const spin = p * 1.6;
-      const tilt = ease(Math.min(1, Math.max(0, (p - 0.3) / 0.35))) * (Math.PI / 2 - 0.12);
-      const zoom = 1 + Math.pow(ease(Math.min(1, Math.max(0, (p - 0.62) / 0.38))), 2) * 9;
-      ctx.fillStyle = '#03050a';
-      ctx.fillRect(0, 0, w, h);
-      for (const [sx, sy, b] of stars) { ctx.fillStyle = `rgba(230,237,247,${b * (1 - Math.min(1, (zoom - 1) / 4))})`; ctx.fillRect(sx * w, sy * h, 1.4, 1.4); }
-      // sphere: orthographic, light from the upper left
-      const L = [-0.55, 0.45, 0.7];
-      const cosT = Math.cos(tilt), sinT = Math.sin(tilt);
-      for (let y = 0; y < S; y++) {
-        for (let x = 0; x < S; x++) {
-          const nx = (x / S) * 2 - 1, ny = 1 - (y / S) * 2;
-          const r2 = nx * nx + ny * ny, k = (y * S + x) * 4;
-          if (r2 > 1) { img.data[k + 3] = 0; continue; }
-          const nz = Math.sqrt(1 - r2);
-          // rotate about the x axis by the tilt (bringing the south pole to the front), then read lat/lon
-          const by = ny * cosT - nz * sinT, bz = ny * sinT + nz * cosT;
-          const lat = Math.asin(Math.max(-1, Math.min(1, by)));
-          const lon = Math.atan2(nx, bz) + spin;
-          const u = ((((lon / (2 * Math.PI)) % 1) + 1) % 1) * TEX_W, v = (0.5 - lat / Math.PI) * TEX_H;
-          const alb = tex[Math.min(TEX_H - 1, Math.max(0, Math.floor(v))) * TEX_W + Math.floor(u) % TEX_W];
-          const lit = Math.max(0.04, nx * L[0] + ny * L[1] + nz * L[2]);
-          const g = Math.min(255, 255 * alb * (0.15 + 0.95 * lit));
-          img.data[k] = g * 0.97; img.data[k + 1] = g * 0.96; img.data[k + 2] = g; img.data[k + 3] = 255;
-        }
-      }
-      octx.putImageData(img, 0, 0);
-      const R = Math.min(w, h) * 0.34 * zoom;
-      // dive towards a point just above the centre (the pole after the tilt)
-      const cx = w / 2, cy = h / 2 + (zoom - 1) * R * 0.012;
-      ctx.drawImage(off, cx - R, cy - R, 2 * R, 2 * R);
-      // limb glow
-      if (zoom < 2) {
-        const gr = ctx.createRadialGradient(cx, cy, R * 0.98, cx, cy, R * 1.12);
-        gr.addColorStop(0, 'rgba(150,180,230,0.18)'); gr.addColorStop(1, 'rgba(150,180,230,0)');
-        ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(cx, cy, R * 1.12, 0, 2 * Math.PI); ctx.fill();
-      }
-      // target reticle on the pole once tilted
-      if (tilt > 1.2 && zoom < 6) {
-        ctx.strokeStyle = 'rgba(245,158,11,0.9)'; ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.arc(cx, cy - R * 0.02, 14 + 10 * (zoom - 1), 0, 2 * Math.PI); ctx.stroke();
-      }
-      // fade to the 3-D scene
-      if (p > 0.88) { ctx.fillStyle = `rgba(3,5,10,${(p - 0.88) / 0.12})`; ctx.fillRect(0, 0, w, h); }
-      if (caption.current) caption.current.dataset.phase = p < 0.3 ? 'moon' : p < 0.65 ? 'pole' : 'dive';
-      if (p >= 1 && !done) { done = true; doneRef.current(); return; }
+      if (reduced) p = p < 0.33 ? 0.12 : p < 0.66 ? 0.5 : 0.92;
+      // 0–0.3 the globe turns; 0.25–0.6 it tilts to show the south pole; 0.55–1 the camera dives.
+      moon.rotation.y = 0.6 + p * 1.4;
+      tilt.rotation.x = -span(p, 0.25, 0.6) * (Math.PI / 2 - 0.05);
+      const dist = 4.2 - span(p, 0.55, 0.97) * 3.0; // ends 0.2 radii above the pole: the whole polar cap in view
+      camera.position.set(0, 0, dist);
+      camera.lookAt(0, 0, 0);
+      // light: from the side at first, grazing the pole at the end, as at the lunar south pole
+      const g = span(p, 0.4, 0.8);
+      sun.position.set(-3 + g * 0.5, 1.2 - g * 1.0, 2.2 - g * 2.0);
+      stars.rotation.y = p * 0.15;
+      if (caption.current) caption.current.dataset.phase = p < 0.27 ? 'moon' : p < 0.58 ? 'pole' : 'dive';
+      el.style.setProperty('--fade', String(span(p, 0.9, 1)));
+      renderer.render(scene, camera);
+      if (p >= 1) { finish(); return; }
       raf = requestAnimationFrame(frame);
     };
     raf = requestAnimationFrame(frame);
-    return () => cancelAnimationFrame(raf);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.clearTimeout(guard);
+      window.removeEventListener('resize', resize);
+      geo.dispose(); mat.dispose(); capTex?.dispose(); cap?.geometry.dispose(); (cap?.material as MeshStandardMaterial | undefined)?.dispose(); sg.dispose(); (stars.material as PointsMaterial).dispose();
+      textures.forEach((tx) => tx.dispose());
+      renderer.dispose();
+      renderer.domElement.remove();
+    };
   }, [fast]);
 
   return (
-    <div className="intro" data-testid="intro" role="img" aria-label={t('The Moon turns, the view tilts to the south pole and dives towards the landing site.', 'La Luna gira, la vista se inclina hacia el polo sur y desciende hacia el sitio de alunizaje.')}>
-      <canvas ref={ref} className="intro-canvas" />
+    <div className="intro" ref={host} data-testid="intro" role="img" aria-label={t('The Moon turns, the view tilts to the south pole and dives towards the landing site.', 'La Luna gira, la vista se inclina hacia el polo sur y desciende hacia el sitio de alunizaje.')}>
+      <div className="intro-fade" aria-hidden="true" />
       <div className="intro-caption" ref={caption} data-phase="moon" aria-hidden="true">
         <span className="intro-moon">{rangeKm ? t(`The Moon, ${fmtNum(rangeKm, 0)} km from home.`, `La Luna, a ${fmtNum(rangeKm, 0)} km de casa.`) : t('The Moon.', 'La Luna.')}</span>
         <span className="intro-pole">{t('Its south pole: the Sun never climbs, the shadows last for weeks.', 'Su polo sur: el Sol nunca sube y las sombras duran semanas.')}</span>
         <span className="intro-dive">{t('Descending towards ', 'Descendiendo hacia ')}{A.name}</span>
       </div>
-      <button type="button" className="intro-skip" onClick={onDone} data-testid="intro-skip">{t('Skip intro', 'Saltar introducción')}</button>
+      <p className="intro-credit">{t('Moon maps: NASA SVS, LRO LROC and LOLA', 'Mapas lunares: NASA SVS, LRO LROC y LOLA')}</p>
+      <button type="button" className="intro-skip" onClick={() => doneRef.current()} data-testid="intro-skip">{t('Skip intro', 'Saltar introducción')}</button>
     </div>
   );
 }
