@@ -75,7 +75,7 @@ async function shots(lang: 'es' | 'en'): Promise<void> {
   await goSub(page, 'power'); await shot('04-energia');
   await goSub(page, 'comms'); await shot('05-comunicaciones');
   await goSub(page, 'terrain');
-  await page.waitForSelector('[data-testid="exit-block"]');
+  await page.waitForSelector('[data-testid="dispersion-block"]');
   await page.waitForTimeout(3000);
   await shot('06-terreno');
   await goSub(page, 'science');
