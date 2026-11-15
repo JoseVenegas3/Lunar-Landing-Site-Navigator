@@ -24,15 +24,15 @@ const Y = new Vector3(0, 1, 0);
 const NOTES = [
   { act: 'Acto I · El gancho trágico · 0:00–0:25', dir: 'Tono grave y seguro. Mirada fija al jurado, sin mirar la pantalla todavía. Un clic por frase.',
     say: 'Febrero de 2024. La misión IM-1 Odysseus llega al Polo Sur de la Luna. Toca suelo, pero queda inclinada unos 30 grados: su antena deja de apuntar bien a la Tierra. En 2025, Athena terminó de costado en un pequeño cráter en sombra y su misión duró unas 13 horas. Llegar a la Luna ya no es el problema: el verdadero reto es sobrevivir en la superficie.' },
-  { act: 'Acto II · La paradoja polar · 0:25–0:50', dir: 'Tono explicativo y riguroso. Señala cada cifra cuando aparece.',
+  { act: 'Acto II · La paradoja polar · 0:25–0:50', dir: 'Tono explicativo y riguroso. Señala cada cifra cuando aparece. Último clic: el horizonte real de la app.',
     say: 'En el Polo Sur lunar las reglas de la Tierra no aplican: no hay atmósfera ni crepúsculo. El Sol nunca sube más de unos 2 grados sobre el horizonte, así que una montaña proyecta sombras de kilómetros. La Tierra no sale ni se pone: solo se mece por libración, baja sobre las crestas. Y el horizonte lunar cae casi cuatro veces más rápido que el terrestre. Todo esto lo calculamos sobre la topografía LOLA de la NASA, con efemérides contrastadas con JPL Horizons.' },
   { act: 'Acto III · La solución dual · 0:50–1:15', dir: 'Tono energético. Manos abiertas, mostrando accesibilidad.',
     say: 'Para resolverlo, en GISAT creamos Lunar Landing Site Navigator. ¿Cómo entregar una consola de ingeniería profesional sin dejar fuera a las escuelas y al público? Con una sola puerta, bilingüe y con unidades métricas o imperiales: un Modo Guiado de ocho misiones con insignias que enseña por qué moverse 200 metros lo cambia todo en la Luna, y la consola completa Mission Leader.' },
-  { act: 'Acto IV · Física real (1/2) · 1:15–1:40', dir: 'Autoridad técnica, ritmo ágil. Apunta al módulo en pantalla en cada clic.',
+  { act: 'Acto IV · Física real (1/2) · 1:15–1:40', dir: 'Autoridad técnica, ritmo ágil. Apunta al módulo en pantalla en cada clic. Último clic: la pestaña real de Energía / térmico.',
     say: 'Las herramientas comunes asumen que la nave aterriza derecha y miden luz geométrica. Nosotros modelamos la actitud en seis grados de libertad: con la inclinación de IM-1, el enlace con la Tierra cae del 35 al 7 por ciento de la ventana. El cardán de la antena lo recupera. Y acoplamos energía y temperatura: calefactores a cero grados, batería perdida a menos veinte, y un mástil de 10 metros que saca los paneles de la sombra.' },
-  { act: 'Acto IV · Física real (2/2) · 1:40–2:05', dir: 'Mismo ritmo. Sigue con la mano el camino de la señal.',
+  { act: 'Acto IV · Física real (2/2) · 1:40–2:05', dir: 'Mismo ritmo. Sigue con la mano el camino de la señal. Último clic: el presupuesto de enlace real.',
     say: 'Reemplazamos la línea de vista de sí o no por física de radio: la señal se difracta sobre hasta tres crestas y rebota en el regolito. La conectamos con la Red del Espacio Profundo de la NASA, con un satélite de relevo, y con una estación hipotética de GISAT de 3,7 metros aquí en Concepción.' },
-  { act: 'Acto V · Clímax: demo de rescate · 2:05–2:35', dir: 'Emoción contenida, ritmo de cuenta regresiva. Un compañero puede hacer la demo en vivo en la app.',
+  { act: 'Acto V · Clímax: demo de rescate · 2:05–2:35', dir: 'Emoción contenida, ritmo de cuenta regresiva. Un compañero puede hacer la demo en vivo en la app. Último clic: la captura real del Modo Emergencia.',
     say: 'Veámoslo en acción. Emergencia: el módulo cae fuera de curso en una ladera en sombra cerca de Nobile. El sistema da un veredicto humano inmediato: no sobrevive tal como está, sale de su rango térmico en dos días y diecisiete horas. Pero no nos quedamos en el diagnóstico: evalúa 25 puntos de contacto y traza el vector de escape. Un clic, y la nave se mueve 250 metros al este. El indicador cambia a verde: sobrevive los 15 días con 13 por ciento de margen.' },
   { act: 'Acto VI · Cierre · 2:35–3:00', dir: 'Tono solemne y confiado. Postura firme, contacto visual con todo el jurado.',
     say: 'Esto no es una maqueta: es una aplicación terminada, con 175 pruebas unitarias y 159 comprobaciones en navegador, y que funciona sin conexión a internet. Lleva física de actitud, supervivencia criogénica y difracción de radio a un navegador web abierto, para misiones y para aulas. Porque en el Polo Sur lunar, 200 metros o unas pocas horas escriben la historia. Hoy, esa frontera está abierta para todos. Muchas gracias.' },
@@ -508,6 +508,7 @@ function render(enter = false) {
   [...acts.children].forEach((i, n) => { i.firstChild.style.width = n < slideIdx ? '100%' : n === slideIdx ? `${((step + 1) / Number(cur.dataset.steps)) * 100}%` : '0'; });
   const nt = NOTES[slideIdx];
   notes.innerHTML = `<h4>${nt.act}</h4><p class="dir">${nt.dir}</p><p>${nt.say}</p>`;
+  document.body.classList.toggle('show-app', !!cur.querySelector('.app.is-in'));
   direct(slideIdx, step);
   setTags();
 }
