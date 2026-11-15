@@ -996,7 +996,7 @@ precompilación de shaders al montar la escena.
 |---|---|---|
 | `npm run typecheck` / `npm run lint` | `tsc --noEmit`, modo estricto | sin errores |
 | `npm test` | 147 tests: motor, JPL Horizons, terreno LOLA, relays, contingencia, capas, evoluciones v3, ventanas, v4 (banda 80–90° S, parches de 20 m, micro-relieve, veredicto), catálogo de sitios, titular y salida de emergencia, rangos del índice y tabla de supuestos, modo heredado, exportación, umbrales de telemetría y etiquetas sin abreviar | 147/147 |
-| `npm run build && npm run e2e` | las comprobaciones en Chromium headless, sobre terreno LOLA | pendiente de ejecutar en v2.1 |
+| `npm run build && npm run e2e` | 116 comprobaciones en Chromium headless, sobre terreno LOLA | 116/116 |
 | `npm run perf` | ritmo de cuadros con y sin vsync | tabla de la sección 8 |
 | `npm run guide` | capturas reales de la app (ES y EN) y la guía PDF desde `docs/` | `docs/img/`, `public/guide/*.pdf` |
 | `npm run measure-micro` | costo del peligro bajo el píxel, LOLA real | peor caso 93 ms |
@@ -1025,7 +1025,7 @@ fijo, idioma, 1280×720, 820 px y consola sin errores. Deja las capturas en
   proxy o espejo con CORS (sección 6.4); sin él queda en 160 m u 800 m.
 - El micro-relieve sub-píxel es estadístico; salvo la densidad de cráteres
   (Trask, 1966) sus parámetros son del equipo, no validados (sección 6.7).
-- La verificación e2e (las comprobaciones) necesita red para la del parche de
+- La verificación e2e (116 comprobaciones) necesita red para la del parche de
   20 m en vivo.
 - Muestreo horario. Los eventos más cortos que una hora se promedian.
 - La distancia del enlace es al centro de la Tierra, no a una estación concreta

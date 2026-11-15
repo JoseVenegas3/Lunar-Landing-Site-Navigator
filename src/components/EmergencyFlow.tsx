@@ -281,6 +281,8 @@ export function EmergencyFlow({ data }: { data: ScenarioData }) {
 /** In the Emergency mode the evaluation always starts from now. */
 export function useEmergencyNow(k: ScenarioKey): void {
   useEffect(() => {
-    if (!isNow(useApp.getState().scenarios[k].startMs)) atNow(k);
+    // Re-anchor when the window does not start now, or is not one of the emergency horizons.
+    const c = useApp.getState().scenarios[k];
+    if (!isNow(c.startMs) || horizonOf(c.days) !== c.days) atNow(k);
   }, [k]);
 }
