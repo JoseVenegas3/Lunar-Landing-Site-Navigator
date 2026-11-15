@@ -126,7 +126,8 @@ input[type="range"] { width: 100%; accent-color: var(--rock); height: 18px; marg
   border-bottom: 1px solid var(--line);
   min-width: 0;
 }
-.brand { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 0 1 auto; }
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; flex: none; }
+@media (max-width: 1520px) { .brand span { display: none; } }
 .brand-logo { flex: none; width: 38px; height: 38px; display: block; }
 .brand div { display: grid; min-width: 0; }
 .brand strong { color: var(--bright); font-size: 14px; white-space: nowrap; }
@@ -874,7 +875,7 @@ input[type="range"] { width: 100%; accent-color: var(--rock); height: 18px; marg
 .assume-table td.mono { color: var(--bright); white-space: nowrap; }
 .assume-table td.is-team { color: var(--sun); }
 .verdict-actions { display: flex; align-items: center; gap: 8px; flex: none; }
-.rescue-span { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--dim); }
+.rescue-span { white-space: nowrap; display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--dim); }
 .rescue-span select { font: 11.5px var(--mono); padding: 3px 4px; }
 .verdict-gloss { font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--text); }
 .exit-block { display: grid; gap: 6px; padding: 8px 10px 10px; border: 1px solid var(--line); background: var(--panel); }

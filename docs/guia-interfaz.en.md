@@ -20,9 +20,15 @@ From left to right:
 | EN / ES | Language of the whole interface. |
 | Guide (PDF) | Opens this guide in a new tab, in the active language. |
 
+![](img/en/01-barra-superior.png)
+
+![](img/en/10-exportar.png)
+
 ## 2. Planner: the console
 
 The planner is the working view. The verdict is at the top; below it the 3-D view fills the screen and the panels float over it as glass trays that never resize it. The camera re-centres on the free area so the lander is never covered.
+
+![](img/en/03-resumen.png)
 
 ### 2.1 Verdict
 
@@ -52,6 +58,8 @@ Every tray has a **(?)** with a one-sentence explanation and a **—** button th
 * **Legend**: explains every symbol of the scene.
 * Top left: full site name, coordinates, height, slope and the lander offset (ΔE, ΔN), with **Return to nominal point** once it moved.
 * The names of the landforms float above the skyline with their distance.
+
+![](img/en/02-vista-3d.png)
 
 ### 2.4 Time transport (in the 3-D view)
 
@@ -93,6 +101,8 @@ The **Compare with another site or date** switch creates scenario B as a copy of
 
 Switched off, B disappears from the 3-D view, the timeline and every table.
 
+![](img/en/09-ventanas-comparar.png)
+
 ### 3.5 Mission windows (timeline)
 
 Each row is the whole window: day/night, Earth visible and both at once (the "golden windows"). Dragging along it moves the time cursor.
@@ -103,25 +113,37 @@ Each row is the whole window: day/night, Earth visible and both at once (the "go
 * **Energy and survival**: whether it survives the window, lowest temperature, heater hours and energy, solar energy and peak, lowest charge, sky view factor and sunlit surrounding terrain. Flags a critical thermal death.
 * **Power and temperature**: array power (amber fill), battery charge and bus temperature against time.
 
+![](img/en/04-energia.png)
+
 ## 5. Comms / RF
 
 * **Hardware**: DTE link (X or S band, antenna margin, station, transmit power, lander dish, bandwidth, link margin) and **relay satellites**: orbit preset, number of satellites and lander-to-relay rate.
 * **Link budget**: gain, beamwidth, EIRP, free-space loss, G/T, C/N₀, achievable rate, Eb/N₀ and margin. **Ridges between the lander and the Earth**: diffraction over up to three ridges (Deygout). **Which station closes the link?**: enter the target rate or use the 10 / 100 / 1000 kbps chips; it gives the G/T and the equivalent dish needed.
 * **Horizon 360°**: the skyline profile with the paths of the Sun and the Earth.
 
+![](img/en/05-comunicaciones.png)
+
 ## 6. Terrain / landing
 
 * **Attitude and tip-over**: presets (nominal, IM-1, IM-2, SLIM, resting on the slope), roll, pitch, yaw, antenna beamwidth and gimbal range, and their penalties. Tip-over probability over the ellipse against touchdown speed. **Replay a real landing**: always warns that the model does not reproduce the loss of IM-2 Athena (it came to rest in a small crater in shadow that the 20 m terrain does not contain). **Neighbouring asset**: plume keep-out radius and mutual shadowing.
 * **Emergency: survival**: the same flow as the Emergency mode (section 10). No date: **Evaluate from now** (or any value entered) sets the start to the current hour for one lunar night (15 days; also 3 or 7).
+
+![](img/en/06-terreno.png)
 
 ## 7. Science
 
 * **Suitability index** from 0 to 100, synthesized: sunlight, Earth view, slope and FeO, with the weight, the source and the range of each criterion (on hover). Each range is anchored to a physical limit; roughness, proximity to permanent shadow and gravity are left out because they have none. Orbital data of the site (Diviner temperatures, stable ice, PSR).
 * **Engineering view**: the full KPI table and the **terrain uncertainty** (RMS height error, correlation length, N terrain variants, probability of surviving and P10/P50/P90 bands) and the **Model assumptions** table: each parameter, its value, its unit, its origin ("source: …" or "team assumption") and where it is used. In this console the timeline is the **detailed** one: Sun, battery, Earth visible, downlink per station, relay and simultaneous operations.
 
+![](img/en/07-ciencia.png)
+
+![](img/en/08-vista-ingenieria.png)
+
 ## 8. Tutorial mode (Mission guide)
 
 A notice explains that the application will change tabs, site and date by itself. With **Start**, a fixed 10-step sequence drives the interface: 3-D view, double-click, time transport, the five tabs, landing windows and comparison, Emergency mode and Export. Each step spotlights the control it talks about. **Right arrow** goes on, **left arrow** goes back and **Esc** leaves. When it is left or finished, the application returns exactly to where you were. On the first visit, a card in the bottom-right corner offers the same tour or skipping it.
+
+![](img/en/13-tutorial.png)
 
 ## 9. Candidate site cards (public and teachers)
 
@@ -136,6 +158,10 @@ For a lander already on the surface somewhere unplanned. It asks only what matte
 3. **Current tilt** (optional, folded): roll, pitch, or "We came to rest on the slope".
 
 It answers first with a plain-language headline: **SURVIVES**, **SURVIVES IF…** or **DOES NOT SURVIVE**, with date and time (UTC and T+). Right under it, the **Way out** block says whether there is a way out and gives the options computed with the engine: stay and cut the load, move up to 500 m and wait for the next sunlight; when none works, it says what would be missing. The loss criterion is the engine's: battery empty with no sunlight or, with the thermal model, bus below −20 °C. Then come the terrain source and resolution, the time until the bus freezes and **where to move**: the grid of 25 points within 200 m (each cell is a full mission), the escape vector and **Move the lander there**. The green arrow on the terrain is the same vector. The hazards under the 20 m pixel (LOLA + fractal micro-relief: micro-shadows and rocks) are always shown; they are statistical, not a map.
+
+![](img/en/12-salida.png)
+
+![](img/en/11-modo-emergencia.png)
 
 ## 11. Uses by user
 

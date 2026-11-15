@@ -20,9 +20,15 @@ De izquierda a derecha:
 | EN / ES | Idioma de toda la interfaz. |
 | Guía (PDF) | Abre esta guía en una pestaña nueva, en el idioma activo. |
 
+![](img/es/01-barra-superior.png)
+
+![](img/es/10-exportar.png)
+
 ## 2. Planificador: la consola
 
 El planificador es la vista de trabajo. Arriba está el veredicto; debajo, la vista 3D ocupa toda la pantalla y los paneles flotan sobre ella como bandejas de cristal que no la redimensionan. La cámara se recentra en el área libre para que el lander nunca quede tapado.
+
+![](img/es/03-resumen.png)
 
 ### 2.1 Veredicto
 
@@ -52,6 +58,8 @@ Cada bandeja tiene un **(?)** con una explicación de una frase y un botón **�
 * **Leyenda**: explica cada símbolo de la escena.
 * Arriba a la izquierda: nombre completo del sitio, coordenadas, altura, pendiente y el desplazamiento del lander (ΔE, ΔN), con **Volver al punto nominal** cuando se movió.
 * Los nombres de los accidentes del relieve flotan sobre el horizonte con su distancia.
+
+![](img/es/02-vista-3d.png)
 
 ### 2.4 Control de tiempo (en la vista 3D)
 
@@ -93,6 +101,8 @@ El interruptor **Comparar con otro sitio o fecha** crea el escenario B como copi
 
 Al apagarlo, B desaparece de la vista 3D, de la línea de tiempo y de todas las tablas.
 
+![](img/es/09-ventanas-comparar.png)
+
 ### 3.5 Ventanas de misión (línea de tiempo)
 
 Cada fila es la ventana completa: día/noche, Tierra visible y ambos a la vez (las «ventanas de oro»). Arrastrar sobre ella mueve el cursor de tiempo.
@@ -103,25 +113,37 @@ Cada fila es la ventana completa: día/noche, Tierra visible y ambos a la vez (l
 * **Energía y supervivencia**: si sobrevive la ventana, temperatura mínima, horas y energía de calefactores, energía solar y pico, carga mínima, factor de vista al cielo y terreno circundante con sol. Avisa la muerte térmica crítica.
 * **Potencia y temperatura**: potencia del panel (relleno ámbar), carga de batería y temperatura del bus en el tiempo.
 
+![](img/es/04-energia.png)
+
 ## 5. Comunicaciones / RF
 
 * **Equipo**: enlace DTE (banda X o S, margen de antena, estación, potencia, antena del lander, ancho de banda, margen de enlace) y **satélites relay**: preset de órbita, número de satélites y tasa lander-relay.
 * **Presupuesto de enlace**: ganancia, ancho de haz, PIRE, pérdida de espacio libre, G/T, C/N₀, tasa alcanzable, Eb/N₀ y margen. **Crestas entre el lander y la Tierra**: difracción sobre hasta tres crestas (Deygout). **¿Qué estación cierra el enlace?**: ingresa la tasa objetivo o usa los chips 10 / 100 / 1000 kbps; da el G/T y la antena equivalente que hacen falta.
 * **Horizonte 360°**: el perfil del horizonte con las trayectorias del Sol y de la Tierra.
 
+![](img/es/05-comunicaciones.png)
+
 ## 6. Terreno / alunizaje
 
 * **Actitud y vuelco**: presets (nominal, IM-1, IM-2, SLIM, apoyado en la pendiente), alabeo, cabeceo, guiñada, ancho de haz y cardán de la antena, y sus penalizaciones. Probabilidad de vuelco sobre la elipse según la velocidad de contacto. **Reproducir un alunizaje real**: siempre advierte que el modelo no reproduce la pérdida de IM-2 Athena (quedó en un cráter pequeño en sombra que el terreno de 20 m no contiene). **Activo vecino**: radio de exclusión del penacho y sombreado mutuo.
 * **Emergencia: supervivencia**: el mismo flujo que el modo Emergencia (sección 10). Sin fecha: **Evaluar desde ahora** (o cualquier dato ingresado) fija el inicio en la hora actual durante una noche lunar (15 días; también 3 o 7).
+
+![](img/es/06-terreno.png)
 
 ## 7. Ciencia
 
 * **Índice de aptitud** de 0 a 100, sintetizado: luz, vista a la Tierra, pendiente y FeO, con el peso, la fuente y el rango de cada criterio (al pasar el cursor). Cada rango se ancla a un límite físico; la rugosidad, la proximidad a sombra permanente y la gravedad quedan fuera porque no tienen uno. Datos orbitales del sitio (temperaturas Diviner, hielo estable, PSR).
 * **Vista de ingeniería**: la tabla completa de KPI y la **incertidumbre del terreno** (error de altura RMS, longitud de correlación, N variantes de terreno, probabilidad de sobrevivir y bandas P10/P50/P90) y la tabla **Supuestos del modelo**: cada parámetro, su valor, su unidad, su origen («fuente: …» o «supuesto del equipo») y dónde se usa. En esta consola la línea de tiempo es la **detallada**: Sol, batería, Tierra visible, descarga por estación, relay y operación simultánea.
 
+![](img/es/07-ciencia.png)
+
+![](img/es/08-vista-ingenieria.png)
+
 ## 8. Modo tutorial (Guía de misión)
 
 Un aviso explica que la aplicación cambiará de pestañas, sitio y fecha por sí sola. Con **Iniciar**, una secuencia fija de 10 pasos conduce la interfaz: vista 3D, doble clic, control de tiempo, las cinco pestañas, ventanas de aterrizaje y comparación, modo Emergencia y Exportar. Cada paso resalta el control del que habla. **Flecha derecha** avanza, **flecha izquierda** retrocede y **Esc** sale. Al salir o terminar, la aplicación vuelve exactamente a donde estabas. En la primera visita, una tarjeta abajo a la derecha ofrece el mismo recorrido u omitirlo.
+
+![](img/es/13-tutorial.png)
 
 ## 9. Fichas de sitios candidatos (público y docentes)
 
@@ -136,6 +158,10 @@ Para un lander que ya está en la superficie en un lugar no previsto. Pregunta s
 3. **Inclinación actual** (opcional, plegada): alabeo, cabeceo o «Quedamos apoyados en la pendiente».
 
 Responde primero con un titular en lenguaje llano: **SOBREVIVE**, **SOBREVIVE SI…** o **NO SOBREVIVE**, con fecha y hora (UTC y T+). Justo debajo, el bloque **Salida** dice si hay salida y da las opciones calculadas con el motor: quedarse y reducir la carga, moverse hasta 500 m y esperar la próxima luz; si ninguna alcanza, dice qué faltaría. El criterio de pérdida es el del motor: batería agotada sin sol o, con el modelo térmico, bus bajo −20 °C. Después vienen la fuente y resolución del terreno, el tiempo hasta congelarse y **hacia dónde moverse**: la malla de 25 puntos a 200 m (cada celda es una misión completa), el vector de escape y **Mover el lander ahí**. La flecha verde sobre el terreno es el mismo vector. Los peligros bajo el píxel de 20 m (LOLA + micro-relieve fractal: micro-sombras y rocas) se muestran siempre; son estadísticos, no un mapa.
+
+![](img/es/12-salida.png)
+
+![](img/es/11-modo-emergencia.png)
 
 ## 11. Usos según el usuario
 

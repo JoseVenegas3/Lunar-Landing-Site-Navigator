@@ -7,8 +7,11 @@
  * Output:  public/guide/guia-interfaz-es.pdf and public/guide/guia-interfaz-en.pdf
  *
  * No extra dependency: a small Markdown subset (headings, paragraphs, lists,
- * tables, quotes, bold, inline code) is turned into HTML here, and the
- * Chromium that Playwright already installs for the e2e tests prints it.
+ * tables, quotes, bold, inline code, images on their own line) is turned into
+ * HTML here, and the Chromium that Playwright already installs for the e2e
+ * tests prints it. The images are real screenshots of the app made by
+ * scripts/guide-shots.ts (docs/img/es, docs/img/en); the cover carries the
+ * official GISAT UDEC badge (public/brand/logo-gisat.png).
  */
 import { mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -24,6 +27,8 @@ const inline = (s) => esc(s)
   .replace(/`([^`]+)`/g, '<code>$1</code>')
   .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
 
+const docs = join(root, 'docs');
+
 /** Markdown subset to HTML. */
 export function mdToHtml(md) {
   const lines = md.replace(/\r\n/g, '\n').split('\n');
@@ -36,6 +41,8 @@ export function mdToHtml(md) {
     const h = line.match(/^(#{1,3})\s+(.*)$/);
     if (h) { flush(); html.push(`<h${h[1].length}>${inline(h[2])}</h${h[1].length}>`); i++; continue; }
     if (/^\s*$/.test(line)) { flush(); i++; continue; }
+    const img = line.match(/^!\[\]\(([^)]+)\)\s*$/);
+    if (img) { flush(); html.push(`<figure><img src="${pathToFileURL(join(docs, img[1])).href}" alt=""></figure>`); i++; continue; }
     if (line.startsWith('> ')) {
       flush();
       const q = [];
@@ -95,11 +102,15 @@ th { text-align: left; background: #0D111A; color: #e6edf7; padding: 4pt 6pt; }
 td { padding: 4pt 6pt; border-bottom: 0.6pt solid #d5dce6; vertical-align: top; }
 tr:nth-child(even) td { background: #f6f8fb; }
 strong { color: #06080D; }
+figure { margin: 6pt 0 8pt; break-inside: avoid; }
+figure img { width: 100%; border: 0.6pt solid #b7c2d2; border-radius: 2pt; display: block; }
+.cover { display: flex; align-items: center; gap: 14pt; margin-bottom: 8pt; }
+.cover img { width: 30mm; height: 30mm; }
 `;
 
 const GUIDES = [
-  { lang: 'es', src: 'guia-interfaz.md', pdf: 'guia-interfaz-es.pdf', footer: 'Guía de la interfaz · CLPS Lunar Mission Browser v2.0 · GISAT UdeC' },
-  { lang: 'en', src: 'guia-interfaz.en.md', pdf: 'guia-interfaz-en.pdf', footer: 'Interface guide · CLPS Lunar Mission Browser v2.0 · GISAT UdeC' },
+  { lang: 'es', src: 'guia-interfaz.md', pdf: 'guia-interfaz-es.pdf', footer: 'Guía de la interfaz · CLPS Lunar Mission Browser v2.1 · GISAT UdeC' },
+  { lang: 'en', src: 'guia-interfaz.en.md', pdf: 'guia-interfaz-en.pdf', footer: 'Interface guide · CLPS Lunar Mission Browser v2.1 · GISAT UdeC' },
 ];
 
 const browser = await chromium.launch();
@@ -107,11 +118,13 @@ try {
   for (const g of GUIDES) {
     const md = readFileSync(join(root, 'docs', g.src), 'utf8');
     const title = (md.match(/^#\s+(.*)$/m) ?? [, 'Guide'])[1];
-    const html = `<!doctype html><html lang="${g.lang}"><head><meta charset="utf-8"><title>${esc(title)}</title><style>${CSS}</style></head><body>${mdToHtml(md)}</body></html>`;
+    const html = `<!doctype html><html lang="${g.lang}"><head><meta charset="utf-8"><title>${esc(title)}</title><style>${CSS}</style></head><body><div class="cover"><img src="${pathToFileURL(join(root, 'public', 'brand', 'logo-gisat.png')).href}" alt="GISAT UDEC"></div>${mdToHtml(md)}</body></html>`;
     const tmp = join(out, `.${g.lang}.html`);
     writeFileSync(tmp, html, 'utf8');
     const page = await browser.newPage();
     await page.goto(pathToFileURL(tmp).href, { waitUntil: 'load' });
+    const missing = await page.evaluate(() => [...document.images].filter((im) => !im.complete || im.naturalWidth === 0).map((im) => im.src));
+    if (missing.length) throw new Error(`images not found: ${missing.join(', ')} (run npm run guide-shots)`);
     await page.evaluate(() => document.fonts.ready);
     await page.pdf({
       path: join(out, g.pdf), format: 'A4', printBackground: true, displayHeaderFooter: true,

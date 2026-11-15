@@ -49,11 +49,11 @@ src/engine/            Motor en TypeScript puro, sin dependencias de UI
   missionAnalysis.ts     evaluación de misión sobre el modelo de base
   analysis.ts            series horarias, ventanas y KPIs de un escenario
   sites.ts               sitios candidatos
-  __tests__/             120 tests (vitest)
+  __tests__/             tests del motor (vitest; total en la sección 9)
 src/state/             zustand (configuración), servicio de DEM, contexto de misión
 src/components/3d/     escena three.js / React Three Fiber
 src/components/dashboard/   modo Mission Planner
-src/components/explorer/    modo Explorer (educadores y público)
+src/components/triage/      modo Emergencia
 scripts/               mallas LOLA (Python), búsqueda de sitios, JPL Horizons, comparación
 public/dem/            mallas LOLA que carga la app (15 MB)
 public/science/        capas orbitales para el índice (0,6 MB)
@@ -795,7 +795,7 @@ textos, todo en inglés y español. Un commit por cambio.
 | # | Cambio | Dónde |
 |---|---|---|
 | 1 | «Guía de misión» activa un **modo tutorial**: un aviso ligero (Iniciar / Cancelar, salir con Esc) y una secuencia fija de 10 pasos que conduce la interfaz de verdad (vista 3D, doble clic, transporte, las cinco pestañas, ventanas y comparación, Emergencia, Exportar). Al salir o terminar restaura el estado previo. La oferta del primer uso lanza el mismo recorrido. | `MissionBriefingTour.tsx` |
-| 2 | Sin botón ni matriz de **Verificación** en la interfaz. `lib/verification.ts` queda solo para sus pruebas. | `TopBar.tsx` |
+| 2 | Sin botón ni matriz de **Verificación** en la interfaz. `lib/verification.ts` quedó solo para sus pruebas (borrado en la v2.1). | `TopBar.tsx` |
 | 3 | **Pestañas de subsistema** a todo el ancho (58 px, borde inferior de 4 px en el acento, ícono propio). Transición negro → ícono grande con nombre y acento → consola con su capa (~850 ms). Los clics durante la transición cambian el destino o se encolan. Con `prefers-reduced-motion`, fundido corto sin ícono. El estado de la transición vive en un store aparte. | `SubsystemSwitch.tsx` |
 | 4 | **Telemetría**: chip con estado abierta/cerrada recordado (`clps.telemetry`); tira en cuatro grupos (Sol, Energía, Térmico, Enlace con la Tierra) con íconos, unidades y una línea de ayuda por lectura. Umbrales en un único lugar. Lecturas técnicas solo en Ciencia. | `Readout.tsx`, `lib/telemetry.ts` |
 | 5 | Sin interruptor global de ingeniería: **Ciencia > Vista de ingeniería** con la tabla KPI completa y la incertidumbre del terreno; la línea de tiempo de Ciencia es la detallada. | `EngineeringView.tsx` |
@@ -846,6 +846,71 @@ Decisiones sobre los controles marcados «(modificable)»:
 - Las letras A/B y la marca del mejor valor de la tabla solo aparecen durante
   una comparación.
 
+## 6.7 Interfaz v2.1 (2026-11-14)
+
+Regla de la versión: toda cifra o umbral que se muestra tiene una razón
+escrita (fuente, requisito o «supuesto del equipo» visible); lo que no la tiene
+y no vale la pena justificar, se borra. Español e inglés sincronizados.
+
+| § | Cambio | Dónde |
+|---|---|---|
+| 1 | **Transición de subsistema de ~1 s**: entrada 300 ms, ícono (96 px) y nombre quietos 400 ms, salida 300 ms (`SWITCH_OUT_MS`, `SWITCH_HOLD_MS`, `SWITCH_IN_MS`). Solo fundidos, así que con `prefers-reduced-motion` es igual y nada se mueve. La e2e mide el ícono visible ≥ 350 ms. | `SubsystemSwitch.tsx` |
+| 2 | **Guía PDF con capturas reales**: `scripts/guide-shots.ts` maneja la app con Playwright a 1440×900, tema oscuro, ES y EN, sitio, fecha y reloj fijos; `npm run guide` toma las capturas y luego arma los PDF con la insignia en la portada. | `scripts/`, `docs/img/{es,en}/` |
+| 3 | **Terreno sub-píxel sin casilla**: costo medido (`npm run measure-micro`, LOLA real, 5 sitios, 15 corridas): mediana 35–67 ms, peor 93 ms, < 300 ms. Se muestra siempre, junto a «estadístico, no un mapa» y los parámetros fractales marcados como no validados. | `TriageLayout.tsx`, `state/verdict.ts` |
+| 4 | **Insignia oficial GISAT UDEC** en la barra (38 px, `alt`), el arranque, el favicon (32 y 192 px) y la portada del PDF. `public/brand/logo-gisat.png` es una copia a 512 px del archivo aportado (2048 px, 4,9 MB). | `TopBar.tsx`, `App.tsx`, `index.html` |
+| 5 | **Sin modo Explorador**: las fichas de los cinco candidatos (luz, contacto con la Tierra, noche más larga; un clic selecciona) pasan a Resumen > Sitios y fechas; la nota de hibernación a Energía. `setMode` convierte `'explorer'` o cualquier valor desconocido en `'planner'`. El perfil dual de Contexto §3.4 (público y especialistas) queda cubierto por el modo tutorial y estas fichas simples. | `SiteCards.tsx`, `store.ts` |
+| 6 | **Misiones Artemis III/IV y otras** en el selector, agrupadas, con fuente y «coordenada aproximada»; Chandrayaan-3 fuera de cobertura (opción deshabilitada, flecha en el mapa polar); IM-1 se analiza. Puntos por grupo en el mapa polar y el horizonte 3D, nombre solo al pasar el cursor. | `engine/sites.ts`, `PolarMap.tsx`, `SceneExtras.tsx` |
+| 7 | **Emergencia en lenguaje llano**: titular SOBREVIVE / SOBREVIVE SI… / NO SOBREVIVE y bloque **Salida** siempre visible (ver abajo). | `state/exitPlan.ts`, `ExitBlock.tsx` |
+| 8 | **Supuestos mejorados o borrados** y tabla **Supuestos del modelo** en la Vista de ingeniería (ver abajo). | `AssumptionsTable.tsx` |
+
+**Criterio de pérdida del titular de emergencia.** Es el del motor, sin
+umbrales nuevos: el lander se pierde cuando la batería queda vacía sin
+potencia del panel (`simulateBattery`, `kpis.survives`) o, con el modelo
+térmico, cuando el bus llega a −20 °C y la batería se congela
+(`adv.kpis.thermalDeathH`); la hora de pérdida es `adv.kpis.survivalHours`.
+«Hay sol» usa la prueba de la cuenta regresiva (`sunFrac ≥ 0,5`). Las
+opciones de salida vuelven a volar la misión completa: (a) bajar la carga
+mínima (bisección de 7 pasos entre 0 W y la actual), (b) el mejor de 24
+puntos de una malla 5×5 a ≤ 500 m (el alcance de la caja de reubicación),
+(c) la próxima muestra con sol después de la pérdida. Si nada alcanza, «qué
+faltaría» es la energía almacenada mínima que salva la misión (bisección hasta
+10 veces la capacidad) y las horas hasta el próximo Sol. Horizonte: una noche
+lunar, ½ mes sinódico = 14,77 d redondeado hacia arriba a 15 d para que
+contenga la noche entera, con selector 3 / 7 / 15 d.
+
+**§8, mejorar o borrar.**
+
+| Elemento | Decisión |
+|---|---|
+| Horizonte fijo de 14 d | `EMERGENCY_HORIZON_DAYS` = 15 d (una noche lunar, razón en el código), visible («próximos 15 d») y con selector 3 / 7 / 15 d. |
+| Rangos del índice | Anclados: vista a la Tierra y luz 0–100 %; pendiente 0 – ángulo de estabilidad estática del vehículo (atan(r/h), 48° por defecto); FeO 0–20 % (suelos lunares, de tierras altas a mares). Rango en un tooltip. Rugosidad (200 m), distancia a PSR (20 km) y gravedad (300 mGal) no se pudieron anclar y salen del índice (`INDEX_CRITERIA`); el índice cubre ~52 % del peso publicado. |
+| Línea de tiempo del Explorador | Eliminada con el modo. |
+| Umbrales térmicos 0 / −10 / −20 °C | Sin fuente: «supuesto del equipo» en la tabla. |
+| Umbrales de ventana ±25°, ±15°, ≥ 50 % | Sin fuente: «supuesto del equipo» en la tabla. |
+| Vehículo por defecto (4 kWh, 180 W) | Editable en Equipo (confirmado) y rotulado «ejemplo ilustrativo». |
+| Búsqueda de 60 d de Optimizar | Selector 30 / 60 / 90 d, 60 por defecto. |
+| Deygout y micro-relieve | Citados en código y tabla: UIT-R P.526 (J(ν)), Deygout (1966), Trask (1966) para k = 10^−1,1; citas de memoria, sin recotejar. El resto (guarda de cresta, εr y tan δ del regolito, Hurst, pendiente RMS, cráteres 3–15 m, huella, límite de 15°): «parámetros del equipo, no validados». |
+| `lib/verification.ts` y su test | Borrados. |
+| Conteos de README y ARCHITECTURE | Escritos tras ejecutar vitest y Playwright (sección 9). |
+| Controles de HorizonPanorama, ThermalChart, PolarMap | Revisados: el panorama solo tiene la lectura al pasar el cursor (az/el del horizonte), el gráfico térmico ninguno, el mapa polar el clic para situar el lander y el nombre del sitio al pasar el cursor. Todos con etiqueta y razón; nada que borrar. |
+
+**Decisiones propias (lo ambiguo, resuelto con la opción más simple).**
+
+- Duplicados de §6: se conservó la entrada existente cuando el nombre o la
+  misión coincidían (Haworth, Malapert Massif, de Gerlache Rim 2, IM-2; la
+  coordenada de IM-2 aportada es su objetivo original en la cresta de
+  Shackleton, el mismo punto que el candidato). VIPER / Griffin se mantiene
+  aparte del candidato «Nobile Crater Rim (VIPER site)» (12 km de distancia).
+  IM-1 Odysseus y Chandrayaan-3 se añadieron con coordenadas de memoria.
+- El proyecto no tiene ESLint: `npm run lint` es la verificación de tipos
+  estricta (`tsc --noEmit`).
+- La opción (a) de Salida baja la carga mínima de supervivencia; la carga de
+  operación ya solo corre con el panel, así que bajarla no cambia la energía
+  en sombra.
+- Las capturas de la guía y la `e2e` fijan el reloj del navegador en
+  2027-09-01 00:00 UTC para que los tres casos de emergencia sean
+  reproducibles.
+
 ## 7. Interfaz
 
 **Paleta y tipografía** según el enunciado: fondo `#080B11`, paneles `#111827`,
@@ -874,9 +939,11 @@ cuatro cifras A/B y la línea de tiempo. La disposición se recuerda en
 **Decisión.** Paneles acoplados con pestañas en vez de ventanas flotantes
 libres: no se tapan entre sí ni tapan el lander, y no hay que ordenarlas.
 
-**Modo Explorer** (exigido por Contexto §3.4). Para educadores y público: recorrido guiado de
-cinco pasos que maneja la escena, tres indicadores en lenguaje llano y fichas de
-los cinco sitios con luz solar, contacto con la Tierra y noche más larga.
+**Público y docentes** (perfil dual exigido por Contexto §3.4). Hasta la v2.0
+lo cubría un modo Explorer aparte. En la v2.1 lo cubren el modo tutorial (diez
+pasos que conducen la interfaz) y las fichas simples de los cinco sitios en
+Resumen > Sitios y fechas (luz solar, contacto con la Tierra, noche más larga),
+sin un modo propio (sección 6.7).
 
 **Idiomas.** Inglés y español, conmutables en la barra superior.
 
@@ -906,7 +973,7 @@ Medido en el build de producción con `npm run perf` (Radeon 780M integrada):
 |---|---|---|
 | Planner en reposo | 60,0 fps, 0 cuadros > 25 ms | ~1340 fps |
 | Planner reproduciendo (barrido de sombras cada cuadro) | 60,0 fps, 0 cuadros > 25 ms | 350–390 fps (2,5–2,8 ms/cuadro) |
-| Explorer reproduciendo | 60,0 fps, 0 cuadros > 25 ms | ~270 fps |
+| Explorer reproduciendo (v2.0; modo retirado en la v2.1) | 60,0 fps, 0 cuadros > 25 ms | ~270 fps |
 
 Relocalización: 33–45 ms desde el cambio hasta dos cuadros pintados, incluyendo
 horizonte, series, KPIs y repintado.
@@ -927,23 +994,27 @@ precompilación de shaders al montar la escena.
 
 | Comando | Qué comprueba | Resultado |
 |---|---|---|
-| `npm run typecheck` | `tsc --noEmit`, modo estricto | sin errores |
-| `npm test` | 128 tests: motor, JPL Horizons, terreno LOLA, relays, contingencia, capas, evoluciones v3, ventanas, v4 (banda 80–90° S, parches de 20 m, micro-relieve, veredicto), verificación, exportación, umbrales de telemetría y etiquetas sin abreviar | 128/128 |
-| `npm run build && npm run e2e` | 106 comprobaciones en Chromium headless, sobre terreno LOLA | 106/106 |
+| `npm run typecheck` / `npm run lint` | `tsc --noEmit`, modo estricto | sin errores |
+| `npm test` | 147 tests: motor, JPL Horizons, terreno LOLA, relays, contingencia, capas, evoluciones v3, ventanas, v4 (banda 80–90° S, parches de 20 m, micro-relieve, veredicto), catálogo de sitios, titular y salida de emergencia, rangos del índice y tabla de supuestos, modo heredado, exportación, umbrales de telemetría y etiquetas sin abreviar | 147/147 |
+| `npm run build && npm run e2e` | las comprobaciones en Chromium headless, sobre terreno LOLA | pendiente de ejecutar en v2.1 |
 | `npm run perf` | ritmo de cuadros con y sin vsync | tabla de la sección 8 |
-| `npm run guide` | regenera la guía PDF en ES y EN desde `docs/` | `public/guide/*.pdf` |
+| `npm run guide` | capturas reales de la app (ES y EN) y la guía PDF desde `docs/` | `docs/img/`, `public/guide/*.pdf` |
+| `npm run measure-micro` | costo del peligro bajo el píxel, LOLA real | peor caso 93 ms |
 
 `npm run e2e` cubre: arranque, escena no vacía, solapamientos y textos
-recortados, 60 fps (reposo, reproducción, bandejas de cristal, Explorer,
-Emergencia), barra superior y transporte en la vista 3D, pestañas a todo el
-ancho y su transición (también con movimiento reducido y con clics durante la
-transición), un solo escenario por defecto y el bloque Comparar (B como copia,
+recortados, 60 fps (reposo, reproducción, bandejas de cristal,
+Emergencia), insignia y favicon, barra superior y transporte en la vista 3D, pestañas a todo el
+ancho y su transición de ~1 s con el ícono visible ≥ 350 ms (también con
+movimiento reducido y con clics durante la transición), un solo escenario por defecto y el bloque Comparar (B como copia,
 sitio y fechas, sin rastro al apagarlo), relocalización por deslizador,
 arrastre y doble clic (pista y retículo), mapas de cobertura, cámaras,
 telemetría agrupada, Vista de ingeniería, flujo de emergencia compartido,
 exportación CSV, guía PDF, modo tutorial (aviso, diez pasos que conducen la
-interfaz, restauración del estado), etiquetas de sitio completas, modo
-Explorer, idioma, 1280×720, 820 px y consola sin errores. Deja las capturas en
+interfaz, restauración del estado), etiquetas de sitio completas, fichas de
+sitios sin modo Explorer, tabla de supuestos, rangos del índice, selector de
+Optimizar, peligros bajo el píxel sin casilla (< 300 ms), los tres casos de
+emergencia (sobrevive / sobrevive si… / no sobrevive) en ES y EN con el reloj
+fijo, idioma, 1280×720, 820 px y consola sin errores. Deja las capturas en
 `artifacts/screenshots/` y el detalle en `artifacts/verify-report.json`.
 
 ## 10. Límites conocidos
@@ -952,9 +1023,9 @@ Explorer, idioma, 1280×720, 820 px y consola sin errores. Deja las capturas en
 - Las coordenadas personalizadas se aceptan entre 80° S y 90° S. Fuera de los
   sitios precompilados el terreno de 20 m se lee bajo demanda y depende de un
   proxy o espejo con CORS (sección 6.4); sin él queda en 160 m u 800 m.
-- El micro-relieve sub-píxel es estadístico y sus parámetros no están
-  cotejados contra la literatura (sección 6.4).
-- La verificación e2e (106 comprobaciones) necesita red para la del parche de
+- El micro-relieve sub-píxel es estadístico; salvo la densidad de cráteres
+  (Trask, 1966) sus parámetros son del equipo, no validados (sección 6.7).
+- La verificación e2e (las comprobaciones) necesita red para la del parche de
   20 m en vivo.
 - Muestreo horario. Los eventos más cortos que una hora se promedian.
 - La distancia del enlace es al centro de la Tierra, no a una estación concreta

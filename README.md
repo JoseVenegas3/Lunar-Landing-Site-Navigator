@@ -1,4 +1,4 @@
-# CLPS Lunar Mission Browser v2.0
+# CLPS Lunar Mission Browser v2.1
 
 Navegador de sitios de alunizaje del Polo Sur lunar. GISAT UdeC, NASA Space
 Apps Challenge 2026.
@@ -27,8 +27,10 @@ Abre <http://127.0.0.1:5173>. Requiere Node.js 20 o superior
   90° S, de 2026 a 2030, en ventanas de 1 a 180 días con paso horario. Validadas
   contra NASA/JPL Horizons (error máximo 0,0023°). Sin conexión a servicios
   externos.
-- **Cinco sitios precargados** más coordenadas personalizadas y
-  micro-relocalización de ±500 m, arrastrando el lander en la vista 3D.
+- **Cinco sitios candidatos**, seis regiones candidatas de Artemis III/IV,
+  otras misiones notables (VIPER / Griffin, Chang'e 7, ILRS, IM-1) y el
+  alunizaje de IM-2, más coordenadas personalizadas y micro-relocalización de
+  ±500 m, arrastrando el lander en la vista 3D.
 - **Horizonte de 360°** por sitio, fracción visible del disco solar y línea de
   vista DTE con margen de antena.
 - **Presupuesto de energía** (tres monturas de panel, batería, alerta de
@@ -44,10 +46,12 @@ Abre <http://127.0.0.1:5173>. Requiere Node.js 20 o superior
   sombra mutua y eyección por pluma.
 - **Exportar CSV** con un clic: telemetría simulada en 26 columnas SI, una fila
   por hora.
-- **Tres modos**: Planner (un escenario de alunizaje, con comparación A/B a
-  demanda dentro de Ventanas de aterrizaje), Explorer (recorrido guiado para
-  educadores y público) y **Emergencia** (posición y energía disponible,
-  evaluado desde ahora: cuánto tiempo queda y hacia dónde moverse).
+- **Dos modos**: Planificador (un escenario de alunizaje, con comparación A/B
+  a demanda dentro de Ventanas de aterrizaje, y fichas de los sitios
+  candidatos) y **Emergencia** (posición y energía disponible, evaluado desde
+  ahora durante una noche lunar: titular SOBREVIVE / SOBREVIVE SI… / NO
+  SOBREVIVE y bloque **Salida** con las opciones calculadas). El modo
+  Explorador de la v2.0 se retiró en la v2.1.
 - **Veredicto GO / CAUTION / NO-GO** en lenguaje llano sobre la vista 3D, con
   rescate de un clic (mejor punto a 200 m o siguiente fecha viable) y su antes
   y después.
@@ -56,7 +60,8 @@ Abre <http://127.0.0.1:5173>. Requiere Node.js 20 o superior
   transición negro → ícono → consola. Cada una trae sus paneles, su color, su
   capa sobre el terreno y lo que destaca la escena 3D. Los paneles son bandejas
   de cristal que flotan sobre la vista sin redimensionarla. Ciencia incluye la
-  Vista de ingeniería (tabla KPI completa y línea de tiempo detallada).
+  Vista de ingeniería (tabla KPI completa, línea de tiempo detallada y tabla
+  **Supuestos del modelo** con el origen de cada umbral).
 - **Control de tiempo en la vista 3D** (−1 h, reproducir, +1 h; 1, 24 o 72 h/s)
   y doble clic en el terreno para mover el lander o crear un sitio, con un
   retículo que dice qué ocurrirá.
@@ -80,9 +85,10 @@ enunciado; el porqué está en la sección 4.2 de [ARCHITECTURE.md](ARCHITECTURE
 |---|---|
 | `npm run dev` | servidor de desarrollo |
 | `npm run build` | verificación de tipos y build de producción en `dist/` |
-| `npm run typecheck` | `tsc --noEmit` |
-| `npm test` | 128 tests del motor, la verificación, la exportación y la interfaz (vitest) |
-| `npm run guide` | regenera `public/guide/guia-interfaz-es.pdf` y `-en.pdf` desde `docs/guia-interfaz*.md` |
+| `npm run typecheck` / `npm run lint` | `tsc --noEmit` (el proyecto no usa ESLint) |
+| `npm test` | 147 tests del motor, el catálogo de sitios, la emergencia, la exportación y la interfaz (vitest) |
+| `npm run guide` | toma las capturas reales de la app (`npm run guide-shots`, ES y EN) y regenera `public/guide/guia-interfaz-es.pdf` y `-en.pdf` desde `docs/guia-interfaz*.md` |
+| `npm run measure-micro` | mide el costo del peligro bajo el píxel en los cinco sitios |
 | `npm run e2e` | verificación en navegador con Playwright (requiere `npm run build`) |
 | `npm run perf` | medición de cuadros por segundo |
 | `npm run build-dem` | regenera las mallas LOLA de `public/dem/` (requiere `pip install rasterio numpy`) |
@@ -120,8 +126,9 @@ Para añadir una estación, agrega una entrada a `GROUND_STATIONS`.
 ## Documentación
 
 [ARCHITECTURE.md](ARCHITECTURE.md): modelo físico, decisiones, calibración del
-terreno, resultados de verificación y límites conocidos. La sección 6.6 resume
-la interfaz v2.0.
+terreno, resultados de verificación y límites conocidos. Las secciones 6.6 y
+6.7 resumen las interfaces v2.0 y v2.1; [CHANGELOG.md](CHANGELOG.md) lista los
+cambios.
 
 [Guía de la interfaz](docs/guia-interfaz.md) ([English](docs/guia-interfaz.en.md)):
 cada botón y panel, y los usos para ingeniería, público y emergencia.
