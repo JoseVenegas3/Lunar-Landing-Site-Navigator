@@ -1,4 +1,4 @@
-# CLPS Lunar Mission Browser v3.2
+# CLPS Lunar Mission Browser v3.0
 
 ## Quick Start (clonar y ejecutar en 1 minuto)
 
