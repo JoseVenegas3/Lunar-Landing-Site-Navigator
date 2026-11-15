@@ -23,7 +23,9 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const shots = join(root, 'artifacts', 'screenshots');
 mkdirSync(shots, { recursive: true });
 const PORT = 4173;
-const URL = `http://127.0.0.1:${PORT}/`;
+const BASE = `http://127.0.0.1:${PORT}/`;
+// v3.0: Mission Leader is reached past the entry gate with ?mode=leader (the gate itself is covered by e2e/beginner.mjs).
+const URL = `${BASE}?mode=leader`;
 
 const checks = [];
 const check = (name, pass, detail = '') => {
@@ -46,7 +48,7 @@ const SITE_CODES = ['SCR', 'MAL', 'HAW', 'NOB', 'DGR', 'IM2', 'CUS'];
 const server = spawn(process.execPath, [join(root, 'node_modules', 'vite', 'bin', 'vite.js'), 'preview', '--port', String(PORT), '--strictPort'], { cwd: root, stdio: 'ignore' });
 let browser;
 try {
-  await waitForServer(URL);
+  await waitForServer(BASE);
   browser = await chromium.launch({
     headless: true,
     // ANGLE GL backend: the D3D11 backend makes headless Chromium pause its vsync
@@ -864,9 +866,8 @@ try {
     sub: document.querySelector('[data-testid="planner"]')?.dataset.subsystem,
     offerBox: document.querySelector('[data-testid="briefing-offer"]')?.getBoundingClientRect().toJSON(),
   }));
-  check('first visit offers the guided tour in the bottom-right corner over the overview console', first.offer && first.sub === 'overview' && first.offerBox.right > 1400 && first.offerBox.bottom > 800, JSON.stringify(first));
+  check('v3.0: no first-visit card in Mission Leader (the entry gate replaced it); the console starts on Overview', !first.offer && first.sub === 'overview', JSON.stringify(first));
   // set a user state the tutorial must give back
-  await p2.click('[data-testid="briefing-skip"]');
   await p2.click('[data-testid="subsys-comms"]');
   await p2.waitForFunction(() => document.querySelector('[data-testid="planner"]')?.dataset.subsystem === 'comms' && !document.querySelector('[data-testid="subsys-curtain"]'));
   await openPanel('sites', 'science', p2);
@@ -1118,7 +1119,7 @@ try {
   const p3 = await ctx3.newPage();
   p3.on('pageerror', (e) => errors.push(`p3 pageerror: ${e.message}`));
   await p3.addInitScript(() => localStorage.setItem('clps.briefing', 'done'));
-  await p3.goto(`${URL}?debug=1`);
+  await p3.goto(`${URL}&debug=1`);
   await p3.waitForSelector('[data-testid="verdict"][data-level]', { timeout: 60000 });
   const reduced = await p3.evaluate(async () => {
     const t0 = performance.now();
