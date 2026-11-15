@@ -9,13 +9,16 @@ import './style.css';
 import moonColorUrl from './assets/moon-color.jpg';
 import moonReliefUrl from './assets/moon-relief.jpg';
 import {
-  ACESFilmicToneMapping, AmbientLight, BufferAttribute, BufferGeometry, Color, ConeGeometry, CylinderGeometry, DirectionalLight, DoubleSide, Group,
-  MathUtils, Mesh, MeshBasicMaterial, MeshStandardMaterial, PCFSoftShadowMap, PerspectiveCamera, PlaneGeometry, Points, PointsMaterial, RepeatWrapping,
-  RingGeometry, SRGBColorSpace, Scene, SphereGeometry, TextureLoader, Vector3, WebGLRenderer, BoxGeometry, Quaternion,
+  ACESFilmicToneMapping, AdditiveBlending, AmbientLight, BoxGeometry, BufferAttribute, BufferGeometry, CanvasTexture, Color, ConeGeometry,
+  CylinderGeometry, DirectionalLight, DodecahedronGeometry, DoubleSide, Group, HemisphereLight, LatheGeometry, Line, LineDashedMaterial,
+  MathUtils, Mesh, MeshBasicMaterial, MeshStandardMaterial, PCFSoftShadowMap, PerspectiveCamera, PlaneGeometry, Points, PointsMaterial,
+  Quaternion, RepeatWrapping, RingGeometry, SRGBColorSpace, Scene, SphereGeometry, Sprite, SpriteMaterial, TextureLoader, Vector2, Vector3,
+  WebGLRenderer,
 } from 'three';
 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const k = (rate) => (reduced ? 1 : rate); // per-frame easing factor
+const Y = new Vector3(0, 1, 0);
 
 // ------------------------------------------------------------------ speaker script (honest figures, from the app)
 const NOTES = [
@@ -62,60 +65,171 @@ const h = (x, y) => { const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; re
 const vn = (x, y) => { const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi, u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
   return MathUtils.lerp(MathUtils.lerp(h(xi, yi), h(xi + 1, yi), u), MathUtils.lerp(h(xi, yi + 1), h(xi + 1, yi + 1), u), v); };
 const fbm = (x, y) => { let a = 0, f = 1, w = 0.5; for (let i = 0; i < 5; i++) { a += w * vn(x * f, y * f); f *= 2; w *= 0.5; } return a; };
-const CRATERS = [[-14, -10, 7], [16, -22, 10], [24, 12, 6], [-26, 18, 9], [6, 30, 5], [-40, -30, 14]];
-function heightAt(x, z) {
+const CRATERS = [[-14, -10, 7], [16, -22, 10], [24, 14, 6], [-26, 18, 9], [6, 30, 5], [-40, -30, 14], [-9, -26, 5]];
+function rawHeight(x, z) {
   let y = (fbm(x * 0.05 + 10, z * 0.05 + 3) - 0.5) * 7 + (fbm(x * 0.3, z * 0.3) - 0.5) * 0.6;
-  y += Math.max(0, x - 18) * 0.35; // a ridge to the east, where the light is
   for (const [cx, cz, r] of CRATERS) { const d = Math.hypot(x - cx, z - cz) / r; if (d < 1.25) y += d < 1 ? -2.2 * (1 - d * d) : 1.4 * (1.25 - d) * 4 * (d - 1); }
   return y;
 }
+const H0 = rawHeight(0, 0);
+/** Terrain height; a level pad around the landing site so the legs sit on the ground. */
+function heightAt(x, z) { return MathUtils.lerp(H0, rawHeight(x, z), MathUtils.smoothstep(Math.hypot(x, z), 2.6, 7)); }
 
-// ------------------------------------------------------------------ surface scene: terrain, lander, Earth
+// ------------------------------------------------------------------ surface scene
 const surface = new Scene();
 surface.background = new Color(0x05070b);
 surface.add(stars());
-const ambient = new AmbientLight(0x3a4560, 0.25); surface.add(ambient);
-const sun = new DirectionalLight(0xfff1d6, 3.2);
-sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
-Object.assign(sun.shadow.camera, { left: -30, right: 30, top: 30, bottom: -30, near: 1, far: 260 });
+// light: a grazing Sun from the east (+x); a cool sky fill and a rim so the lander always reads, even in shadow
+const hemi = new HemisphereLight(0x8ea2c8, 0x2a2622, 0.55); surface.add(hemi);
+const fill = new DirectionalLight(0xb4c6e6, 0.5); surface.add(fill, fill.target);
+const rim = new DirectionalLight(0xa4bcff, 1.1); surface.add(rim, rim.target);
+const sun = new DirectionalLight(0xfff1d6, 3.6);
+sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.04;
+Object.assign(sun.shadow.camera, { left: -16, right: 16, top: 10, bottom: -10, near: 1, far: 150 });
 surface.add(sun, sun.target);
+const SUN_HI = MathUtils.degToRad(6.5), SUN_MID = MathUtils.degToRad(4), SUN_LO = MathUtils.degToRad(0.6);
+
+const relief = tex.load(moonReliefUrl); relief.wrapS = relief.wrapT = RepeatWrapping; relief.repeat.set(6, 6);
+const groundMat = new MeshStandardMaterial({ color: 0x9a9a98, roughness: 0.97, metalness: 0, bumpMap: relief, bumpScale: 2.5 });
 {
   const g = new PlaneGeometry(220, 220, 260, 260); g.rotateX(-Math.PI / 2);
   const pos = g.getAttribute('position');
   for (let i = 0; i < pos.count; i++) pos.setY(i, heightAt(pos.getX(i), pos.getZ(i)));
   g.computeVertexNormals();
-  const relief = tex.load(moonReliefUrl); relief.wrapS = relief.wrapT = RepeatWrapping; relief.repeat.set(6, 6);
-  const ground = new Mesh(g, new MeshStandardMaterial({ color: 0x9a9a98, roughness: 0.97, metalness: 0, bumpMap: relief, bumpScale: 2.5 }));
-  ground.receiveShadow = true; surface.add(ground);
+  const ground = new Mesh(g, groundMat); ground.receiveShadow = true; surface.add(ground);
 }
-const earth = new Mesh(new SphereGeometry(4, 48, 32), new MeshStandardMaterial({ color: 0x2f6fd8, emissive: 0x0d2a5c, roughness: 0.6 }));
-earth.position.set(-120, 22, -170); surface.add(earth);
+/** A ridge east of the site: it is what casts the shadow, and its sunlit crest is where the rescue goes. */
+function makeRidge(xc, H, half, slope, len) {
+  const w = (half + slope) * 2 + 2, g = new PlaneGeometry(w, len, 90, 120); g.rotateX(-Math.PI / 2);
+  const p = g.getAttribute('position');
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i) + xc, z = p.getZ(i);
+    const prof = (1 - MathUtils.smoothstep(Math.abs(x - xc), half, half + slope)) * (1 - MathUtils.smoothstep(Math.abs(z), len * 0.3, len * 0.5));
+    const n = (fbm(x * 0.45, z * 0.45) - 0.5) * 2.2 * prof * (1 - prof) * 4;
+    const g0 = heightAt(x, z); p.setXYZ(i, x, MathUtils.lerp(g0, Math.max(g0, H0 + H), prof) + n - 0.06, z);
+  }
+  g.computeVertexNormals();
+  const m = new Mesh(g, groundMat); m.castShadow = m.receiveShadow = true; m.visible = false; surface.add(m);
+  return m;
+}
+const ridgeFar = makeRidge(30, 3.2, 3, 6, 70);     // acts I and IV: the Sun sinks behind it
+const RIDGE_X = 8, RIDGE_H = 3.8;
+const ridgeNear = makeRidge(RIDGE_X, RIDGE_H, 1.8, 3.4, 50); // act V: shadow here, sunlight on the crest
+const crestY = Math.max(heightAt(RIDGE_X, 0), H0 + RIDGE_H) - 0.06;
 
-// the lander: gold body, legs, mast with array, dish
-const gold = new MeshStandardMaterial({ color: 0xc9a24b, metalness: 0.75, roughness: 0.35 });
-const grey = new MeshStandardMaterial({ color: 0xc9d1dc, metalness: 0.4, roughness: 0.5 });
-const cell = new MeshStandardMaterial({ color: 0x1a2a55, metalness: 0.3, roughness: 0.25, emissive: 0x0a1430 });
-const lander = new Group(); surface.add(lander);
-const body = new Group(); lander.add(body);
-const add = (geo, mat, x, y, z, parent = body) => { const m = new Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = true; parent.add(m); return m; };
-add(new CylinderGeometry(1.1, 1.25, 1.3, 8), gold, 0, 1.55, 0);
-add(new CylinderGeometry(1.15, 1.15, 0.12, 8), grey, 0, 2.25, 0);
-for (let i = 0; i < 4; i++) {
-  const a = (i / 4) * Math.PI * 2 + Math.PI / 4, leg = add(new CylinderGeometry(0.06, 0.06, 1.9, 6), grey, Math.cos(a) * 1.35, 0.85, Math.sin(a) * 1.35);
-  leg.rotation.z = -Math.cos(a) * 0.45; leg.rotation.x = Math.sin(a) * 0.45;
-  add(new CylinderGeometry(0.28, 0.32, 0.08, 12), grey, Math.cos(a) * 1.75, 0.05, Math.sin(a) * 1.75);
+// the Earth, low over the horizon (polar sky), lit by the same Sun
+function earthMap() {
+  const c = document.createElement('canvas'); c.width = 512; c.height = 256; const g = c.getContext('2d');
+  g.fillStyle = '#1a4896'; g.fillRect(0, 0, 512, 256);
+  g.fillStyle = '#6f7f4f';
+  for (let i = 0; i < 10; i++) { g.beginPath(); g.ellipse(h(i, 1) * 512, 60 + h(i, 2) * 136, 18 + h(i, 3) * 46, 10 + h(i, 4) * 28, h(i, 5) * 3, 0, 7); g.fill(); }
+  g.fillStyle = 'rgba(255,255,255,0.6)';
+  for (let i = 0; i < 90; i++) { g.beginPath(); g.ellipse(h(i, 7) * 512, h(i, 8) * 256, 8 + h(i, 9) * 34, 2 + h(i, 10) * 6, h(i, 11) * 0.6, 0, 7); g.fill(); }
+  g.fillStyle = '#f2f6fb'; g.fillRect(0, 0, 512, 14); g.fillRect(0, 242, 512, 14);
+  const t = new CanvasTexture(c); t.colorSpace = SRGBColorSpace; return t;
 }
-add(new ConeGeometry(0.55, 0.7, 16, 1, true), grey, 0, 0.6, 0).rotation.x = Math.PI;
-const mast = add(new CylinderGeometry(0.05, 0.05, 1, 6), grey, 0, 2.3, 0); mast.geometry.translate(0, 0.5, 0);
-const array = add(new BoxGeometry(2.4, 1.3, 0.05), cell, 0, 3.6, 0);
-const dishArm = new Group(); dishArm.position.set(0.9, 2.4, 0.4); body.add(dishArm);
-const dish = add(new SphereGeometry(0.55, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2.6), new MeshStandardMaterial({ color: 0xeef2f7, metalness: 0.3, roughness: 0.4, side: DoubleSide }), 0, 0, 0, dishArm);
-dish.rotation.x = Math.PI / 2;
-const beamMat = new MeshBasicMaterial({ color: 0x4fd8ff, transparent: true, opacity: 0.35, depthWrite: false });
-const beam = new Mesh(new CylinderGeometry(0.05, 1.6, 1, 16, 1, true), beamMat); beam.geometry.translate(0, 0.5, 0); surface.add(beam);
-const ring = new Mesh(new RingGeometry(0.8, 1, 48), new MeshBasicMaterial({ color: 0xcbbfa8, transparent: true, opacity: 0, side: DoubleSide, depthWrite: false }));
-ring.rotation.x = -Math.PI / 2; surface.add(ring);
-const arrow = new Mesh(new ConeGeometry(0.6, 1.6, 3), new MeshBasicMaterial({ color: 0x19d37f, transparent: true, opacity: 0 })); arrow.rotation.z = -Math.PI / 2; surface.add(arrow);
+function haloMap() {
+  const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
+  const r = g.createRadialGradient(64, 64, 18, 64, 64, 64);
+  r.addColorStop(0, 'rgba(110,170,255,0.55)'); r.addColorStop(1, 'rgba(110,170,255,0)');
+  g.fillStyle = r; g.fillRect(0, 0, 128, 128); return new CanvasTexture(c);
+}
+const EARTH = new Vector3(0.25, 0.125, -0.96).normalize().multiplyScalar(170);
+const earth = new Mesh(new SphereGeometry(4, 48, 32), new MeshStandardMaterial({ map: earthMap(), roughness: 0.7, emissive: 0x0b2150, emissiveIntensity: 0.9 }));
+earth.position.copy(EARTH); earth.rotation.set(0.3, 2.2, 0); surface.add(earth);
+const halo = new Sprite(new SpriteMaterial({ map: haloMap(), blending: AdditiveBlending, depthWrite: false, transparent: true }));
+halo.scale.set(17, 17, 1); halo.position.copy(EARTH); surface.add(halo);
+
+// ------------------------------------------------------------------ the lander: a CLPS-class spacecraft
+const crinkle = tex.load(moonReliefUrl); crinkle.wrapS = crinkle.wrapT = RepeatWrapping; crinkle.repeat.set(1.4, 1.4);
+const M = {
+  foil: new MeshStandardMaterial({ color: 0xd8a443, metalness: 0.8, roughness: 0.36, bumpMap: crinkle, bumpScale: 1.6, emissive: 0x3a2400, emissiveIntensity: 0.45 }),
+  white: new MeshStandardMaterial({ color: 0xe8ecf1, metalness: 0.1, roughness: 0.55 }),
+  metal: new MeshStandardMaterial({ color: 0xb4bcc7, metalness: 0.75, roughness: 0.35 }),
+  dark: new MeshStandardMaterial({ color: 0x30343b, metalness: 0.6, roughness: 0.45, side: DoubleSide }),
+  cell: new MeshStandardMaterial({ color: 0x1a2c5c, metalness: 0.55, roughness: 0.22, emissive: 0x0a1838, emissiveIntensity: 0.7 }),
+  dish: new MeshStandardMaterial({ color: 0xf2f4f7, metalness: 0.2, roughness: 0.4, side: DoubleSide }),
+};
+const YAW = 0.5;
+const lander = new Group(); surface.add(lander);
+const tiltG = new Group(); lander.add(tiltG);
+const body = new Group(); body.rotation.y = YAW; tiltG.add(body);
+const shade = (m) => { m.castShadow = m.receiveShadow = true; return m; };
+const part = (geo, mat, x, y, z, parent = body) => { const m = shade(new Mesh(geo, mat)); m.position.set(x, y, z); parent.add(m); return m; };
+function rod(a, b, r, mat, parent = body) {
+  const d = new Vector3().subVectors(b, a), m = shade(new Mesh(new CylinderGeometry(r, r, d.length(), 8), mat));
+  m.position.copy(a).addScaledVector(d, 0.5); m.quaternion.setFromUnitVectors(Y, d.normalize()); parent.add(m); return m;
+}
+// hexagonal bus in gold MLI, decks, avionics
+part(new CylinderGeometry(1.05, 1.05, 1.35, 6), M.foil, 0, 1.6, 0);
+part(new CylinderGeometry(1.15, 1.15, 0.09, 6), M.white, 0, 2.31, 0);
+part(new CylinderGeometry(1.02, 1.02, 0.1, 6), M.dark, 0, 0.9, 0);
+for (const s of [1, -1]) part(new BoxGeometry(0.03, 0.95, 0.98), M.cell, s * 0.925, 1.62, 0);
+part(new BoxGeometry(0.55, 0.32, 0.42), M.white, -0.35, 2.51, -0.15);
+part(new BoxGeometry(0.32, 0.22, 0.3), M.metal, 0.25, 2.46, -0.5);
+part(new CylinderGeometry(0.09, 0.09, 0.25, 12), M.metal, -0.55, 2.48, 0.45);
+// engine bell
+part(new LatheGeometry([new Vector2(0.17, 0), new Vector2(0.22, -0.12), new Vector2(0.37, -0.42), new Vector2(0.46, -0.6)], 28), M.dark, 0, 0.85, 0);
+const plume = new Mesh(new ConeGeometry(0.42, 1.8, 24, 1, true), new MeshBasicMaterial({ color: 0xffd9a0, transparent: true, opacity: 0, blending: AdditiveBlending, depthWrite: false }));
+plume.position.y = 0.25 - 0.9; plume.rotation.x = Math.PI; body.add(plume);
+// four legs with struts and pads
+const PADS = [];
+for (let i = 0; i < 4; i++) {
+  const a = (i / 4) * Math.PI * 2 + Math.PI / 4, c = Math.cos(a), s = Math.sin(a);
+  const top = new Vector3(c * 1.0, 1.75, s * 1.0), pad = new Vector3(c * 1.95, 0.08, s * 1.95), knee = top.clone().lerp(pad, 0.55);
+  rod(top, pad, 0.055, M.metal);
+  for (const d of [-0.42, 0.42]) rod(new Vector3(Math.cos(a + d) * 0.98, 0.95, Math.sin(a + d) * 0.98), knee, 0.03, M.metal);
+  part(new CylinderGeometry(0.3, 0.34, 0.07, 18), M.metal, pad.x, 0.035, pad.z);
+  PADS.push(new Vector3(pad.x, 0, pad.z));
+}
+// extendable mast with its solar array (faces the Sun in the east)
+const mastG = new Group(); mastG.position.set(-0.1, 2.36, 0.4); body.add(mastG);
+const mastTube = part(new CylinderGeometry(0.045, 0.06, 1, 8).translate(0, 0.5, 0), M.metal, 0, 0, 0, mastG);
+const arrayG = new Group(); arrayG.rotation.y = -YAW; mastG.add(arrayG);
+part(new BoxGeometry(0.035, 0.95, 1.5), M.cell, 0, 0.45, 0, arrayG);
+part(new BoxGeometry(0.05, 1.0, 0.05), M.white, 0, 0.45, 0.77, arrayG); part(new BoxGeometry(0.05, 1.0, 0.05), M.white, 0, 0.45, -0.77, arrayG);
+// high-gain dish on a two-axis gimbal
+const armBase = new Vector3(0.6, 2.36, -0.15), armTop = new Vector3(0.6, 2.95, -0.15);
+rod(armBase, armTop, 0.04, M.metal);
+const gimbal = new Group(); gimbal.position.copy(armTop); body.add(gimbal);
+const dishPts = []; for (let i = 0; i <= 12; i++) { const r = (i / 12) * 0.52; dishPts.push(new Vector2(r, r * r * 0.55)); }
+part(new LatheGeometry(dishPts, 36), M.dish, 0, 0, 0, gimbal);
+rod(new Vector3(0, 0, 0), new Vector3(0, 0.34, 0), 0.015, M.metal, gimbal);
+part(new SphereGeometry(0.04, 10, 8), M.metal, 0, 0.34, 0, gimbal);
+
+// a boulder under one pad (act I: the touchdown that tipped it)
+const TILT_AXIS = new Vector3(-1, 0, -1).normalize();
+const qYaw = new Quaternion().setFromAxisAngle(Y, YAW), qTilt = new Quaternion();
+function padsAt(rollDeg) {
+  qTilt.setFromAxisAngle(TILT_AXIS, MathUtils.degToRad(rollDeg));
+  let min = 0, hi = null;
+  for (const p of PADS) { const v = p.clone().applyQuaternion(qYaw).applyQuaternion(qTilt); if (v.y < min) min = v.y; if (!hi || v.y > hi.y) hi = v; }
+  return { lift: -min, hi };
+}
+const rockG = new DodecahedronGeometry(1, 1);
+{ const p = rockG.getAttribute('position'); for (let i = 0; i < p.count; i++) { const f = 0.82 + h(p.getX(i) * 3.1, p.getY(i) * 2.7 + p.getZ(i)) * 0.3; p.setXYZ(i, p.getX(i) * f, p.getY(i) * f, p.getZ(i) * f); } rockG.computeVertexNormals(); }
+const rock = shade(new Mesh(rockG, new MeshStandardMaterial({ color: 0x8d8b88, roughness: 0.95, bumpMap: relief, bumpScale: 1.5, flatShading: true })));
+const ROCK = (() => { const { lift, hi } = padsAt(30); const top = hi.y + lift - 0.02; return { x: hi.x * 1.06, z: hi.z * 1.06, top, sy: top * 0.85 + 0.35 }; })();
+rock.scale.set(0.95, ROCK.sy, 0.8); rock.position.set(ROCK.x, H0 - ROCK.sy, ROCK.z); rock.visible = false; surface.add(rock);
+
+// the radio link: a thin beam with travelling pulses, a dashed line of sight to the Earth, a splash where it hits the ground
+const TONE = { rf: new Color(0x4fd8ff), lost: new Color(0xff3b55), ok: new Color(0x19d37f) };
+const beamCore = new Mesh(new CylinderGeometry(0.02, 0.02, 1, 8, 1, true).translate(0, 0.5, 0), new MeshBasicMaterial({ color: 0x4fd8ff, transparent: true, opacity: 0, depthWrite: false }));
+const beamGlow = new Mesh(new CylinderGeometry(0.09, 0.09, 1, 12, 1, true).translate(0, 0.5, 0), new MeshBasicMaterial({ color: 0x4fd8ff, transparent: true, opacity: 0, blending: AdditiveBlending, depthWrite: false }));
+surface.add(beamCore, beamGlow);
+const pulses = Array.from({ length: 7 }, () => { const m = new Mesh(new SphereGeometry(0.075, 12, 8), new MeshBasicMaterial({ color: 0x4fd8ff, transparent: true, opacity: 0, blending: AdditiveBlending, depthWrite: false })); surface.add(m); return m; });
+const splash = new Mesh(new RingGeometry(0.3, 0.42, 40), new MeshBasicMaterial({ color: 0xff3b55, transparent: true, opacity: 0, side: DoubleSide, depthWrite: false, blending: AdditiveBlending }));
+splash.rotation.x = -Math.PI / 2; surface.add(splash);
+const losGeo = new BufferGeometry().setFromPoints([new Vector3(), new Vector3(0, 1, 0)]);
+const los = new Line(losGeo, new LineDashedMaterial({ color: 0xeef2f7, dashSize: 0.45, gapSize: 0.35, transparent: true, opacity: 0, depthWrite: false }));
+surface.add(los);
+// act V: escape vector to the lit crest
+const hopAt = (u) => new Vector3(RIDGE_X * u, MathUtils.lerp(H0, crestY, u) + Math.sin(Math.PI * u) * 3.2, 0);
+const pathDots = Array.from({ length: 16 }, (_, i) => { const m = new Mesh(new SphereGeometry(0.09, 10, 8), new MeshBasicMaterial({ color: 0x19d37f, transparent: true, opacity: 0, depthWrite: false })); m.position.copy(hopAt((i + 1) / 17)).add(new Vector3(0, 1.2, 0)); surface.add(m); return m; });
+const target = new Mesh(new RingGeometry(1.7, 1.95, 64), new MeshBasicMaterial({ color: 0x19d37f, transparent: true, opacity: 0, side: DoubleSide, depthWrite: false }));
+target.rotation.x = -Math.PI / 2; target.position.set(RIDGE_X, crestY + 0.06, 0); surface.add(target);
+const dust = new Mesh(new RingGeometry(0.8, 1, 48), new MeshBasicMaterial({ color: 0xcbbfa8, transparent: true, opacity: 0, side: DoubleSide, depthWrite: false }));
+dust.rotation.x = -Math.PI / 2; surface.add(dust);
 
 // ------------------------------------------------------------------ globe scene: the real Moon (LRO maps, NASA SVS)
 const globe = new Scene();
@@ -133,71 +247,115 @@ const gearth = new Mesh(new SphereGeometry(0.27, 48, 32), new MeshStandardMateri
 globe.add(gearth);
 
 // ------------------------------------------------------------------ state, eased every frame
-const S = { landerY: 0, roll: 0, gimbal: 0, mast: 0, sunEl: 0.06, sunI: 3.2, cold: 0, beamHue: 'rf', hopX: 0, arrow: 0,
-  cam: new Vector3(7, 3.2, 9), look: new Vector3(0, 1.6, 0), gTilt: 0, gDist: 3.4, gEarth: 0, gSpin: 0.6 };
-const T = { ...S, cam: S.cam.clone(), look: S.look.clone() };
-let scene = 'surface', slideIdx = 0, step = 0;
-const BEAM = { rf: new Color(0x4fd8ff), lost: new Color(0xff3b55), ok: new Color(0x19d37f) };
+const SCAL = ['roll', 'gimbal', 'mast', 'sunEl', 'beam', 'rock', 'vo', 'path', 'gTilt', 'gDist', 'gEarth'];
+const S = { landerY: 0, roll: 0, gimbal: 0, mast: 0, sunEl: SUN_HI, beam: 0, rock: 0, vo: 0.2, path: 0,
+  cam: new Vector3(0.6, 3, 11.5), look: new Vector3(0, 2, 0), gTilt: 0, gDist: 3.4, gEarth: 0 };
+const T = { ...S, cam: S.cam.clone(), look: S.look.clone(), tone: 'rf' };
+let scene = 'surface', slideIdx = 0, step = 0, hopT0 = 0;
+const ANCH = {};
 
 /** Scene targets per slide and step. */
 function direct(si, st) {
-  Object.assign(T, { roll: 0, gimbal: 0, mast: 0, sunI: 3.2, cold: 0, beamHue: 'rf', hopX: 0, arrow: 0, landerY: 0 });
+  Object.assign(T, { roll: 0, gimbal: 0, mast: 0, sunEl: SUN_HI, beam: 0, rock: 0, vo: 0.2, path: 0, tone: 'rf' });
   if (si === 0) {
-    T.cam.set(6.5, 2.4, 8.5); T.look.set(0, 1.8, 0);
-    if (st === 0) { T.landerY = 0; S.landerY = 14; S.roll = 0; T.cam.set(8, 4, 11); }
-    if (st >= 1) { T.roll = 30; T.beamHue = 'lost'; }
-    if (st >= 2) { T.sunI = 0.35; T.cold = 1; }
-    if (st >= 3) { T.cam.set(16, 9, 22); T.look.set(0, 1, 0); }
+    T.roll = 30; T.rock = 1; S.rock = 1;
+    T.cam.set(0.8, 4.2, 16); T.look.set(0, 1.7, 0);
+    if (st === 0) S.landerY = 14;
+    if (st >= 1) { T.beam = 1; T.tone = 'lost'; }
+    if (st >= 2) T.sunEl = SUN_LO;
+    if (st >= 3) { T.cam.set(1.8, 6.5, 26); T.look.set(0.6, 2.8, 0); }
   } else if (si === 3) {
-    T.cam.set(-9.5, 4.2, 11.5); T.look.set(-1.2, 2.6, 0);
-    if (st >= 1) { T.roll = 30; T.beamHue = 'lost'; }
-    if (st >= 2) { T.gimbal = 1; T.beamHue = 'ok'; }
-    if (st >= 3) { T.mast = 1; T.cam.set(-12, 6.5, 14); T.look.set(-1.5, 4, 0); }
+    T.cam.set(0.6, 4.0, 15); T.look.set(0, 1.8, 0); T.beam = 1;
+    if (st >= 1) { T.roll = 30; T.rock = 1; T.tone = 'lost'; }
+    if (st >= 2) { T.gimbal = 1; T.tone = 'ok'; }
+    if (st >= 3) { T.mast = 1; T.sunEl = SUN_LO; T.cam.set(2.4, 6.2, 27); T.look.set(0.9, 4.4, 0); }
   } else if (si === 5) {
-    T.cam.set(9, 6, 13); T.look.set(3, 1, 0);
-    T.sunI = st >= 3 ? 3.2 : 0.4; T.cold = st >= 3 ? 0 : 1;
-    T.beamHue = st >= 3 ? 'ok' : 'lost'; T.roll = st >= 3 ? 0 : 8;
-    if (st >= 2) T.arrow = 1;
-    if (st >= 3) { T.hopX = 6; T.arrow = 0; }
+    T.vo = 0.2; T.sunEl = SUN_MID; T.cam.set(0.5, 10, 27); T.look.set(4.4, 2.2, 0);
+    if (st >= 2) T.path = 1;
   } else if (si === 1) {
     T.gTilt = st >= 1 ? 0.55 : 0.15; T.gDist = st >= 1 ? 3.3 : 4.0; T.gEarth = st >= 2 ? 1 : 0;
   } else if (si === 6) {
     T.gTilt = 0.35; T.gDist = 2.9; T.gEarth = 1;
   }
+  ridgeFar.visible = si === 0 || si === 3; ridgeNear.visible = si === 5; rock.visible = si === 0 || si === 3;
+  if (si === 5 && st >= 3) { if (!hopT0) hopT0 = performance.now(); } else hopT0 = 0;
 }
+/** Jump straight to the targets (after a scene change behind the veil). */
+function snap() { for (const key of SCAL) S[key] = T[key]; S.cam.copy(T.cam); S.look.copy(T.look); }
 
+const v3 = () => new Vector3();
+const tmpQ = new Quaternion();
 function surfaceFrame(t) {
-  S.landerY += (T.landerY - S.landerY) * k(0.035);
-  if (S.landerY < 0.02 && T.landerY === 0 && ring.material.opacity === 0 && slideIdx === 0 && step === 0 && !ring.userData.done) { ring.userData.done = true; ring.userData.t0 = t; }
-  for (const key of ['roll', 'gimbal', 'mast', 'sunI', 'cold', 'hopX', 'arrow']) S[key] += (T[key] - S[key]) * k(0.04);
-  S.cam.lerp(T.cam, k(0.025)); S.look.lerp(T.look, k(0.04));
-  const groundY = heightAt(S.hopX, 0);
-  const hopArc = slideIdx === 5 ? Math.sin(Math.PI * Math.min(1, S.hopX / 6)) * 2.2 : 0;
-  lander.position.set(S.hopX, groundY + S.landerY + hopArc, 0);
-  body.rotation.set(0, 0.6, MathUtils.degToRad(S.roll));
-  mast.scale.y = 1 + S.mast * 4; array.position.y = 3.6 + S.mast * 4;
-  // the dish: fixed to the body, or brought back to the Earth by the gimbal
-  const dishWorld = new Vector3(); dish.getWorldPosition(dishWorld);
-  const toEarth = earth.position.clone().sub(dishWorld).normalize();
-  const bodyUp = new Vector3(0, 1, 0).applyQuaternion(body.getWorldQuaternion(new Quaternion()));
-  const fixedDir = bodyUp.clone().multiplyScalar(0.35).add(new Vector3(-0.7, 0.15, -1).normalize()).normalize().applyAxisAngle(new Vector3(0, 0, 1), MathUtils.degToRad(-S.roll) * 1.6);
-  const dir = fixedDir.lerp(toEarth, S.gimbal || (S.roll < 1 ? 1 : 0)).normalize();
-  beam.position.copy(dishWorld);
-  beam.quaternion.setFromUnitVectors(new Vector3(0, 1, 0), dir);
-  beam.scale.set(1, 26, 1);
-  beamMat.color.lerp(BEAM[T.beamHue], k(0.06));
-  beamMat.opacity = 0.18 + 0.12 * (0.5 + 0.5 * Math.sin(t * 0.004));
-  // grazing Sun from the east: low, long shadows; dimmer and bluer in the cold
-  sun.position.set(lander.position.x + 60, lander.position.y + 60 * Math.tan(0.1 + (1 - S.cold) * 0.04), 20);
-  sun.target.position.copy(lander.position); sun.intensity = S.sunI;
-  ambient.color.setRGB(0.23 - S.cold * 0.08, 0.27 - S.cold * 0.06, 0.38 + S.cold * 0.1);
-  // touchdown dust ring
-  if (ring.userData.t0) { const a = (t - ring.userData.t0) / 1600; ring.material.opacity = a < 1 ? 0.7 * (1 - a) : 0; const s = 1 + a * 6; ring.scale.set(s, s, s); ring.position.set(lander.position.x, groundY + 0.05, 0); }
-  arrow.material.opacity = S.arrow * 0.9; arrow.position.set(3, heightAt(3, 0) + 0.4, 0);
-  camera.position.copy(S.cam).add(new Vector3(lander.position.x * 0.5, 0, 0)); camera.lookAt(S.look.clone().add(new Vector3(lander.position.x * 0.6, 0, 0)));
+  S.landerY += (0 - S.landerY) * k(0.03);
+  for (const key of ['roll', 'gimbal', 'mast', 'sunEl', 'beam', 'rock', 'vo', 'path']) S[key] += (T[key] - S[key]) * k(0.045);
+  S.cam.lerp(T.cam, k(0.03)); S.look.lerp(T.look, k(0.045));
+
+  // pose: tipping onto the boulder during touchdown (act I), or the 6-DOF tilt preset (act IV)
+  const roll = slideIdx === 0 ? 30 * (1 - MathUtils.smoothstep(S.landerY, 0, 2.2)) : S.roll;
+  const { lift } = padsAt(roll);
+  tiltG.quaternion.copy(qTilt);
+  const hop = slideIdx === 5 && hopT0 ? MathUtils.smootherstep((t - hopT0) / 2600, 0, 1) : 0;
+  const base = slideIdx === 5 ? hopAt(hop) : new Vector3(0, H0, 0);
+  lander.position.set(base.x, base.y + lift + S.landerY, base.z);
+  rock.position.y = H0 + ROCK.top * S.rock - ROCK.sy;
+  mastTube.scale.y = 0.55 + S.mast * 5.6; arrayG.position.y = mastTube.scale.y;
+  lander.updateMatrixWorld(true);
+
+  // dish: body-fixed boresight (aimed at the Earth when level), or the gimbal bringing it back to the Earth
+  const dishPos = gimbal.getWorldPosition(v3());
+  const toEarth = EARTH.clone().sub(dishPos).normalize();
+  const levelDir = EARTH.clone().sub(new Vector3(lander.position.x, lander.position.y - lift + 2.95, 0)).normalize();
+  const bore = levelDir.applyQuaternion(qTilt);
+  const dir = bore.lerp(toEarth, S.gimbal).normalize();
+  gimbal.quaternion.copy(body.getWorldQuaternion(tmpQ).invert().multiply(new Quaternion().setFromUnitVectors(Y, dir)));
+  const o = dishPos.clone().addScaledVector(dir, 0.2);
+  let end = null;
+  for (let s = 0.5; s < 45; s += 0.2) { const p = o.clone().addScaledVector(dir, s); if (p.y < heightAt(p.x, p.z)) { end = p; break; } }
+  const hit = !!end; if (!end) end = EARTH.clone().addScaledVector(dir, -4);
+  const len = o.distanceTo(end), col = hit ? TONE.lost : TONE[T.tone];
+  for (const m of [beamCore, beamGlow]) { m.position.copy(o); m.quaternion.setFromUnitVectors(Y, dir); m.scale.set(1, len, 1); m.material.color.lerp(col, k(0.08)); }
+  beamCore.material.opacity = 0.95 * S.beam; beamGlow.material.opacity = 0.22 * S.beam;
+  const run = Math.min(len, 26);
+  pulses.forEach((m, i) => {
+    const d = ((t * 0.006 + (i * run) / pulses.length) % run);
+    m.position.copy(o).addScaledVector(dir, d); m.material.color.copy(beamCore.material.color);
+    m.material.opacity = S.beam * (hit ? 1 : 1 - d / run) * 0.9;
+  });
+  const sp = (t % 1100) / 1100;
+  splash.position.copy(end).setY(heightAt(end.x, end.z) + 0.04); splash.scale.setScalar(1 + sp * 3.5);
+  splash.material.opacity = hit ? S.beam * (1 - sp) * 0.9 : 0;
+  const lp = losGeo.getAttribute('position'); lp.setXYZ(0, o.x, o.y, o.z); lp.setXYZ(1, EARTH.x, EARTH.y, EARTH.z); lp.needsUpdate = true;
+  los.computeLineDistances(); los.material.opacity = hit ? 0.5 * S.beam : 0;
+
+  // descent plume and touchdown dust
+  plume.material.opacity = MathUtils.clamp((S.landerY - 0.15) / 2.5, 0, 1) * (0.55 + (reduced ? 0 : 0.12 * Math.sin(t * 0.05)));
+  if (slideIdx === 0 && step === 0 && S.landerY < 0.05 && !dust.userData.done) { dust.userData.done = true; dust.userData.t0 = t; }
+  if (slideIdx === 5 && hop > 0.985 && !dust.userData.hopDone) { dust.userData.hopDone = true; dust.userData.t0 = t; }
+  if (dust.userData.t0) { const a = (t - dust.userData.t0) / 1700; dust.material.opacity = a < 1 ? 0.6 * (1 - a) : 0; dust.scale.setScalar(1.6 + a * 6); dust.position.set(base.x, base.y + 0.05, 0); }
+  else dust.material.opacity = 0;
+
+  // escape vector
+  pathDots.forEach((m, i) => { m.material.opacity = MathUtils.clamp(S.path * 18 - i, 0, 1) * 0.9 * (1 - hop); });
+  target.material.opacity = S.path * (0.55 + 0.35 * Math.sin(t * 0.004)) * (1 - hop);
+
+  // lights follow the lander; the Sun grazes from the east
+  const L = lander.position;
+  sun.position.set(L.x + Math.cos(S.sunEl) * 70, L.y + Math.sin(S.sunEl) * 70, L.z + 10); sun.target.position.copy(L);
+  fill.position.set(L.x - 6, L.y + 8, L.z + 14); fill.target.position.copy(L);
+  rim.position.set(L.x - 8, L.y + 6, L.z - 14); rim.target.position.copy(L);
+
+  // camera: framed so the lander sits in the open right side of the slide
+  camera.position.copy(S.cam).add(new Vector3(0, S.landerY * 0.3, 0));
+  camera.lookAt(S.look.clone().add(new Vector3(0, S.landerY * 0.6, 0)));
+  camera.setViewOffset(innerWidth, innerHeight, -S.vo * innerWidth, 0, innerWidth, innerHeight);
+
+  ANCH.lander = tiltG.localToWorld(new Vector3(1.0, 1.7, 1.0));
+  ANCH.dish = dishPos; ANCH.hit = end; ANCH.earth = EARTH.clone().add(new Vector3(-4.5, 0, 0));
+  ANCH.array = arrayG.localToWorld(new Vector3(0, 0.9, 0.8)); ANCH.crest = new Vector3(RIDGE_X + 0.8, crestY + 0.4, 0);
 }
 
 function globeFrame(t) {
+  camera.clearViewOffset();
   for (const key of ['gTilt', 'gDist', 'gEarth']) S[key] += (T[key] - S[key]) * k(0.03);
   moon.rotation.y = SPIN.y + t * (reduced ? 0 : 0.00004);
   tilt.rotation.x = -S.gTilt * (Math.PI / 2 - 0.12);
@@ -217,8 +375,47 @@ function resize() {
 }
 addEventListener('resize', resize); resize();
 
+// ------------------------------------------------------------------ telemetry tags pinned to the 3-D scene
+const TAGS = {
+  0: [[],
+    [{ a: 'lander', t: 'ALABEO 30°', c: 'lost' }, { a: 'hit', t: 'ANTENA DESAPUNTADA', c: 'lost' }, { a: 'earth', t: 'TIERRA', c: 'rf' }],
+    [{ a: 'lander', t: 'SIN LUZ SOLAR', c: 'lost' }, { a: 'hit', t: 'ANTENA DESAPUNTADA', c: 'lost' }, { a: 'earth', t: 'TIERRA', c: 'rf' }],
+    [{ a: 'lander', t: 'SIN LUZ SOLAR', c: 'lost' }, { a: 'earth', t: 'TIERRA', c: 'rf' }]],
+  3: [[{ a: 'lander', t: 'NIVELADO · ENLACE 35 %', c: 'rf' }, { a: 'earth', t: 'TIERRA', c: 'rf' }],
+    [{ a: 'lander', t: 'ALABEO 30°', c: 'lost' }, { a: 'hit', t: 'ENLACE 7 %', c: 'lost' }, { a: 'earth', t: 'TIERRA', c: 'rf' }],
+    [{ a: 'dish', t: 'CARDÁN → TIERRA', c: 'ok' }, { a: 'lander', t: 'ALABEO 30°', c: 'sun' }, { a: 'earth', t: 'TIERRA', c: 'rf' }],
+    [{ a: 'array', t: 'MÁSTIL 10 m · PANELES AL SOL', c: 'sun' }, { a: 'lander', t: 'CUERPO EN SOMBRA · CALEFACTORES', c: 'rf' }]],
+  5: [[{ a: 'lander', t: 'EN SOMBRA', c: 'lost' }, { a: 'crest', t: 'CRESTA CON SOL', c: 'sun' }],
+    [{ a: 'lander', t: 'NO SOBREVIVE · T+2 d 17 h', c: 'lost' }, { a: 'crest', t: 'CRESTA CON SOL', c: 'sun' }],
+    [{ a: 'lander', t: 'NO SOBREVIVE · T+2 d 17 h', c: 'lost' }, { a: 'crest', t: 'ESCAPE · 250 m AL ESTE', c: 'ok' }],
+    [{ a: 'lander', t: 'SOBREVIVE 15 DÍAS · MARGEN 13 %', c: 'ok' }]],
+};
+const tagBox = document.getElementById('tags');
+const tagEls = Array.from({ length: 3 }, () => { const el = document.createElement('div'); el.className = 'tag'; el.innerHTML = '<i></i><span></span>'; tagBox.appendChild(el); return el; });
+function setTags() {
+  const list = (scene === 'surface' && TAGS[slideIdx] && TAGS[slideIdx][step]) || [];
+  tagEls.forEach((el, i) => {
+    const d = list[i];
+    if (!d) { el.classList.remove('is-on'); return; }
+    el.dataset.a = d.a; el.querySelector('span').textContent = d.t;
+    el.className = `tag ${d.c || ''}${d.a === 'earth' ? ' left' : ''} is-on`;
+  });
+}
+const pv = new Vector3();
+function placeTags() {
+  for (const el of tagEls) {
+    const p = ANCH[el.dataset.a];
+    if (!p || !el.classList.contains('is-on')) continue;
+    pv.copy(p).project(camera);
+    const x = (pv.x + 1) / 2 * innerWidth, y = (1 - pv.y) / 2 * innerHeight;
+    const left = el.dataset.a === 'earth' || x + 26 + el.offsetWidth > innerWidth - 12;
+    el.classList.toggle('left', left);
+    el.style.transform = left ? `translate(${x}px, ${y}px) translate(-100%, -50%) translateX(-26px)` : `translate(${x}px, ${y}px) translate(26px, -50%)`;
+  }
+}
+
 function loop(t) {
-  if (scene === 'surface') { surfaceFrame(t); renderer.render(surface, camera); }
+  if (scene === 'surface') { surfaceFrame(t); renderer.render(surface, camera); placeTags(); }
   else if (scene === 'globe') { globeFrame(t); renderer.render(globe, camera); }
   else renderer.clear();
   requestAnimationFrame(loop);
@@ -259,17 +456,18 @@ function render() {
   const nt = NOTES[slideIdx];
   notes.innerHTML = `<h4>${nt.act}</h4><p class="dir">${nt.dir}</p><p>${nt.say}</p>`;
   direct(slideIdx, step);
+  setTags();
 }
 
 function go(si, st) {
   const nextScene = slides[si].dataset.scene;
   const change = si !== slideIdx;
+  if (change) dust.userData = {};
   if (change && nextScene !== scene) {
     veil.classList.add('is-on');
-    setTimeout(() => { scene = nextScene; slideIdx = si; step = st; ring.userData = {}; S.hopX = 0; render(); veil.classList.remove('is-on'); }, reduced ? 0 : 430);
+    setTimeout(() => { scene = nextScene; slideIdx = si; step = st; render(); snap(); veil.classList.remove('is-on'); }, reduced ? 0 : 430);
     return;
   }
-  if (change) ring.userData = {};
   slideIdx = si; step = st; scene = nextScene; render();
 }
 function next() {
@@ -309,8 +507,9 @@ function fromHash() {
   const m = /s=(\d+)(?:\.(\d+))?/.exec(location.hash);
   if (!m) return false;
   slideIdx = Math.min(slides.length - 1, Number(m[1]) - 1); step = Number(m[2] || 0); scene = slides[slideIdx].dataset.scene;
+  dust.userData = {};
   return true;
 }
 fromHash();
-addEventListener('hashchange', () => { if (fromHash()) render(); });
-render();
+addEventListener('hashchange', () => { if (fromHash()) { render(); snap(); } });
+render(); snap();

@@ -20,6 +20,18 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; background: var(--space); color: var(--ink); font: 400 clamp(15px, 1.25vw, 20px)/1.5 var(--body); overflow: hidden; }
 #gl { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; }
+/* telemetry tags pinned to the 3-D scene: a leader line ends in a dot on the object */
+.tags { position: fixed; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
+.tag { --tone: var(--ink-2); position: absolute; left: 0; top: 0; display: flex; align-items: center; padding: 7px 11px; border: 1px solid var(--hair); border-radius: 8px; background: rgba(5, 7, 11, 0.74); backdrop-filter: blur(6px); font: 600 clamp(11px, 0.8vw, 14px)/1 var(--mono); letter-spacing: 0.08em; color: var(--ink); white-space: nowrap; opacity: 0; transition: opacity 500ms var(--ease); will-change: transform; }
+.tag.is-on { opacity: 1; }
+.tag i { position: absolute; top: 50%; right: 100%; width: 26px; height: 1px; background: var(--tone); }
+.tag i::after { content: ''; position: absolute; left: -4px; top: -3.5px; width: 8px; height: 8px; border-radius: 50%; background: var(--tone); box-shadow: 0 0 12px var(--tone); }
+.tag.left i { right: auto; left: 100%; }
+.tag.left i::after { left: auto; right: -4px; }
+.tag.lost { --tone: var(--lost); border-color: rgba(255, 59, 85, 0.55); }
+.tag.ok { --tone: var(--ok); border-color: rgba(25, 211, 127, 0.6); }
+.tag.sun { --tone: var(--sun); border-color: rgba(255, 184, 0, 0.55); }
+.tag.rf { --tone: var(--rf); }
 .veil { position: fixed; inset: 0; background: var(--space); opacity: 0; pointer-events: none; transition: opacity 420ms var(--ease); z-index: 2; }
 .veil.is-on { opacity: 1; }
 .deck { position: fixed; inset: 0; z-index: 3; }
@@ -68,8 +80,8 @@ html, body { margin: 0; height: 100%; background: var(--space); color: var(--ink
 .beats li { color: var(--ink-2); }
 .beats b { color: var(--ink); }
 .hot { color: var(--lost); font-weight: 600; }
-.metric { position: absolute; right: var(--gutter); bottom: clamp(80px, 14vh, 140px); display: grid; gap: 6px; padding: 22px 26px; border: 1px solid var(--hair); border-radius: 18px; background: var(--panel); backdrop-filter: blur(10px); }
-.metric b { font-size: clamp(48px, 5.4vw, 92px); line-height: 1; color: var(--lost); transition: color 700ms var(--ease); }
+.metric { position: absolute; right: var(--gutter); bottom: clamp(64px, 9vh, 100px); display: grid; gap: 4px; padding: 16px 20px; border: 1px solid var(--hair); border-radius: 18px; background: var(--panel); backdrop-filter: blur(10px); }
+.metric b { font-size: clamp(36px, 3.6vw, 60px); line-height: 1; color: var(--lost); transition: color 700ms var(--ease); }
 .metric b.is-ok { color: var(--ok); }
 .metric span { font: 13px var(--mono); color: var(--ink-3); max-width: 28ch; }
 
