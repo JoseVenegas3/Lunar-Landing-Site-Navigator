@@ -105,6 +105,14 @@ try {
   await p.click('[data-testid="lang-es"]');
   const seen = [];
   let lockedChecked = false, doItUsed = 0, last = '', sameSince = Date.now(), learnChecked = false, unitsChecked = false, fitChecked = false;
+  const clipSeen = new Set(), clipped = [];
+  const clipProbe = () => p.evaluate(() => {
+    const el = document.querySelector('[data-testid="beg-big"]');
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    const out = [...el.querySelectorAll('h2, p, button, .beg-next, .beg-badge-big')].filter((c) => { const b = c.getBoundingClientRect(); return b.width > 0 && (b.right > r.right + 1 || b.left < r.left - 1 || c.scrollWidth > c.clientWidth + 1); }).map((c) => (c.getAttribute('data-testid') || c.tagName) + ':' + (c.textContent || '').slice(0, 30));
+    return { out, sw: el.scrollWidth, cw: el.clientWidth, top: Math.round(r.top), bottom: Math.round(r.bottom), vh: innerHeight, title: el.querySelector('h2')?.textContent ?? '' };
+  });
   const t0 = Date.now();
   while (Date.now() - t0 < 900000) {
     const st = await p.evaluate(() => ({
@@ -127,24 +135,31 @@ try {
       const locked = await p.evaluate(() => ({ sub: document.querySelector('[data-testid="planner"]')?.dataset.subsystem, nudge: document.querySelector('[data-testid="beg-nudge"]')?.textContent ?? '', lock: document.querySelector('[data-testid="subsys-power"]')?.dataset.locked }));
       check('a locked subsystem does not open, and says why', locked.sub === 'overview' && locked.lock === '1', JSON.stringify(locked));
     }
+    if (st.step === 'celebrate' && !clipSeen.has(st.text)) {
+      clipSeen.add(st.text);
+      await p.waitForTimeout(600);
+      const c = await clipProbe();
+      if (c && (c.out.length || c.sw > c.cw + 1 || c.top < 0 || c.bottom > c.vh)) clipped.push(c);
+      await p.screenshot({ path: join(shots, `celebrate-${clipSeen.size}.png`) });
+    }
     if (st.step === 'celebrate' && !fitChecked) {
       // v3.2: the badge window fits a short laptop screen (1366 × 680), scrolling inside if needed
       fitChecked = true;
       const vp = p.viewportSize();
       await p.setViewportSize({ width: 1366, height: 680 });
-      await p.waitForTimeout(700);
+      await p.waitForTimeout(1200);
       const fit = await p.evaluate(() => {
         const el = document.querySelector('[data-testid="beg-big"]');
         const r = el.getBoundingClientRect();
         const btn = el.querySelector('[data-testid="beg-continue"]');
-        el.scrollTop = el.scrollHeight;
         const b = btn.getBoundingClientRect();
         return { top: Math.round(r.top), bottom: Math.round(r.bottom), vh: innerHeight, btnBottom: Math.round(b.bottom), btnVisible: b.bottom <= r.bottom + 1 && b.top >= r.top - 1 };
       });
+      const small = await clipProbe();
       await p.screenshot({ path: join(shots, 'celebrate-1366x680.png') });
       await p.setViewportSize(vp);
       await p.waitForTimeout(300);
-      check('the badge window is never cut: it fits a 1366 × 680 screen and its Continue button can be reached', fit.top >= 0 && fit.bottom <= fit.vh && fit.btnVisible, JSON.stringify(fit));
+      check('the badge window is never cut: it fits a 1366 × 680 screen, nothing overflows its sides and Continue can be reached', fit.top >= 0 && fit.bottom <= fit.vh && fit.btnVisible && small && small.out.length === 0 && small.sw <= small.cw + 1, JSON.stringify({ ...fit, out: small?.out }));
     }
     if (st.step === 'celebrate' && !learnChecked && /Insignia 2/.test(st.text)) {
       // v3.1 (SR-502 / SR-708): "Learn more" next to Continue, opening the 200 m comparison
@@ -211,6 +226,7 @@ try {
   const ids = seen.map((s) => s.id);
   check('the training opens with the cinematic, then runs from mission 0 to the diploma', ['intro', 'splash'].includes(ids[0]) && ids.includes('m0-approach') && ids.includes('m7-diploma') && ids.includes('celebrate'), ids.join(' > '));
   const bad = seen.filter((s) => /NaN|undefined|Infinity|null/.test(s.text));
+  check('no badge window clips its title or buttons, in any of the eight missions (wide two-column layout)', clipSeen.size >= 7 && clipped.length === 0, clipped.length ? JSON.stringify(clipped.slice(0, 2)) : `${clipSeen.size} windows`);
   check('missions open with a splash and end with a celebration that hands over the subsystem badge', ids.filter((x) => x === 'splash').length >= 7 && ids.filter((x) => x === 'celebrate').length >= 7, '');
   check('no narration shows NaN, undefined or a missing value', bad.length === 0, bad.map((s) => `${s.id}: ${s.text}`).join(' | '));
   check('"Do it for me" appears when the user is stuck and performs the action', doItUsed > 0, `${doItUsed} times`);

@@ -1180,7 +1180,7 @@ precompilación de shaders al montar la escena.
 |---|---|---|
 | `npm run typecheck` / `npm run lint` | `tsc --noEmit`, modo estricto | sin errores |
 | `npm test` | 175 tests: motor, JPL Horizons, terreno LOLA, relays, contingencia, capas, evoluciones v3, ventanas, v4 (banda 80–90° S, parches de 20 m, micro-relieve, veredicto), catálogo de sitios, titular y salida de emergencia, rangos del índice y tabla de supuestos, modo heredado, exportación, umbrales de telemetría y etiquetas sin abreviar | 175/175 (v3.1 final: unidades, CSV, KPI solar, Tierra vs. Luna, glosario, iluminación publicada, búsqueda de rescate) |
-| `npm run build && npm run e2e` | 158 comprobaciones en Chromium headless sobre terreno LOLA: 132 de Mission Leader (`e2e:leader`, incluye unidades, KPI solar, telémetro, Aprender más, límites LOLA, Web Worker, cero peticiones externas, cero 404 y `context.setOffline(true)`) y 26 del Modo Guiado (`e2e:beginner`) | 132/132 y 26/26 |
+| `npm run build && npm run e2e` | 159 comprobaciones en Chromium headless sobre terreno LOLA: 132 de Mission Leader (`e2e:leader`, incluye unidades, KPI solar, telémetro, Aprender más, límites LOLA, Web Worker, cero peticiones externas, cero 404 y `context.setOffline(true)`) y 27 del Modo Guiado (`e2e:beginner`) | 132/132 y 27/27 |
 | `npm run perf` | ritmo de cuadros con y sin vsync | tabla de la sección 8 |
 | `npm run guide` | capturas reales de la app (ES y EN) y la guía PDF desde `docs/` | `docs/img/`, `public/guide/*.pdf` |
 | `npm run measure-micro` | costo del peligro bajo el píxel, LOLA real | peor caso 93 ms |
@@ -1209,7 +1209,7 @@ fijo, idioma, 1280×720, 820 px y consola sin errores. Deja las capturas en
   proxy o espejo con CORS (sección 6.4); sin él queda en 160 m u 800 m.
 - El micro-relieve sub-píxel es estadístico; salvo la densidad de cráteres
   (Trask, 1966) sus parámetros son del equipo, no validados (sección 6.7).
-- La verificación e2e (158 comprobaciones) no necesita red; la lectura del
+- La verificación e2e (159 comprobaciones) no necesita red; la lectura del
   parche de 20 m en vivo (`scripts/verify_cog_stream.ts`, aparte) sí.
 - Muestreo horario. Los eventos más cortos que una hora se promedian.
 - La distancia del enlace es al centro de la Tierra, no a una estación concreta

@@ -3,7 +3,7 @@
 ## v3.2 (2026-11-15)
 
 - El reproductor de video pitch (`?pitch=true`) se retiró de la app: no es parte del producto. La presentación (`docs/pitch-gisat-lunar-navigator.pptx`) y la grabación de 3 minutos (`docs/video/`) quedan como material aparte.
-- Modo Guiado: la ventana de celebración (insignia ganada), el diploma y la portada de misión ya no se cortan en pantallas bajas; se ajustan a la ventana y se desplazan dentro.
+- Modo Guiado: la ventana de celebración (insignia ganada) es ancha, en dos columnas (insignia a la izquierda, texto y botones a la derecha), y ya no corta el título ni los botones; también cabe en pantallas bajas. El botón «Salir» del entrenamiento es más corto para no tapar «Cambiar de versión».
 - El cursor sobre el terreno 3D muestra solo la distancia lineal al módulo.
 - Revisión de las traducciones ES / EN.
 

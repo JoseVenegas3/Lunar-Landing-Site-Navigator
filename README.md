@@ -110,7 +110,7 @@ enunciado; el porqué está en la sección 4.2 de [ARCHITECTURE.md](ARCHITECTURE
 | `npm test` | 175 tests del motor, el catálogo de sitios, la emergencia, la exportación y la interfaz (vitest) |
 | `npm run guide` | toma las capturas reales de la app (`npm run guide-shots`, ES y EN) y regenera `public/guide/guia-interfaz-es.pdf` y `-en.pdf` desde `docs/guia-interfaz*.md` |
 | `npm run measure-micro` | mide el costo del peligro bajo el píxel en los cinco sitios |
-| `npm run e2e` | verificación en navegador con Playwright (requiere `npm run build`): 158 comprobaciones: 132 de Mission Leader (`e2e:leader`, incluida la prueba sin red) y 26 del Modo Guiado (`e2e:beginner`) |
+| `npm run e2e` | verificación en navegador con Playwright (requiere `npm run build`): 159 comprobaciones: 132 de Mission Leader (`e2e:leader`, incluida la prueba sin red) y 27 del Modo Guiado (`e2e:beginner`) |
 | `npm run find-scenarios` | busca con el motor los escenarios del entrenamiento y escribe `src/beginner/scenarios.ts` |
 | `npm run perf` | medición de cuadros por segundo |
 | `npm run build-dem` | regenera las mallas LOLA de `public/dem/` (requiere `pip install rasterio numpy`) |

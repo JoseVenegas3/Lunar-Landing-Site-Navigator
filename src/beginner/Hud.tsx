@@ -53,7 +53,7 @@ export function BeginnerHud() {
           d={b.music ? 'M8 15V5l8-2v10M8 15a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM16 13a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z' : 'M8 15V5l8-2v10M8 15a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM3 3l14 14'} />
         <IconBtn label={t('Subtitles', 'Subtítulos')} pressed={b.subtitles} onClick={() => b.setSound({ subtitles: !b.subtitles })} testId="beg-subtitles" d="M3 5h14v10H3zM6 11h3M11 11h3M6 8.5h8" />
         <IconBtn label={t('Repeat step', 'Repetir paso')} onClick={repeat} testId="beg-repeat" d="M4 10a6 6 0 1 0 2-4.5M4 3v3h3" />
-        <button type="button" className="btn btn-small" onClick={() => setConfirmExit(true)} data-testid="beg-exit">{t('Exit to Full mode', 'Salir al Modo Completo')}</button>
+        <button type="button" className="btn btn-small" onClick={() => setConfirmExit(true)} data-testid="beg-exit" title={t('Leave the training and open Full mode', 'Salir del entrenamiento y abrir el Modo Completo')}>{t('Exit', 'Salir')}</button>
       </header>
 
       {confirmExit && (

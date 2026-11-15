@@ -1279,3 +1279,27 @@ input[type="range"] { width: 100%; accent-color: var(--rock); height: 18px; marg
   .beg-badge-big svg { width: 80px; height: 80px; }
   .beg-next { display: none; }
 }
+
+/* v3.2: the badge window is WIDE, not tall: badge on the left, text and buttons on the right; nothing is clipped. */
+.beg-celebrate {
+  width: min(900px, calc(100vw - 32px));
+  grid-template-columns: 190px minmax(0, 1fr);
+  column-gap: 28px; row-gap: 10px;
+  justify-items: stretch; align-items: center; text-align: left;
+  padding: 28px 32px;
+}
+.beg-celebrate > * { grid-column: 2; min-width: 0; max-width: 100%; }
+.beg-celebrate > .beg-confetti { grid-column: 1 / -1; }
+.beg-celebrate > .beg-badge-big { grid-column: 1; grid-row: 1 / span 6; justify-self: center; align-self: center; }
+.beg-celebrate h2 { overflow-wrap: anywhere; }
+.beg-celebrate .beg-unlock { justify-self: start; }
+.beg-celebrate .beg-cel-actions { justify-content: flex-start; }
+.beg-celebrate .beg-cel-actions .btn { flex: 1 1 260px; }
+.learn-btn.is-big { white-space: normal; min-width: 0; max-width: 100%; text-align: left; line-height: 1.3; }
+.beg-diploma > * { min-width: 0; max-width: 100%; }
+.beg-diploma .beg-cel-actions .btn { flex: 1 1 260px; }
+@media (max-height: 860px) { .beg-celebrate .beg-badge-big svg { width: 140px; height: 140px; } }
+@media (max-width: 720px) {
+  .beg-celebrate { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; }
+  .beg-celebrate > *, .beg-celebrate > .beg-badge-big { grid-column: 1; grid-row: auto; }
+}
