@@ -33,7 +33,7 @@ const NOTES = [
   { act: 'Acto IV · Física real (2/2) · 1:40–2:05', dir: 'Mismo ritmo. Sigue con la mano el camino de la señal. Último clic: el presupuesto de enlace real.',
     say: 'Reemplazamos la línea de vista de sí o no por física de radio: la señal se difracta sobre hasta tres crestas y rebota en el regolito. La conectamos con la Red del Espacio Profundo de la NASA, con un satélite de relevo, y con una estación hipotética de GISAT de 3,7 metros aquí en Concepción.' },
   { act: 'Acto V · Clímax: demo de rescate · 2:05–2:35', dir: 'Emoción contenida, ritmo de cuenta regresiva. Un compañero puede hacer la demo en vivo en la app. Último clic: la captura real del Modo Emergencia.',
-    say: 'Veámoslo en acción. Emergencia: el módulo cae fuera de curso en una ladera en sombra cerca de Nobile. El sistema da un veredicto humano inmediato: no sobrevive tal como está, sale de su rango térmico en dos días y diecisiete horas. Pero no nos quedamos en el diagnóstico: evalúa 25 puntos de contacto y traza el vector de escape. Un clic, y la nave se mueve 250 metros al este. El indicador cambia a verde: sobrevive los 15 días con 13 por ciento de margen.' },
+    say: 'Veámoslo en acción. Emergencia: el módulo cae fuera de curso en una ladera en sombra cerca de Nobile. El sistema da un veredicto humano inmediato: no sobrevive tal como está, sale de su rango térmico en dos días y diecisiete horas. Pero no nos quedamos en el diagnóstico: evalúa 25 puntos de contacto y traza el vector de escape. Un clic, y la nave se mueve 354 metros al sureste. El indicador cambia a verde: sobrevive los 15 días con 13 por ciento de margen.' },
   { act: 'Acto VI · Cierre · 2:35–3:00', dir: 'Tono solemne y confiado. Postura firme, contacto visual con todo el jurado.',
     say: 'Esto no es una maqueta: es una aplicación terminada, con 175 pruebas unitarias y 159 comprobaciones en navegador, y que funciona sin conexión a internet. Lleva física de actitud, supervivencia criogénica y difracción de radio a un navegador web abierto, para misiones y para aulas. Porque en el Polo Sur lunar, 200 metros o unas pocas horas escriben la historia. Hoy, esa frontera está abierta para todos. Muchas gracias.' },
 ];
@@ -393,7 +393,7 @@ const TAGS = {
     [{ a: 'array', t: 'MÁSTIL 10 m · PANELES AL SOL', c: 'sun' }, { a: 'lander', t: 'CUERPO EN SOMBRA · CALEFACTORES', c: 'rf' }]],
   5: [[{ a: 'lander', t: 'EN SOMBRA', c: 'lost' }, { a: 'crest', t: 'CRESTA CON SOL', c: 'sun' }],
     [{ a: 'lander', t: 'NO SOBREVIVE · T+2 d 17 h', c: 'lost' }, { a: 'crest', t: 'CRESTA CON SOL', c: 'sun' }],
-    [{ a: 'lander', t: 'NO SOBREVIVE · T+2 d 17 h', c: 'lost' }, { a: 'crest', t: 'ESCAPE · 250 m AL ESTE', c: 'ok' }],
+    [{ a: 'lander', t: 'NO SOBREVIVE · T+2 d 17 h', c: 'lost' }, { a: 'crest', t: 'ESCAPE · 354 m AL SURESTE', c: 'ok' }],
     [{ a: 'lander', t: 'SOBREVIVE 15 DÍAS · MARGEN 13 %', c: 'ok' }]],
 };
 const tagBox = document.getElementById('tags');

@@ -84,7 +84,7 @@ const S = [
       'Reemplazamos la línea de vista de sí o no por difracción sobre tres crestas y rebotes en el regolito, y conectamos la Luna con la Red del Espacio Profundo, con un relevo y con una estación hipotética de GISAT de 3,7 metros aquí en Concepción. Además, evitamos que un alunizaje lance polvo sobre sus vecinos.'],
   },
   {
-    time: '2:10–2:40', crit: ['VALIDITY · LIVE DEMO', 'VALIDEZ · DEMO EN VIVO'], img: 'res.png',
+    time: '2:10–2:40', crit: ['VALIDITY · LIVE DEMO', 'VALIDEZ · DEMO EN VIVO'], img: 'rescue-after.png',
     title: ['Emergency triage: rescued in one click', 'Triaje de emergencia: rescate en un clic'],
     bullets: [
       ['1 · Where are we? Position, slope and sub-pixel hazards.', '1 · ¿Dónde estamos? Posición, pendiente y peligros bajo el píxel.'],
@@ -92,9 +92,9 @@ const S = [
       ['3 · Where to go? 25 touchdown points, an escape vector and "Run this way out".', '3 · ¿Hacia dónde ir? 25 puntos de contacto, un vector de escape y «Ejecutar esta salida».'],
       ['"Optimise" flies 38 missions in 1.1 s in a Web Worker.', '«Optimizar» simula 38 misiones en 1,1 s en un Web Worker.'],
     ],
-    metric: ['250 m → E', '250 m → E'], mlabel: ['SURVIVES the 15 days, 13% energy margin (engine)', 'SOBREVIVE los 15 días, 13 % de margen (motor)'], mcolor: C.green,
-    say: ['Live: a lander comes down off course near Nobile. The Emergency mode answers where we are, how long we have, and where to go. One click on "Run this way out" moves it 250 metres east, and the headline turns green: it survives the 15 days with a 13 percent energy margin.',
-      'En vivo: una nave cae fuera de curso cerca de Nobile. El modo Emergencia responde dónde estamos, cuánto tiempo queda y hacia dónde ir. Un clic en «Ejecutar esta salida» la mueve 250 metros al este y el titular cambia a verde: sobrevive los 15 días con 13 por ciento de margen de energía.'],
+    metric: ['354 m → SE', '354 m → SE'], mlabel: ['SURVIVES the 15 days, 13% energy margin (engine)', 'SOBREVIVE los 15 días, 13 % de margen (motor)'], mcolor: C.green,
+    say: ['Live: a lander comes down off course near Nobile. The Emergency mode answers where we are, how long we have, and where to go. One click on "Run this way out" moves it 354 metres south-east, and the headline turns green: it survives the 15 days with a 13 percent energy margin.',
+      'En vivo: una nave cae fuera de curso cerca de Nobile. El modo Emergencia responde dónde estamos, cuánto tiempo queda y hacia dónde ir. Un clic en «Ejecutar esta salida» la mueve 354 metros al sureste y el titular cambia a verde: sobrevive los 15 días con 13 por ciento de margen de energía.'],
   },
   {
     time: '2:40–3:00', crit: ['SUMMARY', 'RESUMEN'], summary: true,
