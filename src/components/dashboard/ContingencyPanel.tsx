@@ -10,13 +10,18 @@ import { useMemo } from 'react';
 import { useActiveScenario } from '../../state/mission';
 import { useApp } from '../../state/store';
 import { fmtDuration, fmtNum, useT } from '../../lib/format';
+import { useUnits } from '../../lib/units';
 
 function Slider({ label, value, min, max, step, unit, onChange, testId }: {
   label: string; value: number; min: number; max: number; step: number; unit: string; onChange: (v: number) => void; testId?: string;
 }) {
+  const u = useUnits();
+  // Lengths and speeds follow the unit system (SR-711); the slider itself stays in SI.
+  const shown = unit === 'm' || unit === 'm/s' ? u.len(value) : value;
+  const shownUnit = unit === 'm' ? u.lenU : unit === 'm/s' ? u.speedU : unit;
   return (
     <label className="field">
-      <span className="field-label">{label}<output className="mono">{value > 0 && min < 0 ? '+' : ''}{fmtNum(value, step < 1 ? 1 : 0)} {unit}</output></span>
+      <span className="field-label">{label}<output className="mono">{value > 0 && min < 0 ? '+' : ''}{fmtNum(shown, step < 1 ? 1 : 0)} {shownUnit}</output></span>
       <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} data-testid={testId} />
     </label>
   );
@@ -33,6 +38,7 @@ function Stat({ label, value, tone }: { label: string; value: string; tone?: 'cr
 
 export function ContingencyPanel() {
   const t = useT();
+  const u = useUnits();
   const lang = useApp((s) => s.lang);
   const attitude = useApp((s) => s.attitude);
   const setAttitude = useApp((s) => s.setAttitude);
@@ -149,8 +155,8 @@ export function ContingencyPanel() {
               <Stat label={t('Mean over the ±200 m ellipse', 'Media en la elipse de ±200 m')} value={pct(tip.meanP)} tone={tip.meanP > 0.1 ? 'crit' : tip.meanP > 0.01 ? 'warn' : 'ok'} />
               <Stat label={t('Worst cell of the ellipse', 'Peor celda de la elipse')} value={`${pct(tip.maxP)} · ${fmtNum(tip.maxSlopeDeg, 1)}°`} tone={tip.maxP > 0.1 ? 'crit' : tip.maxP > 0.01 ? 'warn' : undefined} />
               <Stat label={t('Static stability angle', 'Ángulo de estabilidad estática')} value={`${fmtNum(staticStabilityDeg(tipover), 1)}°`} />
-              <Stat label={t('Tipping speed on level ground', 'Velocidad de vuelco en terreno plano')} value={`${fmtNum(criticalVelocityMs(tipover, 0), 2)} m/s`} />
-              <Stat label={t('Tipping speed down the local slope', 'Velocidad de vuelco cuesta abajo aquí')} value={`${fmtNum(criticalVelocityMs(tipover, tip.centre.slopeDeg), 2)} m/s · ${fmtNum(tip.centre.slopeDeg, 1)}°`} />
+              <Stat label={t('Tipping speed on level ground', 'Velocidad de vuelco en terreno plano')} value={u.ms(criticalVelocityMs(tipover, 0), 2)} />
+              <Stat label={t('Tipping speed down the local slope', 'Velocidad de vuelco cuesta abajo aquí')} value={`${u.ms(criticalVelocityMs(tipover, tip.centre.slopeDeg), 2)} · ${fmtNum(tip.centre.slopeDeg, 1)}°`} />
             </div>
             <div className="disp-wrap tip-wrap">
               <div className="disp-grid" role="grid" aria-label={t('Tip-over probability over the ellipse, north up', 'Probabilidad de vuelco en la elipse, norte arriba')} data-testid="tipover-grid">
@@ -159,7 +165,7 @@ export function ContingencyPanel() {
                     {Array.from({ length: tip.size }, (_, i) => {
                       const c = tip.cells[j * tip.size + i];
                       return (
-                        <div key={i} role="gridcell" className={`disp-cell tip-cell${c === tip.centre ? ' is-centre' : ''}`} style={{ background: tipColour(c.p) }} title={`E ${c.eastM > 0 ? '+' : ''}${c.eastM} m, N ${c.northM > 0 ? '+' : ''}${c.northM} m · ${fmtNum(c.slopeDeg, 1)}°`}>
+                        <div key={i} role="gridcell" className={`disp-cell tip-cell${c === tip.centre ? ' is-centre' : ''}`} style={{ background: tipColour(c.p) }} title={`E ${u.mSigned(c.eastM)}, N ${u.mSigned(c.northM)} · ${fmtNum(c.slopeDeg, 1)}°`}>
                           <span className="mono">{fmtNum(100 * c.p, c.p < 0.0995 ? 1 : 0)}%</span>
                         </div>
                       );
@@ -242,14 +248,14 @@ export function ContingencyPanel() {
             {co && (
               <>
                 <div className="stat-grid" data-testid="asset-kpis">
-                  <Stat label={t('NASA exclusion radius, scaled', 'Radio de exclusión NASA, escalado')} value={`${fmtNum(co.psi.hazardRadiusM, 0)} m`} />
+                  <Stat label={t('NASA exclusion radius, scaled', 'Radio de exclusión NASA, escalado')} value={u.m(co.psi.hazardRadiusM)} />
                   <Stat label={t('Ejecta fluence at the asset', 'Fluencia de eyección en el activo')} value={`${fmtNum(co.psi.fluenceRatio, co.psi.fluenceRatio < 10 ? 2 : 0)} × ${t('limit', 'límite')}`} tone={co.psi.violated ? 'crit' : 'ok'} />
                   <Stat label={t('Lander shaded by the asset', 'Lander sombreado por el activo')} value={`${fmtNum(co.landerShadedPct, 2)} %`} tone={co.landerShadedPct > 1 ? 'warn' : undefined} />
                   <Stat label={t('Asset shaded by the lander', 'Activo sombreado por el lander')} value={`${fmtNum(co.assetShadedPct, 2)} %`} tone={co.assetShadedPct > 1 ? 'warn' : undefined} />
                 </div>
                 {co.psi.violated && (
                   <p className="alert" role="alert" data-testid="psi-alert">
-                    {t(`The asset is inside the ${fmtNum(co.psi.hazardRadiusM, 0)} m exclusion radius (NASA heritage-site guideline scaled with thrust).`, `El activo está dentro del radio de exclusión de ${fmtNum(co.psi.hazardRadiusM, 0)} m (guía NASA para sitios patrimoniales, escalada con el empuje).`)}
+                    {t(`The asset is inside the ${u.m(co.psi.hazardRadiusM)} exclusion radius (NASA heritage-site guideline scaled with thrust).`, `El activo está dentro del radio de exclusión de ${u.m(co.psi.hazardRadiusM)} (guía NASA para sitios patrimoniales, escalada con el empuje).`)}
                   </p>
                 )}
                 <p className="kpi-note pad0">

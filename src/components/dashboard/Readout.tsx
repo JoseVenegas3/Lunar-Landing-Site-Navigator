@@ -5,6 +5,7 @@ import {
 } from '../../engine';
 import { ScenarioData, cursorIndex, useThrottledCursor } from '../../state/mission';
 import { cardinal, fmtNum, fmtRate, fmtSigned, useT } from '../../lib/format';
+import { useUnits } from '../../lib/units';
 import { Tone, batteryTone, busTone, marginTone, sunTone } from '../../lib/telemetry';
 
 export interface Instant {
@@ -93,6 +94,7 @@ function Group({ icon, title, children, id }: { icon: keyof typeof ICON; title: 
  */
 export function Readout({ data, engineering = false }: { data: ScenarioData; engineering?: boolean }) {
   const t: T = useT();
+  const u = useUnits();
   const cursor = useThrottledCursor();
   const v = useInstant(data, cursor);
   if (!v) return <div className="telemetry" data-testid="readout"><p className="kpi-note pad0">{t('Flying the mission…', 'Volando la misión…')}</p></div>;
@@ -114,8 +116,8 @@ export function Readout({ data, engineering = false }: { data: ScenarioData; eng
       </Group>
       {v.busC !== null && (
         <Group icon="thermal" id="thermal" title={t('Thermal', 'Térmico')}>
-          <Reading id="bus" label={t('Electronics temperature', 'Temperatura de la electrónica')} value={`${fmtSigned(v.busC, 1)} °C`} tone={busTone(v.busC)}
-            tip={t('Temperature of the lander body: heaters switch on at 0 °C, the battery freezes at −20 °C.', 'Temperatura del cuerpo del lander: los calefactores se encienden a 0 °C y la batería se congela a −20 °C.')} />
+          <Reading id="bus" label={t('Electronics temperature', 'Temperatura de la electrónica')} value={u.cSigned(v.busC, 1)} tone={busTone(v.busC)}
+            tip={t(`Temperature of the lander body: heaters switch on at ${u.c(0)}, the battery freezes at ${u.c(-20)}.`, `Temperatura del cuerpo del lander: los calefactores se encienden a ${u.c(0)} y la batería se congela a ${u.c(-20)}.`)} />
           <Reading id="heater" label={t('Heaters', 'Calefactores')} value={`${fmtNum(v.heaterW, 0)} W`} tone={v.heaterW > 0 ? 'warn' : undefined}
             tip={t('Power spent keeping the electronics warm.', 'Potencia gastada en mantener tibia la electrónica.')} />
         </Group>

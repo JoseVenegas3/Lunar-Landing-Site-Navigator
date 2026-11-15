@@ -15,6 +15,8 @@ import { EXIT_MOVE_RADIUS_M } from '../../state/exitPlan';
 import { RESCUE_SPANS, useApp } from '../../state/store';
 import { TELEMETRY_LIMITS } from '../../lib/telemetry';
 import { fmtNum, useT } from '../../lib/format';
+import { LolaLimits } from '../DataLimits';
+import { useUnits } from '../../lib/units';
 
 type Bi = [string, string];
 interface Row { p: Bi; value: string; unit: string; source: Bi | null; where: Bi }
@@ -64,6 +66,7 @@ export const ASSUMPTIONS: Row[] = [
 
 export function AssumptionsTable() {
   const t = useT();
+  const u = useUnits();
   const li = useApp((s) => (s.lang === 'es' ? 1 : 0));
   return (
     <section className="panel block" data-testid="assumptions">
@@ -78,8 +81,8 @@ export function AssumptionsTable() {
             {ASSUMPTIONS.map((r) => (
               <tr key={r.p[0]} data-origin={r.source ? 'source' : 'team'}>
                 <th scope="row">{r.p[li]}</th>
-                <td className="mono">{r.value}</td>
-                <td className="mono">{r.unit}</td>
+                <td className="mono">{r.unit === '°C' && u.sys === 'imperial' ? fmtNum(u.tempC(Number(r.value)), 0) : r.value}</td>
+                <td className="mono">{r.unit === '°C' ? u.tempU : r.unit}</td>
                 <td className={r.source ? '' : 'is-team'}>{r.source ? r.source[li] : t('team assumption', 'supuesto del equipo')}</td>
                 <td>{r.where[li]}</td>
               </tr>
@@ -87,6 +90,7 @@ export function AssumptionsTable() {
           </tbody>
         </table>
       </div>
+      <LolaLimits testid="lola-limits-assume" />
     </section>
   );
 }

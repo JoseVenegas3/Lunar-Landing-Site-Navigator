@@ -11,7 +11,8 @@ import { DemStack, Grid, MissionResult, RELOCATION_LIMIT_M, xyToLatLon } from '.
 import { AssetMarker, AttitudeGizmo } from './SceneContingency';
 import { ScenarioData, useActiveScenario } from '../../state/mission';
 import { OverlayKind, ScenarioKey, ViewKind, sceneFocus, useApp } from '../../state/store';
-import { fmtLat, fmtLon, fmtNum, fmtSigned, useT } from '../../lib/format';
+import { cardinal, fmtLat, fmtLon, fmtNum, useT } from '../../lib/format';
+import { useUnits } from '../../lib/units';
 import { DteBeam, FarSkyline, HorizonRing, Lander, RelaySats, RelocationPad, SkyBodies, SunVector } from './SceneObjects';
 import { Terrain } from './Terrain';
 import { DoubleClickLand, EscapeArrow, LandmarkLabels, SiteMarkers, SunBeam } from './SceneExtras';
@@ -130,15 +131,18 @@ function SceneContents({ dem, result, overlay, scenarioKey }: { dem: DemStack; r
   const focus = useApp(sceneFocus);
   const beginner = useApp((s) => s.experience === 'beginner');
   const t = useT();
+  const u = useUnits();
   const dblText = useMemo(() => ({
-    move: (m: number) => t(`Move the lander (${m} m)`, `Mover el lander (${m} m)`),
-    create: t('Create a custom site here', 'Crear sitio propio aquí'),
+    move: (m: number) => t(`double-click: move the lander (${u.m(m)})`, `doble clic: mover el lander (${u.m(m)})`),
+    create: t('outside the relocation range (±500 m): double-click creates a custom site', 'fuera del radio de reubicación (±500 m): doble clic crea un sitio propio').replace(/500 m/g, u.m(RELOCATION_LIMIT_M)),
     outside: t('Outside the area: only south of 80° S', 'Fuera del área: solo al sur de 80° S'),
-  }), [t]);
+    ruler: (r: { distM: number; bearingDeg: number; elevM: number; slopeDeg: number; inBox: boolean }) =>
+      `${t('Cursor', 'Cursor')}: ${u.dist(r.distM)} (${cardinal(r.bearingDeg)} ${String(Math.round(r.bearingDeg) % 360).padStart(3, '0')}°)${r.inBox ? '' : ` ${t('from the lander', 'del módulo')}`} | ${t('Elev', 'Elev')}: ${u.mSigned(r.elevM)} | ${t('Slope', 'Pendiente')}: ${fmtNum(r.slopeDeg, 1)}°`,
+  }), [t, u]);
   const siteName = useMemo(() => (id: string, name: string, km: number): string => {
     const approx = MISSION_SITES.find((s) => s.id === id)?.approximate ? ` · ${t('approximate coordinate', 'coordenada aproximada')}` : '';
-    return `${name} · ${km < 10 ? km.toFixed(1) : Math.round(km)} km${approx}`;
-  }, [t]);
+    return `${name} · ${u.kmStr(km, km < 10 ? 1 : 0)}${approx}`;
+  }, [t, u]);
   const grid = dem.local as Grid;
   const live = useMemo(makeLiveSky, []);
   const frame = useMemo(() => makeSceneFrame(grid), [grid]);
@@ -212,7 +216,7 @@ function SceneContents({ dem, result, overlay, scenarioKey }: { dem: DemStack; r
       <SiteMarkers result={result} frame={frame} nameOf={siteName} />
       {(focus === 'triage' || focus === 'terrain') && <EscapeArrow result={result} frame={frame} dem={dem} scenarioKey={scenarioKey} />}
       {focus === 'power' && <SunBeam live={live} />}
-      <DoubleClickLand result={result} frame={frame} scenarioKey={scenarioKey} text={dblText} />
+      <DoubleClickLand result={result} frame={frame} scenarioKey={scenarioKey} text={dblText} dem={dem} />
       {beginner && (
         <BeginnerFx live={live} linkOpen={() => {
           const i = Math.max(0, Math.min(result.count - 1, Math.round(useApp.getState().cursorHours / result.stepHours)));
@@ -244,13 +248,14 @@ const DEBUG = typeof location !== 'undefined' && new URLSearchParams(location.se
 /** Permanent, discreet reminder of what a double-click on the terrain does; can be dismissed (remembered). */
 function DoubleClickHint() {
   const t = useT();
+  const u = useUnits();
   const [hidden, setHidden] = useState(() => { try { return localStorage.getItem(DBL_HINT_KEY) === 'hidden'; } catch { return false; } });
   // The open legend repeats the hint, and needs the room at the bottom of the view.
   const legend = useApp((s) => s.panels.legend);
   if (hidden || legend) return null;
   return (
     <div className="hud-block dbl-hint" data-testid="dbl-hint">
-      <span>{t(`Double-click the terrain: move the lander (≤ ${RELOCATION_LIMIT_M} m) or create a custom site`, `Doble clic en el terreno: mover el lander (≤ ${RELOCATION_LIMIT_M} m) o crear un sitio propio`)}</span>
+      <span>{t(`Double-click the terrain: move the lander (≤ ${u.m(RELOCATION_LIMIT_M)}) or create a custom site`, `Doble clic en el terreno: mover el lander (≤ ${u.m(RELOCATION_LIMIT_M)}) o crear un sitio propio`)}</span>
       <button type="button" aria-label={t('Hide this hint', 'Ocultar esta pista')} title={t('Hide this hint', 'Ocultar esta pista')} onClick={() => { setHidden(true); try { localStorage.setItem(DBL_HINT_KEY, 'hidden'); } catch { /* storage unavailable */ } }} data-testid="dbl-hint-close">×</button>
     </div>
   );
@@ -258,6 +263,7 @@ function DoubleClickHint() {
 
 function SceneHud({ data }: { data: ScenarioData }) {
   const t = useT();
+  const u = useUnits();
   const view = useApp((s) => s.view);
   const overlay = useApp((s) => s.overlay);
   const cfg = useApp((s) => s.scenarios[data.key]);
@@ -286,7 +292,7 @@ function SceneHud({ data }: { data: ScenarioData }) {
         <div className="hud-title"><ScenarioBadge k={data.key} /><span className="site-label" data-site-label={data.name}>{data.name}</span></div>
         {r && pos && (
           <p className="hud-line mono">
-            {fmtLat(pos.latDeg)} {fmtLon(pos.lonDeg)} · {fmtSigned(r.kpis.groundElevationM, 0)} m ·{' '}
+            {fmtLat(pos.latDeg)} {fmtLon(pos.lonDeg)} · {u.mSigned(r.kpis.groundElevationM)} ·{' '}
             <span className={r.kpis.slopeDeg > 15 ? 'is-crit' : r.kpis.slopeDeg > 10 ? 'is-warn' : ''}>
               {t('slope', 'pendiente')} {fmtNum(r.kpis.slopeDeg, 1)}°
             </span>
@@ -294,7 +300,7 @@ function SceneHud({ data }: { data: ScenarioData }) {
         )}
         <p className="hud-line hud-reloc mono">
           <span className="reloc-title">{t('Lander offset', 'Desplazamiento')}</span>{' '}
-          <span className="reloc-values" data-testid="reloc-readout">ΔE {fmtSigned(cfg.dxM, 0)} m&nbsp;&nbsp;ΔN {fmtSigned(cfg.dyM, 0)} m</span>
+          <span className="reloc-values" data-testid="reloc-readout">ΔE {u.mSigned(cfg.dxM)}&nbsp;&nbsp;ΔN {u.mSigned(cfg.dyM)}</span>
           {moved && (
             <button type="button" className="btn btn-small hud-reset" onClick={() => setRelocation(data.key, 0, 0)} data-testid="reloc-reset">
               {t('Return to nominal point', 'Volver al punto nominal')}
@@ -348,8 +354,8 @@ function SceneHud({ data }: { data: ScenarioData }) {
             <li><i className="sw sw-cone" />{t('Antenna beam (θ3dB) and body normal', 'Haz de antena (θ3dB) y normal del cuerpo')}</li>
             <li><i className="sw sw-psi" />{t('NASA exclusion radius, scaled', 'Radio de exclusión NASA, escalado')}</li>
             <li><i className="sw sw-ring" />{t(`Horizon gauge, elevation ×${RING_ELEVATION_GAIN}`, `Anillo de horizonte, elevación ×${RING_ELEVATION_GAIN}`)}</li>
-            <li><i className="sw sw-box" />{t(`Drag the lander inside the ±${RELOCATION_LIMIT_M} m box`, `Arrastra el lander dentro del cuadro de ±${RELOCATION_LIMIT_M} m`)}</li>
-            <li><i className="sw sw-dbl" />{t(`Double-click the terrain: move the lander (≤ ${RELOCATION_LIMIT_M} m) or create a custom site`, `Doble clic en el terreno: mover el lander (≤ ${RELOCATION_LIMIT_M} m) o crear un sitio propio`)}</li>
+            <li><i className="sw sw-box" />{t(`Drag the lander inside the ±${u.m(RELOCATION_LIMIT_M)} box`, `Arrastra el lander dentro del cuadro de ±${u.m(RELOCATION_LIMIT_M)}`)}</li>
+            <li><i className="sw sw-dbl" />{t(`Double-click the terrain: move the lander (≤ ${u.m(RELOCATION_LIMIT_M)}) or create a custom site`, `Doble clic en el terreno: mover el lander (≤ ${u.m(RELOCATION_LIMIT_M)}) o crear un sitio propio`)}</li>
           </ul>
         )}
         <button type="button" className={`btn btn-small${legend ? ' is-on' : ''}`} aria-pressed={legend} onClick={() => setPanels({ legend: !legend })} data-testid="legend-toggle">

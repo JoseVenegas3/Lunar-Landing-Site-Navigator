@@ -1,4 +1,4 @@
-# Guía de la interfaz — CLPS Lunar Mission Browser v2.1
+# Guía de la interfaz — CLPS Lunar Mission Browser v3.1
 
 GISAT UdeC · NASA Space Apps 2026 · Navegador de sitios de alunizaje del Polo Sur lunar
 
@@ -178,3 +178,59 @@ Responde primero con un titular en lenguaje llano: **SOBREVIVE**, **SOBREVIVE SI
 * Efemérides: astronomy-engine. Estaciones: DSN (Goldstone, Madrid, Canberra).
 * No se modelan la trayectoria de descenso, el combustible ni los errores de navegación. El vehículo por defecto es ilustrativo.
 * La fórmula de Deygout y los parámetros del micro-relieve se escribieron sin contrastar con la norma o la literatura citada.
+
+## 13. Entrega final v3.1: novedades
+
+**Puerta de entrada y dos modos.** Al abrir la app se pregunta «¿Has usado esta app alguna vez?». *No* → **Comenzar entrenamiento (Modo Guiado)**, el modo Principiante: ocho misiones narradas que desbloquean los subsistemas uno a uno y entregan una insignia por misión. *Sí* → **Abrir Mission Leader (Modo Completo)**. En la barra superior, **Cambiar de versión** vuelve a la pregunta; el escenario, el idioma y las unidades se conservan.
+
+**Unidades SI / Imperial.** Junto a ES / EN, en la puerta de entrada (**Unidades: SI (m, °C) | Imperial (ft, °F)**) y en la barra superior (**SI / IMP**). Cambian longitudes, distancias, temperaturas, velocidades y áreas en tarjetas, deslizadores, ejes, etiquetas 3-D y narración. Potencia (W), energía (Wh), frecuencia (GHz), tasas, dB y ángulos no cambian. Se recuerda entre visitas. El motor y el CSV trabajan siempre en SI (el CSV lo declara en su cabecera).
+
+**Elevación solar efectiva (KPI de potencia).** En Signos vitales, en la tabla de KPI y en la cabecera de Energía / térmico: elevación del centro del disco solar ahora y máxima de la ventana, el disco visible f☉, el factor de incidencia sobre el arreglo y la potencia ahora / pico, sobre un arco de 0° a 5°. En el polo el Sol roza el horizonte: décimas de grado deciden si el disco supera una cresta.
+
+**Telémetro del cursor.** Al pasar el cursor por el terreno 3-D se lee en vivo la distancia y el rumbo desde el lander, la elevación y la pendiente bajo el cursor, dentro y fuera del cuadro de ±500 m. Una línea punteada une el lander con el cursor. Fuera del cuadro el indicador se pone ámbar y dice que el doble clic crea un sitio propio.
+
+**Aprender más: Física Lunar vs. Tierra.** Botón en cada celebración de misión y en el diploma del modo Principiante, y botón **Física Lunar vs. Tierra** en la barra de subsistemas del modo Completo. Abre una ventana con dos columnas (En la Tierra / En el Polo Sur lunar), un diagrama simple y cifras calculadas con el motor: cielo y Sol rasante, por qué 200 m lo cambian todo, frío radiativo, radio y libración, polvo balístico, trampas frías y un resumen maestro.
+
+**Límites de los datos LOLA.** Un bloque en Terreno › Dispersión y escape, en el modo Emergencia y en la tabla de supuestos declara la resolución (20 m/px en los sitios, 160 m/px en coordenadas libres, 800 m/px para el horizonte lejano hasta 250 km), la interpolación entre trazas láser y el carácter estadístico del micro-relieve. Las corridas de incertidumbre propagan el error de altura a la luz, la vista de la Tierra y la supervivencia como bandas P10 / P50 / P90.
+
+**Contraste con mapas publicados.** Cada sitio muestra la coordenada de referencia del enunciado y la luz calculada por la app junto a la iluminación anual publicada. Mientras un valor no se haya verificado contra el artículo (Mazarico et al. 2011, Bussey et al. 2010, De Rosa et al. 2012), la app dice «sin dato verificado» en vez de inventarlo.
+
+**Optimizar sitio y fecha en segundo plano.** La búsqueda de rescate (25 puntos y fechas posteriores) corre en un Web Worker, con poda de puntos demasiado empinados para posarse, y no detiene la vista 3-D. El registro del resultado indica si corrió en el Worker.
+
+**Sin conexión.** Todo el terreno, las capas científicas, las imágenes y las guías vienen en el repositorio; la app funciona sin internet.
+
+## Glosario de Términos Lunares y de Ingeniería
+
+Las mismas definiciones aparecen en la app como tooltips: pasa el cursor (o enfoca con el teclado) un término subrayado con puntos, sobre todo en la narración del modo Principiante.
+
+**DTE (directo a la Tierra).** Enlace de radio del lander directo a una antena en la Tierra, sin satélite de relevo. Necesita la Tierra sobre el horizonte local y una estación terrena que vea la Luna.
+
+**LOS (línea de visión / pérdida de señal).** Línea de visión: el camino recto entre la antena y el objetivo. Cuando el relieve la corta, se pierde la señal (también LOS, loss of signal).
+
+**Libración lunar.** La Luna muestra siempre la misma cara a la Tierra, pero su órbita inclinada y elíptica la hace oscilar unos ±7,9° en longitud y ±6,7° en latitud. Desde la Luna, la Tierra se pasea dentro de una pequeña caja del cielo en vez de salir y ponerse.
+
+**DEM (modelo digital de elevación).** Una grilla de alturas del suelo, un valor por celda (aquí 20 m por píxel cerca de los sitios). Todas las sombras, pendientes y horizontes de la app salen de ella.
+
+**LOLA (altímetro láser del LRO).** Altímetro láser del Lunar Reconnaissance Orbiter de la NASA. Midió la altura de la superficie a lo largo de trazas orbitales; entre trazas los mapas polares se interpolan (Barker et al. 2023).
+
+**PSR (región permanentemente sombreada).** Suelo en el fondo de cráteres polares al que el Sol nunca llega, porque cerca del polo no sube más de uno o dos grados sobre el horizonte. Las PSR son trampas frías donde el hielo de agua puede perdurar.
+
+**WEH (hidrógeno equivalente a agua).** Hidrógeno medido desde órbita con espectrómetros de neutrones, expresado como si fuera todo hielo de agua (% en peso). Un indicio de hielo, no una detección directa.
+
+**DoD (profundidad de descarga).** Cuánto de la capacidad de la batería se ha usado. Las descargas profundas acortan su vida, por eso las misiones fijan un límite seguro.
+
+**Difracción de filo de cuchillo (Deygout / ITU-R P.526).** Las ondas de radio se doblan un poco sobre una cresta y pierden potencia. ITU-R P.526 da la pérdida de un filo agudo; el método de Deygout suma la cresta principal y las secundarias (aquí hasta tres).
+
+**Primera zona de Fresnel.** El volumen en forma de cigarro alrededor de la línea de visión que lleva la mayor parte de la energía de radio. Su radio es √(λ·d1·d2/(d1+d2)); el relieve dentro de ella debilita el enlace aunque la línea de visión esté libre.
+
+**Multipath en regolito.** Parte de la señal rebota en el suelo y llega con retraso, sumando o anulando la señal directa. Importa sobre todo con la Tierra baja, como en el polo. El regolito se modela con permitividad εr = 3,7.
+
+**Actitud 6-DOF (alabeo, cabeceo, guiñada).** Un cuerpo tiene seis grados de libertad: tres posiciones y tres giros. La actitud son los tres giros: alabeo, cabeceo y guiñada. Un lander inclinado apunta mal sus paneles y su antena.
+
+**Gimbal (cardán).** Montura articulada que deja girar la antena respecto del cuerpo del lander. Su rango (grados) dice cuánto puede alejarse del eje del cuerpo y aún apuntar a la Tierra.
+
+**PSI (interacción pluma-superficie).** El chorro del motor de un lander al alunizar arrastra el regolito. Sin aire que lo frene, el polvo vuela en trayectorias balísticas rápidas y rasantes que pueden dañar equipos lejanos.
+
+**ELFO (órbita lunar elíptica congelada).** Órbita muy alargada cuya forma se mantiene casi fija por años, con su punto lejano sobre el polo sur: un satélite de relevo ahí ve el polo muchas horas por órbita.
+
+**Índice SOM-RF.** Puntaje multicriterio con que la app ordena los sitios (vista de la Tierra, luz, pendiente, rugosidad, hielo, etc.). Sus pesos vienen del documento de estado del arte del equipo, que cita un estudio de mapas autoorganizados y bosques aleatorios; no se han contrastado con ese artículo.

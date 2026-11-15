@@ -11,7 +11,7 @@
  *                            the night is as long as the battery can bridge.
  */
 import { useEffect, useState } from 'react';
-import { CANDIDATE_SITES, Kpis, evaluateScenario } from '../../engine';
+import { PUBLISHED_ILLUMINATION, CANDIDATE_SITES, Kpis, evaluateScenario } from '../../engine';
 import { ensureLocal, getRegional } from '../../state/dem';
 import { useApp } from '../../state/store';
 import { fmtDuration, fmtNum, useT } from '../../lib/format';
@@ -88,12 +88,15 @@ export function SiteCards() {
                     />
                   </>
                 ) : <span className="mono card-wait">{t('analysing terrain…', 'analizando el relieve…')}</span>}
+                <small className="pub-contrast" data-testid={`pub-${site.id}`}>
+                  {t('Published annual illumination', 'Iluminación anual publicada')}: {PUBLISHED_ILLUMINATION[site.id]?.illumPct != null ? `${fmtNum(PUBLISHED_ILLUMINATION[site.id].illumPct as number, 0)} %` : <span className="is-unverified">{t('not verified', 'sin verificar')}</span>}
+                </small>
               </button>
             </li>
           );
         })}
       </ul>
-      <p className="kpi-note">{t('Same engine and hardware as the planner, without the thermal model. A full "Longest night" bar is a night as long as the battery can bridge in hibernation.', 'Mismo motor y equipo que el planificador, sin el modelo térmico. Una barra «Noche más larga» llena es una noche tan larga como la que la batería resiste en hibernación.')}</p>
+      <p className="kpi-note">{t('Same engine and hardware as the planner, without the thermal model. A full "Longest night" bar is a night as long as the battery can bridge in hibernation. Published illumination (Mazarico et al. 2011, Bussey et al. 2010, De Rosa et al. 2012) is an annual figure for the published point; this app computes the window on screen at its own landing point, so the two are compared, not expected to match exactly.', 'Mismo motor y equipo que el planificador, sin el modelo térmico. Una barra «Noche más larga» llena es una noche tan larga como la que la batería resiste en hibernación. La iluminación publicada (Mazarico et al. 2011, Bussey et al. 2010, De Rosa et al. 2012) es una cifra anual para el punto publicado; esta app calcula la ventana en pantalla en su propio punto de alunizaje, así que se comparan, no se espera que coincidan exactamente.')}</p>
     </section>
   );
 }

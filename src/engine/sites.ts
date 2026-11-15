@@ -19,6 +19,23 @@ export interface CandidateSite {
   brief: { latDeg: number; lonDeg: number };
 }
 
+/**
+ * Published annual illumination of each candidate site, for the contrast with
+ * the engine (R8, SR-101). A value is filled in only once it has been read
+ * from the paper for the same point; until then it is null and the interface
+ * says "no value verified" and names the papers to compare with:
+ *   Mazarico et al. 2011, Icarus 211, 1066-1081 (LOLA illumination maps);
+ *   Bussey et al. 2010, Icarus 208, 558-564 (Kaguya topography);
+ *   De Rosa et al. 2012, Planet. Space Sci. 74, 224-246 (ESA Lunar Lander sites).
+ */
+export const PUBLISHED_ILLUMINATION: Record<string, { illumPct: number | null; ref: string }> = {
+  'shackleton-ridge': { illumPct: null, ref: 'Bussey et al. 2010; Mazarico et al. 2011; De Rosa et al. 2012' },
+  'malapert-massif': { illumPct: null, ref: 'Mazarico et al. 2011; De Rosa et al. 2012' },
+  'haworth-rim': { illumPct: null, ref: 'Mazarico et al. 2011' },
+  'nobile-rim': { illumPct: null, ref: 'Mazarico et al. 2011' },
+  'de-gerlache-rim-2': { illumPct: null, ref: 'Bussey et al. 2010; Mazarico et al. 2011; De Rosa et al. 2012' },
+};
+
 export const CANDIDATE_SITES: CandidateSite[] = [
   {
     id: 'shackleton-ridge',

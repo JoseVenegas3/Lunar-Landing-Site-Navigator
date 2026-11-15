@@ -1,6 +1,7 @@
 /** Side-by-side KPI comparison of scenarios A and B, plus the link budget of the active one. */
 import { useState } from 'react';
 import { AdvancedKpis, Kpis, LinkBudget, groundStation, requiredGroundStation } from '../../engine';
+import { useUnits } from '../../lib/units';
 
 type AllKpis = Kpis & AdvancedKpis;
 import { ScenarioData, useMission } from '../../state/mission';
@@ -23,6 +24,7 @@ interface Row {
 
 function useRows(): Row[] {
   const t = useT();
+  const u = useUnits();
   const relayOn = useApp((s) => s.relay.enabled);
   const relayRows: Row[] = relayOn ? [
     { id: 'relay', label: t('Relay in view', 'Relay a la vista'), hint: t('above terrain and with Earth in view', 'sobre el relieve y con la Tierra a la vista'), value: (k) => k.relayPct, text: (k) => `${fmtNum(k.relayPct)} %`, better: 1, bar: 'relay' },
@@ -31,6 +33,7 @@ function useRows(): Row[] {
     { id: 'relaydata', label: t('Data through the relay', 'Datos por el relay'), hint: t('while DTE is closed', 'mientras el DTE está cerrado'), value: (k) => k.relayDataGb, text: (k) => fmtData(k.relayDataGb), better: 1 },
   ] : [];
   const base: Row[] = [
+    { id: 'sunel', label: t('Solar elevation, max (power KPI)', 'Elevación solar máx. (KPI potencia)'), hint: t('Sun skims the horizon: tenths of a degree change the power', 'el Sol roza el horizonte: décimas de grado cambian la potencia'), value: (k) => k.sunElMaxDeg, text: (k) => `${fmtNum(k.sunElMaxDeg, 2)}° ${t('max', 'máx')}${k.sunElMaxDeg < 5 ? ` · ${t('grazing', 'rasante')}` : ''}`, better: 1 },
     { id: 'illum', label: t('Average illumination', 'Iluminación media'), hint: t('visible solar disc, time-averaged', 'disco solar visible, promedio temporal'), value: (k) => k.illuminationPct, text: (k) => `${fmtNum(k.illuminationPct)} %`, better: 1, bar: 'sun' },
     { id: 'sunlit', label: t('Hours with sunlight', 'Horas con luz solar'), value: (k) => k.sunlitPct, text: (k) => `${fmtNum(k.sunlitPct)} %`, better: 1, bar: 'sun' },
     { id: 'light', label: t('Longest continuous light', 'Mayor período continuo de luz'), value: (k) => k.longestLightH, text: (k) => fmtDuration(k.longestLightH), better: 1 },
@@ -42,7 +45,7 @@ function useRows(): Row[] {
     { id: 'rfavail', label: t('Downlink closes', 'La descarga cierra'), hint: t('diffraction, multipath, pointing, station in view', 'difracción, multipath, apuntamiento, estación a la vista'), value: (k) => k.rfAvailabilityPct, text: (k) => `${fmtNum(k.rfAvailabilityPct)} %`, better: 1, bar: 'rf' },
     { id: 'data', label: t('Science data return', 'Retorno de datos científicos'), value: (k) => k.dataGb, text: (k) => fmtData(k.dataGb), better: 1 },
     { id: 'attpen', label: t('Attitude penalty', 'Penalización por actitud'), hint: t('power / data lost to the tilt', 'potencia / datos perdidos por la inclinación'), value: (k) => k.attitudePowerPenaltyPct + k.attitudeRfPenaltyPct, text: (k) => `${fmtNum(k.attitudePowerPenaltyPct, 0)} % / ${fmtNum(k.attitudeRfPenaltyPct, 0)} %`, better: -1, alert: (k) => (k.attitudeRfPenaltyPct > 30 || k.attitudePowerPenaltyPct > 30 ? 'crit' : null) },
-    { id: 'busmin', label: t('Lowest bus temperature', 'Temperatura mínima del bus'), value: (k) => k.minBusC ?? 0, text: (k) => (k.minBusC === null ? '—' : `${fmtNum(k.minBusC, 1)} °C`), better: 1, alert: (k) => (k.thermalDeathH !== null ? 'crit' : k.minBusC !== null && k.minBusC < -10 ? 'warn' : null) },
+    { id: 'busmin', label: t('Lowest bus temperature', 'Temperatura mínima del bus'), value: (k) => k.minBusC ?? 0, text: (k) => (k.minBusC === null ? '—' : u.c(k.minBusC, 1)), better: 1, alert: (k) => (k.thermalDeathH !== null ? 'crit' : k.minBusC !== null && k.minBusC < -10 ? 'warn' : null) },
     {
       id: 'soc', label: t('Lowest battery charge', 'Carga mínima de batería'), value: (k) => k.minSocPct, text: (k) => `${fmtNum(k.minSocPct, 0)} %`, better: 1,
       alert: (k) => (!k.survives ? 'crit' : k.dodAlert ? 'warn' : null),
@@ -133,6 +136,7 @@ function linkRows(l: LinkBudget, t: (en: string, es: string) => string): [string
 
 export function LinkBudgetCard({ data }: { data: ScenarioData }) {
   const t = useT();
+  const u = useUnits();
   const rf = useApp((s) => s.rf);
   const l = data.result?.link ?? null;
   const [targetKbps, setTargetKbps] = useState<number | null>(null);
@@ -145,7 +149,7 @@ export function LinkBudgetCard({ data }: { data: ScenarioData }) {
       {l ? (
         <>
           <p className="link-cap mono">
-            {rf.band}-band {(l.frequencyHz / 1e9).toFixed(1)} GHz · {groundStation(rf.groundStationId).name} · {fmtNum(l.rangeKm, 0)} km
+            {rf.band}-band {(l.frequencyHz / 1e9).toFixed(1)} GHz · {groundStation(rf.groundStationId).name} · {u.kmStr(l.rangeKm, 0)}
           </p>
           <dl className="link-grid mono" data-testid="link-budget">
             {linkRows(l, t).map(([k, v]) => (<div key={k}><dt>{k}</dt><dd>{v}</dd></div>))}
@@ -187,7 +191,7 @@ export function LinkBudgetCard({ data }: { data: ScenarioData }) {
             {need && (
               <dl className="link-grid mono" data-testid="gt-required">
                 <div><dt>{t('Required G/T', 'G/T requerido')}</dt><dd>{fmtNum(need.gOverTDbK)} dB/K</dd></div>
-                <div><dt>{t('Equivalent dish at 150 K', 'Antena equivalente a 150 K')}</dt><dd>{fmtNum(need.dishDiameterM, need.dishDiameterM < 10 ? 2 : 1)} m</dd></div>
+                <div><dt>{t('Equivalent dish at 150 K', 'Antena equivalente a 150 K')}</dt><dd>{u.m(need.dishDiameterM, need.dishDiameterM < 10 ? 2 : 1)}</dd></div>
                 <div><dt>{t('Selected station', 'Estación seleccionada')}</dt><dd className={l.gOverTDbK >= need.gOverTDbK ? '' : 'is-crit'}>{fmtNum(l.gOverTDbK)} dB/K ({l.gOverTDbK >= need.gOverTDbK ? '+' : ''}{fmtNum(l.gOverTDbK - need.gOverTDbK)} dB)</dd></div>
               </dl>
             )}

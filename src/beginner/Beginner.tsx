@@ -20,6 +20,8 @@ import { CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from
 import { useMission } from '../state/mission';
 import { useApp } from '../state/store';
 import { useT } from '../lib/format';
+import { LearnButton, MISSION_TOPIC } from '../components/LearnMore';
+import { Glossed } from '../components/Glossary';
 import { camProbe, landerAnim } from '../components/3d/sceneMath';
 import { SUB_ICON, subsystemLabel } from '../components/dashboard/SubsystemSwitch';
 import { finishTraining } from './lifecycle';
@@ -152,7 +154,7 @@ export function Beginner() {
     const ids = [window.setTimeout(bring, 120), window.setTimeout(bring, 1300)];
     const inTarget = (n: EventTarget | null): boolean => {
       const el = n as Element | null;
-      return Boolean(el && (el.closest(sel) || el.closest('.beg, .beg-hud, .beg-confirm')));
+      return Boolean(el && (el.closest(sel) || el.closest('.beg, .beg-hud, .beg-confirm, .learn, .units')));
     };
     const onKey = (e: KeyboardEvent): void => {
       if (e.key === 'Tab') {
@@ -335,9 +337,12 @@ export function Beginner() {
               <span>{t('Next', 'Siguiente')}: <b>{nextTitle}</b><br /><small>{MISSION_INFO[m + 1].goal[li]}</small></span>
             </div>
           )}
-          <button type="button" className="btn beg-go" onClick={() => next(true)} data-testid="beg-continue" autoFocus>
-            {t('Next mission', 'Siguiente misión')}
-          </button>
+          <div className="beg-cel-actions">
+            <LearnButton topic={MISSION_TOPIC[m]} big testid="learn-cel" />
+            <button type="button" className="btn beg-go" onClick={() => next(true)} data-testid="beg-continue" autoFocus>
+              {t('Next mission', 'Siguiente misión')}
+            </button>
+          </div>
         </section>
       )}
 
@@ -348,7 +353,10 @@ export function Beginner() {
           <h2 id="beg-dip-h">{t('Training complete: graduated as Flight Director', 'Entrenamiento completado: graduado como Flight Director')}</h2>
           <div className="beg-dip-patches" aria-hidden="true">{BADGES.map((_, k) => <Badge key={k} i={k} earned size={54} />)}</div>
           <p>{text}</p>
-          <button type="button" className="btn beg-pro" onClick={finishTraining} data-testid="beg-to-pro" autoFocus>{t('Open the Pro console (Mission Leader)', 'Acceder a la consola Pro (Mission Leader)')}</button>
+          <div className="beg-cel-actions">
+            <LearnButton topic="master" big testid="learn-dip" />
+            <button type="button" className="btn beg-pro" onClick={finishTraining} data-testid="beg-to-pro" autoFocus>{t('Open the Pro console (Mission Leader)', 'Acceder a la consola Pro (Mission Leader)')}</button>
+          </div>
         </div>
       )}
 
@@ -359,7 +367,7 @@ export function Beginner() {
             <span className={`capcom-wave${typedAll ? '' : ' is-live'}`} aria-hidden="true">{Array.from({ length: 7 }, (_, k) => <i key={k} style={{ '--k': k } as CSSProperties} />)}</span>
             <span className="capcom-where">{t('Mission', 'Misión')} {m} · {MISSION_TITLES[m][li]}</span>
           </header>
-          <p className="capcom-text" onClick={finishTyping}>{typed}<span className="sr-only">{typed === text ? '' : text}</span></p>
+          <p className="capcom-text" onClick={finishTyping}>{typedAll ? <Glossed text={typed} /> : typed}<span className="sr-only">{typed === text ? '' : text}</span></p>
           {isAction && typedAll && <p className="capcom-goal" data-testid="beg-objective"><b>{t('Your move', 'Tu turno')}</b> {t('Do it in the highlighted area.', 'Hazlo en la zona iluminada.')}</p>}
           {b.stuck >= 1 && step.hint && <p className="capcom-hint" data-testid="beg-hint">{step.hint[li]}</p>}
           <div className="capcom-actions">
@@ -377,7 +385,7 @@ export function Beginner() {
       {b.phase === 'step' && step.cont && (
         // A plain "Continue" step that is not a mission end is shown as the transmission too.
         <section className="capcom" role="status" data-testid="beg-card">
-          <p className="capcom-text">{text}</p>
+          <p className="capcom-text"><Glossed text={text} /></p>
           <div className="capcom-actions"><button type="button" className="btn beg-go" onClick={() => next()} data-testid="beg-continue">{t('Continue', 'Continuar')}</button></div>
         </section>
       )}

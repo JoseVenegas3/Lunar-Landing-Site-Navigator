@@ -5,16 +5,17 @@
 import { useEffect, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import {
-  AdditiveBlending, BufferAttribute, BufferGeometry, CanvasTexture, CylinderGeometry, DoubleSide, Group, Mesh, MeshBasicMaterial, Quaternion, Raycaster, Sprite,
+  AdditiveBlending, BufferAttribute, BufferGeometry, CanvasTexture, CylinderGeometry, DoubleSide, Group, Line, LineDashedMaterial, Mesh, MeshBasicMaterial, Quaternion, Raycaster, Sprite,
   SpriteMaterial, Vector2, Vector3,
 } from 'three';
 import {
-  ALL_SITES, CUSTOM_LAT_MAX, DemStack, MissionResult, NAMED_LANDFORMS, RELOCATION_LIMIT_M, demHeight, latLonToXY, localAxes, xyToLatLon,
+  ALL_SITES, CUSTOM_LAT_MAX, DemStack, MissionResult, NAMED_LANDFORMS, RELOCATION_LIMIT_M, demHeight, latLonToXY, localAxes, slopeDeg, xyToLatLon,
 } from '../../engine';
 import { siteColour } from '../PolarMap';
 import { useInsights } from '../../state/insights';
 import { ScenarioKey, useApp } from '../../state/store';
-import { BODY_DISTANCE_KM, LiveSky, SKYLINE_RADIUS_KM, SceneFrame, hudTags, mapToScene, useSceneUi } from './sceneMath';
+import { BODY_DISTANCE_KM, LiveSky, SKYLINE_RADIUS_KM, SceneFrame, hudTags, landerAnim, mapToScene, useSceneUi } from './sceneMath';
+import { currentUnits } from '../../lib/units';
 
 const ARROW_COLOUR = 0x34f5a8;
 
@@ -87,6 +88,7 @@ function labelSprite(text: string): Sprite {
 /** Names of the real landforms, floating above the skyline in their true bearing, with the distance. */
 export function LandmarkLabels({ result, frame }: { result: MissionResult; frame: SceneFrame }) {
   const obs = result.observer;
+  const sys = useApp((s) => s.unitSystem);
   const group = useMemo(() => {
     const g = new Group();
     const eye = mapToScene(frame, obs.x, obs.y, obs.heightKm, new Vector3());
@@ -96,12 +98,13 @@ export function LandmarkLabels({ result, frame }: { result: MissionResult; frame
       const [x, y] = latLonToXY(f.latDeg, f.lonDeg);
       const dx = x - obs.x, dy = y - obs.y, d = Math.hypot(dx, dy);
       if (d < 4) continue; // standing on it
-      const s = labelSprite(`${f.name} · ${Math.round(d)} km`);
+      const s = labelSprite(`${f.name} · ${currentUnits().kmStr(d, 0)}`);
       s.position.set(eye.x + (dx / d) * SKYLINE_RADIUS_KM * 0.92, eye.y + SKYLINE_RADIUS_KM * 0.075, eye.z - (dy / d) * SKYLINE_RADIUS_KM * 0.92);
       g.add(s);
     }
     return g;
-  }, [obs, frame]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [obs, frame, sys]);
 
   useEffect(() => () => {
     for (const o of group.children) {
@@ -201,6 +204,8 @@ export interface DoubleClickText {
   move: (m: number) => string;
   create: string;
   outside: string;
+  /** Live cursor ruler (SR-204): distance and bearing from the lander, ground elevation and slope under the cursor. */
+  ruler: (r: { distM: number; bearingDeg: number; elevM: number; slopeDeg: number; inBox: boolean }) => string;
 }
 
 /**
@@ -209,9 +214,20 @@ export interface DoubleClickText {
  * the terrain a reticle says which of the two will happen; north of 80° S the
  * click is refused with a message instead of being ignored.
  */
-export function DoubleClickLand({ result, frame, scenarioKey, text }: { result: MissionResult; frame: SceneFrame; scenarioKey: ScenarioKey; text: DoubleClickText }) {
+export function DoubleClickLand({ result, frame, scenarioKey, text, dem }: { result: MissionResult; frame: SceneFrame; scenarioKey: ScenarioKey; text: DoubleClickText; dem: DemStack }) {
   const { gl, camera, scene } = useThree();
   const { latDeg, lonDeg } = result.input;
+  // Faint dashed line on the ground from the lander to the cursor, inside and outside the ±500 m box.
+  const tether = useMemo(() => {
+    const g = new BufferGeometry();
+    g.setAttribute('position', new BufferAttribute(new Float32Array(6), 3));
+    const l = new Line(g, new LineDashedMaterial({ color: 0xe6edf7, dashSize: 0.025, gapSize: 0.02, transparent: true, opacity: 0.7, depthTest: false }));
+    l.frustumCulled = false;
+    l.visible = false;
+    l.renderOrder = 5;
+    return l;
+  }, []);
+  useEffect(() => () => { tether.geometry.dispose(); (tether.material as LineDashedMaterial).dispose(); }, [tether]);
   useEffect(() => {
     const ray = new Raycaster();
     const ndc = new Vector2();
@@ -230,17 +246,33 @@ export function DoubleClickLand({ result, frame, scenarioKey, text }: { result: 
       const ax = localAxes(lonDeg);
       const eastM = ((x - nx) * ax.ex + (y - ny) * ax.ey) * 1000, northM = ((x - nx) * ax.nx + (y - ny) * ax.ny) * 1000;
       const inBox = Math.abs(eastM) <= RELOCATION_LIMIT_M && Math.abs(northM) <= RELOCATION_LIMIT_M;
-      return { ll, eastM, northM, inBox, outside: ll.latDeg > CUSTOM_LAT_MAX, px: ev.clientX - r.left, py: ev.clientY - r.top };
+      return { ll, eastM, northM, inBox, outside: ll.latDeg > CUSTOM_LAT_MAX, px: ev.clientX - r.left, py: ev.clientY - r.top, x, y, point: hit.point };
     };
+    const hideTether = (): void => { tether.visible = false; };
     const showCursor = (p: ReturnType<typeof pick>): void => {
       const c = hudTags.cursor;
       if (!c) return;
-      if (!p || useSceneUi.getState().dragging) { c.style.display = 'none'; return; }
+      if (!p || useSceneUi.getState().dragging) { c.style.display = 'none'; hideTether(); return; }
       const cfg = useApp.getState().scenarios[scenarioKey];
-      const label = p.outside ? text.outside : p.inBox ? text.move(Math.round(Math.hypot(p.eastM - cfg.dxM, p.northM - cfg.dyM))) : text.create;
+      const dE = p.eastM - cfg.dxM, dN = p.northM - cfg.dyM;
+      const distM = Math.hypot(dE, dN);
+      const bearingDeg = (((Math.atan2(dE, dN) * 180) / Math.PI) + 360) % 360;
+      const ruler = text.ruler({ distM, bearingDeg, elevM: demHeight(dem, p.x, p.y) * 1000, slopeDeg: slopeDeg(dem, p.x, p.y), inBox: p.inBox });
+      const action = p.outside ? text.outside : p.inBox ? text.move(Math.round(distM)) : text.create;
+      const label = `${ruler} — ${action}`;
       c.style.display = 'block';
       c.style.transform = `translate(${Math.round(p.px)}px, ${Math.round(p.py)}px)`;
       c.dataset.action = p.outside ? 'outside' : p.inBox ? 'move' : 'create';
+      c.dataset.distM = String(Math.round(distM));
+      if (landerAnim.hasDrawn) {
+        const a = tether.geometry.getAttribute('position') as BufferAttribute;
+        a.setXYZ(0, landerAnim.drawn.x, landerAnim.drawn.y + 0.004, landerAnim.drawn.z);
+        a.setXYZ(1, p.point.x, p.point.y + 0.004, p.point.z);
+        a.needsUpdate = true;
+        tether.geometry.computeBoundingSphere();
+        tether.computeLineDistances();
+        tether.visible = true;
+      }
       const span = c.lastElementChild as HTMLElement | null;
       if (span && span.textContent !== label) span.textContent = label;
     };
@@ -251,7 +283,7 @@ export function DoubleClickLand({ result, frame, scenarioKey, text }: { result: 
       if (raf) return;
       raf = requestAnimationFrame(() => { raf = 0; if (last) showCursor(pick(last)); });
     };
-    const onLeave = (): void => { if (hudTags.cursor) hudTags.cursor.style.display = 'none'; };
+    const onLeave = (): void => { if (hudTags.cursor) hudTags.cursor.style.display = 'none'; hideTether(); };
     const onDouble = (ev: MouseEvent): void => {
       const p = pick(ev);
       if (!p) return;
@@ -279,8 +311,8 @@ export function DoubleClickLand({ result, frame, scenarioKey, text }: { result: 
       cancelAnimationFrame(raf);
       onLeave();
     };
-  }, [gl, camera, scene, frame, latDeg, lonDeg, scenarioKey, text]);
-  return null;
+  }, [gl, camera, scene, frame, latDeg, lonDeg, scenarioKey, text, dem, tether]);
+  return <primitive object={tether} />;
 }
 
 const UP = new Vector3(0, 1, 0);

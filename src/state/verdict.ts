@@ -1,15 +1,16 @@
 /**
  * Verdict of a scenario and the one-click rescue: try the 25 touchdown points
  * of the dispersion grid, and when none of them saves the mission, walk the
- * calendar forward to the first date that does. Runs time-sliced so the 3-D
- * view never stalls.
+ * calendar forward to the first date that does. Runs in a Web Worker (v3.1,
+ * R6), or time-sliced on the main thread where workers are unavailable, so the
+ * 3-D view never stalls.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { create } from 'zustand';
 import {
-  HOUR_MS, MicroHazard, MissionInput, Verdict, computeHorizon, evaluateMission, makeObserver, microHazard, missionVerdict, relocatedXY,
-  sunlitDirections, tipoverMap, verdictImproves,
+  MicroHazard, RescueOptions, RescueResult, Verdict, microHazard, missionVerdict, rescueSteps, staticStabilityDeg, sunlitDirections, tipoverMap,
 } from '../engine';
+import type { RescueReply, RescueRequest } from './rescueProtocol';
 import { DISPERSION_RADIUS_M, DISPERSION_SIZE } from './insights';
 import { ScenarioData } from './mission';
 import { ScenarioKey, useApp } from './store';
@@ -25,8 +26,10 @@ export interface RescueOutcome {
   startMs: number | null;
   /** Scenario state the outcome describes; a later edit of the scenario makes it stale. */
   signature: string;
-  /** Missions flown and wall time, for the record. */
+  /** Missions flown, touchdown points pruned (too steep to rest on), where it ran and wall time, for the record. */
   missions: number;
+  pruned: number;
+  engine: 'worker' | 'main';
   elapsedMs: number;
 }
 
@@ -91,6 +94,16 @@ export interface RescueView {
   clear: () => void;
 }
 
+/** One worker for the session, created on first use; null where workers are unavailable (then the search is time-sliced). */
+let worker: Worker | null | undefined;
+function rescueWorker(): Worker | null {
+  if (worker !== undefined) return worker;
+  try {
+    worker = typeof Worker === 'undefined' ? null : new Worker(new URL('./rescue.worker.ts', import.meta.url), { type: 'module' });
+  } catch { worker = null; }
+  return worker;
+}
+
 export function useRescue(data: ScenarioData): RescueView {
   const [progress, setProgress] = useState<number | null>(null);
   const stored = useRescueStore((s) => s.last[data.key]) ?? null;
@@ -99,72 +112,69 @@ export function useRescue(data: ScenarioData): RescueView {
   const last = stored && cfg && stored.signature === scenarioSignature(data.key) ? stored : null;
   const setLast = useRescueStore((s) => s.set);
   const token = useRef(0);
+  /** A search already running is not restarted by a second click. */
+  const running = useRef(false);
   const { dem, input, result, key } = data;
   const searchDays = useApp((s) => s.rescueDays);
+  const tipover = useApp((s) => s.tipover);
 
-  useEffect(() => () => { token.current++; }, []);
+  useEffect(() => () => { token.current++; running.current = false; }, []);
 
   const run = useCallback(() => {
-    if (!dem || !input || !result) return;
+    if (!dem || !input || !result || running.current) return;
+    running.current = true;
     const my = ++token.current;
     const t0 = performance.now();
     const before = missionVerdict(result);
-    const step = (2 * DISPERSION_RADIUS_M) / (DISPERSION_SIZE - 1);
-    const cells = DISPERSION_SIZE * DISPERSION_SIZE;
-    const dates = Math.floor((searchDays * 24) / RESCUE_STEP_HOURS);
-    let best = { verdict: before, eastM: 0, northM: 0 };
-    let k = 0, missions = 0;
+    const options: RescueOptions = { radiusM: DISPERSION_RADIUS_M, size: DISPERSION_SIZE, searchDays, stepHours: RESCUE_STEP_HOURS, pruneSlopeDeg: staticStabilityDeg(tipover) };
     setProgress(0);
 
-    const finish = (o: Omit<RescueOutcome, 'before' | 'missions' | 'elapsedMs' | 'signature'>): void => {
+    const finish = (o: RescueResult, engine: 'worker' | 'main'): void => {
+      running.current = false;
+      if (token.current !== my) return;
       const s = useApp.getState();
       if (o.action === 'move') s.setRelocation(key, input.dxM + o.eastM, input.dyM + o.northM);
       if (o.action === 'date' && o.startMs !== null) { s.setPlaying(false); s.updateScenario(key, { startMs: o.startMs }); s.setCursor(0); }
-      setLast(key, { ...o, before, missions, elapsedMs: performance.now() - t0, signature: scenarioSignature(key) });
+      setLast(key, { before: o.before, after: o.after, action: o.action, eastM: o.eastM, northM: o.northM, startMs: o.startMs, missions: o.missions, pruned: o.pruned, engine, elapsedMs: performance.now() - t0, signature: scenarioSignature(key) });
+      if (typeof document !== 'undefined') document.documentElement.dataset.rescueEngine = engine;
       setProgress(null);
     };
 
-    const tick = (): void => {
-      if (token.current !== my) return;
-      const start = performance.now();
-      while (performance.now() - start < 24) {
-        if (k < cells) {
-          // Phase 1: the 25 touchdown points within reach.
-          const eastM = -DISPERSION_RADIUS_M + (k % DISPERSION_SIZE) * step, northM = -DISPERSION_RADIUS_M + Math.floor(k / DISPERSION_SIZE) * step;
-          k++;
-          if (eastM === 0 && northM === 0) continue;
-          const at: MissionInput = { ...input, dxM: input.dxM + eastM, dyM: input.dyM + northM };
-          const [x, y] = relocatedXY(at.latDeg, at.lonDeg, at.dxM, at.dyM);
-          const v = missionVerdict(evaluateMission(dem, at, computeHorizon(dem, makeObserver(dem, x, y, at.mastM))));
-          missions++;
-          if (verdictImproves(best.verdict, v)) best = { verdict: v, eastM, northM };
-          continue;
+    // Main-thread fallback: the same generator, time-sliced so the 3-D view never stalls.
+    const mainThread = (): void => {
+      const it = rescueSteps(dem, input, result.horizon, before, options);
+      const tick = (): void => {
+        if (token.current !== my) { running.current = false; return; }
+        const start = performance.now();
+        while (performance.now() - start < 24) {
+          const s = it.next();
+          if (s.done) { finish(s.value, 'main'); return; }
+          setProgress(Math.min(0.99, s.value));
         }
-        if (best.verdict.level !== 'nogo' && verdictImproves(before, best.verdict)) {
-          finish({ after: best.verdict, action: 'move', eastM: best.eastM, northM: best.northM, startMs: null });
-          return;
-        }
-        if (k - cells >= dates) {
-          // Nothing saves it: keep the best partial improvement, if any.
-          if (verdictImproves(before, best.verdict)) finish({ after: best.verdict, action: 'move', eastM: best.eastM, northM: best.northM, startMs: null });
-          else finish({ after: before, action: 'none', eastM: 0, northM: 0, startMs: null });
-          return;
-        }
-        // Phase 2: the same point on later dates.
-        const startMs = input.startMs + (k - cells + 1) * RESCUE_STEP_HOURS * HOUR_MS;
-        k++;
-        const v = missionVerdict(evaluateMission(dem, { ...input, startMs }, result.horizon));
-        missions++;
-        if (v.level !== 'nogo' && verdictImproves(before, v)) {
-          finish({ after: v, action: 'date', eastM: 0, northM: 0, startMs });
-          return;
-        }
-      }
-      setProgress(Math.min(0.99, k / (cells + dates)));
+        setTimeout(tick, 0);
+      };
       setTimeout(tick, 0);
     };
-    setTimeout(tick, 0);
-  }, [dem, input, result, key, setLast, searchDays]);
+
+    const w = rescueWorker();
+    if (!w) { mainThread(); return; }
+    const onMessage = (e: MessageEvent<RescueReply>): void => {
+      const m = e.data;
+      if (m.id !== my) return;
+      if (m.kind === 'progress') { if (token.current === my) setProgress(Math.min(0.99, m.progress)); return; }
+      w.removeEventListener('message', onMessage);
+      if (m.kind === 'done') finish(m.result, 'worker');
+      else mainThread();
+    };
+    w.addEventListener('message', onMessage);
+    try {
+      const req: RescueRequest = { id: my, dem, input, horizon: result.horizon, before, options };
+      w.postMessage(req);
+    } catch {
+      w.removeEventListener('message', onMessage);
+      mainThread();
+    }
+  }, [dem, input, result, key, setLast, searchDays, tipover]);
 
   const clear = useCallback(() => setLast(key, undefined), [key, setLast]);
   return { run, progress, last, clear };

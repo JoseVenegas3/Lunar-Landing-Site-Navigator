@@ -9,6 +9,7 @@ import { ScenarioData } from '../../state/mission';
 import { useApp } from '../../state/store';
 import { CompareBlock } from './CompareBlock';
 import { cardinal, fmtData, fmtDate, fmtDateTime, fmtDuration, fmtMonthDay, fmtNum, useT } from '../../lib/format';
+import { useUnits } from '../../lib/units';
 import { ScenarioBadge } from '../ScenarioBadge';
 
 /** Month-day and hour, UTC: the year is on the axis above. */
@@ -39,6 +40,7 @@ function candidateTitle(c: LandingCandidate, t: (en: string, es: string) => stri
 
 export function WindowsPanel({ data }: { data: ScenarioData }) {
   const t = useT();
+  const u = useUnits();
   const w = useLandingWindows(data);
   const updateScenario = useApp((s) => s.updateScenario);
   const setCursor = useApp((s) => s.setCursor);
@@ -82,7 +84,7 @@ export function WindowsPanel({ data }: { data: ScenarioData }) {
           <input type="range" min={0} max={355} step={5} value={cfg.approachAzDeg} onChange={(e) => w.setConfig({ approachAzDeg: Number(e.target.value) })} data-testid="win-heading" />
         </label>
         <p className="kpi-note pad0" data-testid="win-assumptions">
-          {t(`Engineering assumption thresholds: Sun not within ±${cfg.glareHalfDeg}° of the direction of flight (glare) nor ±${cfg.washoutHalfDeg}° behind it (no shadows), and at least ${cfg.minEllipseLitPct} % of the ${cfg.ellipseRadiusM} m landing ellipse in sunlight.`, `Umbrales supuestos de ingeniería: Sol fuera de ±${cfg.glareHalfDeg}° de la dirección de vuelo (deslumbramiento) y de ±${cfg.washoutHalfDeg}° detrás (sin sombras), y al menos el ${cfg.minEllipseLitPct} % de la elipse de ${cfg.ellipseRadiusM} m con sol.`)}
+          {t(`Engineering assumption thresholds: Sun not within ±${cfg.glareHalfDeg}° of the direction of flight (glare) nor ±${cfg.washoutHalfDeg}° behind it (no shadows), and at least ${cfg.minEllipseLitPct} % of the ${u.m(cfg.ellipseRadiusM)} landing ellipse in sunlight.`, `Umbrales supuestos de ingeniería: Sol fuera de ±${cfg.glareHalfDeg}° de la dirección de vuelo (deslumbramiento) y de ±${cfg.washoutHalfDeg}° detrás (sin sombras), y al menos el ${cfg.minEllipseLitPct} % de la elipse de ${u.m(cfg.ellipseRadiusM)} con sol.`)}
         </p>
         <div className="tour-actions">
           <button type="button" className="btn btn-small" onClick={w.run} disabled={!data.result || w.progress !== null} data-testid="win-run">
@@ -164,7 +166,7 @@ export function WindowsPanel({ data }: { data: ScenarioData }) {
       <section className="panel block">
         <h3>{t('What this does and does not check', 'Qué comprueba y qué no')}</h3>
         <p className="kpi-note pad0">
-          {t(`Candidates every ${cfg.candidateStepHours} h. Ellipse: ${cfg.ellipseRadiusM} m radius on the terrain model, lit by the centre of the solar disc. The glare cone, the ±${cfg.washoutHalfDeg}° washout cone and the sunlit share are engineering assumptions of this tool, not the published requirement of a mission. The descent trajectory, the fuel and the navigation errors are not modelled: this is a surface-conditions filter, not a trajectory design.`, `Candidatas cada ${cfg.candidateStepHours} h. Elipse: radio de ${cfg.ellipseRadiusM} m sobre el modelo de terreno, iluminada según el centro del disco solar. El cono de deslumbramiento, el cono de ±${cfg.washoutHalfDeg}° sin sombras y la fracción con sol son supuestos de ingeniería de esta herramienta, no el requisito publicado de una misión. No se modela la trayectoria de descenso, el combustible ni los errores de navegación: es un filtro de condiciones en superficie, no un diseño de trayectoria.`)}
+          {t(`Candidates every ${cfg.candidateStepHours} h. Ellipse: ${u.m(cfg.ellipseRadiusM)} radius on the terrain model, lit by the centre of the solar disc. The glare cone, the ±${cfg.washoutHalfDeg}° washout cone and the sunlit share are engineering assumptions of this tool, not the published requirement of a mission. The descent trajectory, the fuel and the navigation errors are not modelled: this is a surface-conditions filter, not a trajectory design.`, `Candidatas cada ${cfg.candidateStepHours} h. Elipse: radio de ${u.m(cfg.ellipseRadiusM)} sobre el modelo de terreno, iluminada según el centro del disco solar. El cono de deslumbramiento, el cono de ±${cfg.washoutHalfDeg}° sin sombras y la fracción con sol son supuestos de ingeniería de esta herramienta, no el requisito publicado de una misión. No se modela la trayectoria de descenso, el combustible ni los errores de navegación: es un filtro de condiciones en superficie, no un diseño de trayectoria.`)}
         </p>
       </section>
 

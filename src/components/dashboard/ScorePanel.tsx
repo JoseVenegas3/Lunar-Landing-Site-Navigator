@@ -5,14 +5,16 @@ import { ScenarioData, useMission } from '../../state/mission';
 import { useScience } from '../../state/science';
 import { useApp } from '../../state/store';
 import { fmtNum, fmtSigned, useT } from '../../lib/format';
+import { currentUnits, useUnits } from '../../lib/units';
 import { ScenarioBadge } from '../ScenarioBadge';
 
 function rawText(id: CriterionId, raw: number | null, view: SiteScoreView): string {
+  const u = currentUnits();
   if (raw === null) return '—';
-  if (id === 'psrProximity') return view.psrBeyond ? `> ${(view.psrFromLayer ? PSR_SEARCH_KM : SHADOW_SEARCH_KM).toFixed(0)} km` : `${fmtNum(raw, 2)} km`;
+  if (id === 'psrProximity') return view.psrBeyond ? `> ${u.kmStr(view.psrFromLayer ? PSR_SEARCH_KM : SHADOW_SEARCH_KM, 0)}` : u.kmStr(raw, 2);
   if (id === 'earthVisibility' || id === 'illumination') return `${fmtNum(raw, 0)} %`;
   if (id === 'slope') return `${fmtNum(raw, 1)}°`;
-  if (id === 'roughness') return `${fmtNum(raw, 0)} m`;
+  if (id === 'roughness') return u.m(raw);
   if (id === 'hydrogen') return `${fmtNum(raw, 2)} wt.%`;
   if (id === 'feo') return `${fmtNum(raw, 1)} wt.%`;
   if (id === 'gravity') return `${fmtSigned(raw, 0)} mGal`;
@@ -42,6 +44,7 @@ export function rangeWhy(id: CriterionId, slopeLimitDeg: number, t: (en: string,
 
 export function ScorePanel() {
   const t = useT();
+  const u = useUnits();
   const slopeLimitDeg = useApp((s) => staticStabilityDeg(s.tipover));
   const lang = useApp((s) => s.lang);
   const active = useApp((s) => s.active);
@@ -97,12 +100,12 @@ export function ScorePanel() {
         {status === 'missing' && <p className="kpi-note pad0">{t('The science layers in public/science/ were not found; run scripts/fetch_science_layers.py.', 'No se hallaron las capas científicas en public/science/; ejecuta scripts/fetch_science_layers.py.')}</p>}
         {dv && psr ? (
           <dl className="link-grid mono" data-testid="orbital-data">
-            <div><dt>{t('Annual mean surface temperature', 'Temperatura superficial media anual')}</dt><dd>{fmtNum(dv.tAvgK, 0)} K</dd></div>
-            <div><dt>{t('Annual maximum temperature', 'Temperatura máxima anual')}</dt><dd>{fmtNum(dv.tMaxK, 0)} K</dd></div>
+            <div><dt>{t('Annual mean surface temperature', 'Temperatura superficial media anual')}</dt><dd>{u.k(dv.tAvgK)}</dd></div>
+            <div><dt>{t('Annual maximum temperature', 'Temperatura máxima anual')}</dt><dd>{u.k(dv.tMaxK)}</dd></div>
             <div><dt>{t('Water ice stable under the lander', 'Hielo de agua estable bajo el lander')}</dt><dd>{dv.iceDepthM === null ? t('no', 'no') : dv.iceDepthM < 1e-6 ? t('at the surface', 'en superficie') : `${t('below', 'bajo')} ${fmtNum(dv.iceDepthM * 100, 0)} cm`}</dd></div>
-            <div><dt>{t('Nearest ice-stable ground', 'Terreno con hielo estable más cercano')}</dt><dd>{dv.nearestIceStableKm === null ? `> ${fmtNum(dv.searchRadiusKm, 0)} km` : `${fmtNum(dv.nearestIceStableKm, 2)} km`}</dd></div>
-            <div><dt>{t('Nearest surface cold trap', 'Trampa fría superficial más cercana')}</dt><dd>{dv.nearestSurfaceIceKm === null ? `> ${fmtNum(dv.searchRadiusKm, 0)} km` : `${fmtNum(dv.nearestSurfaceIceKm, 2)} km`}</dd></div>
-            <div><dt>{t('Nearest PSR (20 m mask)', 'PSR más cercana (máscara de 20 m)')}</dt><dd>{psr.distanceKm === null ? '> 8 km' : `${fmtNum(psr.distanceKm, 2)} km`}</dd></div>
+            <div><dt>{t('Nearest ice-stable ground', 'Terreno con hielo estable más cercano')}</dt><dd>{dv.nearestIceStableKm === null ? `> ${u.kmStr(dv.searchRadiusKm, 0)}` : u.kmStr(dv.nearestIceStableKm, 2)}</dd></div>
+            <div><dt>{t('Nearest surface cold trap', 'Trampa fría superficial más cercana')}</dt><dd>{dv.nearestSurfaceIceKm === null ? `> ${u.kmStr(dv.searchRadiusKm, 0)}` : u.kmStr(dv.nearestSurfaceIceKm, 2)}</dd></div>
+            <div><dt>{t('Nearest PSR (20 m mask)', 'PSR más cercana (máscara de 20 m)')}</dt><dd>{psr.distanceKm === null ? `> ${u.kmStr(8, 0)}` : u.kmStr(psr.distanceKm, 2)}</dd></div>
             <div><dt>{t('PSR share of the 8 km disc', 'Fracción PSR del disco de 8 km')}</dt><dd>{fmtNum(psr.fractionWithin8kmPct, 1)} %</dd></div>
           </dl>
         ) : layers && (
@@ -110,7 +113,7 @@ export function ScorePanel() {
         )}
         {dv && (
           <p className="kpi-note pad0">
-            {t(`The thermal model uses ${fmtNum(dv.tMaxK, 0)} K, the Diviner annual maximum here, as its sunlit sink temperature.`, `El modelo térmico usa ${fmtNum(dv.tMaxK, 0)} K, el máximo anual de Diviner aquí, como temperatura de sumidero al sol.`)}
+            {t(`The thermal model uses ${u.k(dv.tMaxK)}, the Diviner annual maximum here, as its sunlit sink temperature.`, `El modelo térmico usa ${u.k(dv.tMaxK)}, el máximo anual de Diviner aquí, como temperatura de sumidero al sol.`)}
           </p>
         )}
 

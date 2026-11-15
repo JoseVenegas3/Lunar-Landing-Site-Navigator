@@ -9,6 +9,8 @@ import { skylineShiftDeg } from '../../engine';
 import { useUncertainty } from '../../state/insights';
 import { useActiveScenario } from '../../state/mission';
 import { fmtNum, useT } from '../../lib/format';
+import { LolaLimits } from '../DataLimits';
+import { useUnits } from '../../lib/units';
 import { KpiMatrix } from './KpiMatrix';
 import { AssumptionsTable } from './AssumptionsTable';
 
@@ -24,6 +26,7 @@ function Band({ label, q, unit, digits = 0 }: { label: string; q: { p10: number;
 /** How much the answer depends on the error of the elevation model (ensemble of perturbed terrains). */
 export function UncertaintyBlock() {
   const t = useT();
+  const u = useUnits();
   const data = useActiveScenario();
   const unc = useUncertainty(data);
   const r = data.result;
@@ -31,15 +34,15 @@ export function UncertaintyBlock() {
     <section className="panel block" data-testid="uncertainty-panel">
       <h3>{t('Terrain uncertainty (LOLA)', 'Incertidumbre del terreno (LOLA)')}</h3>
       <p className="kpi-note pad0">
-        {t(`The elevation model has an error of a few decimetres. With the Sun on the skyline that is enough to change the answer: ${fmtNum(unc.config.sigmaM, 1)} m on a rise 50 m away moves the horizon ${fmtNum(skylineShiftDeg(unc.config.sigmaM, 50), 2)}°, and the solar disc is 0.53° wide. Each run re-flies the mission on terrain perturbed within 2 km of the lander.`, `El modelo de elevación tiene un error de pocos decímetros. Con el Sol en el horizonte eso basta para cambiar la respuesta: ${fmtNum(unc.config.sigmaM, 1)} m en una elevación a 50 m mueve el horizonte ${fmtNum(skylineShiftDeg(unc.config.sigmaM, 50), 2)}°, y el disco solar mide 0,53°. Cada corrida repite la misión sobre un terreno perturbado dentro de 2 km del lander.`)}
+        {t(`The elevation model has an error of a few decimetres. With the Sun on the skyline that is enough to change the answer: ${u.m(unc.config.sigmaM, 1)} on a rise ${u.m(50)} away moves the horizon ${fmtNum(skylineShiftDeg(unc.config.sigmaM, 50), 2)}°, and the solar disc is 0.53° wide. Each run re-flies the mission on terrain perturbed within ${u.kmStr(2, 0)} of the lander.`, `El modelo de elevación tiene un error de pocos decímetros. Con el Sol en el horizonte eso basta para cambiar la respuesta: ${u.m(unc.config.sigmaM, 1)} en una elevación a ${u.m(50)} mueve el horizonte ${fmtNum(skylineShiftDeg(unc.config.sigmaM, 50), 2)}°, y el disco solar mide 0,53°. Cada corrida repite la misión sobre un terreno perturbado dentro de ${u.kmStr(2, 0)} del lander.`)}
       </p>
       <div className="field-row">
         <label className="field">
-          <span className="field-label">{t('Height error (RMS)', 'Error de altura (RMS)')}<output className="mono">{fmtNum(unc.config.sigmaM, 1)} m</output></span>
+          <span className="field-label">{t('Height error (RMS)', 'Error de altura (RMS)')}<output className="mono">{u.m(unc.config.sigmaM, 1)}</output></span>
           <input type="range" min={0} max={2} step={0.1} value={unc.config.sigmaM} onChange={(e) => unc.setConfig({ sigmaM: Number(e.target.value) })} data-testid="unc-sigma" />
         </label>
         <label className="field">
-          <span className="field-label">{t('Correlation length', 'Longitud de correlación')}<output className="mono">{unc.config.corrLenM} m</output></span>
+          <span className="field-label">{t('Correlation length', 'Longitud de correlación')}<output className="mono">{u.m(unc.config.corrLenM)}</output></span>
           <input type="range" min={16} max={200} step={8} value={unc.config.corrLenM} onChange={(e) => unc.setConfig({ corrLenM: Number(e.target.value) })} />
         </label>
       </div>
@@ -67,6 +70,7 @@ export function UncertaintyBlock() {
       <p className="kpi-note pad0">
         {t('Height error after Barker et al. (2021): 0.3–0.5 m RMS typical. It is a probability over the terrain error only; it says nothing about hardware failures or landing dynamics.', 'Error de altura según Barker et al. (2021): 0,3–0,5 m RMS típico. Es una probabilidad solo sobre el error del terreno; no dice nada de fallas de equipo ni de la dinámica del alunizaje.')}
       </p>
+      <LolaLimits />
     </section>
   );
 }

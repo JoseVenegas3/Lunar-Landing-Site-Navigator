@@ -1,5 +1,20 @@
 # Cambios
 
+## v3.1 final (2026-11-15): entrega NASA Space Apps Concepción
+
+Detalle en la sección 6.10 de ARCHITECTURE.md.
+
+- **SR-403**: elevación solar efectiva como KPI de potencia (arco 0–5°, f☉, incidencia, potencia) en Signos vitales, tabla de KPI y Energía / térmico.
+- **SR-711**: unidades SI / Imperial en la puerta de entrada y en la barra superior, recordadas; conversión en toda la interfaz y la narración.
+- **SR-502 / SR-708**: ventana «Aprender más: Física Lunar vs. Tierra» en cada celebración, en el diploma y en cada subsistema de Mission Leader.
+- **SR-204**: telémetro del cursor (distancia, rumbo, elevación, pendiente) también fuera de ±500 m, en ámbar, con línea punteada al lander.
+- **SR-104, R1, R5, R8**: límites declarados de LOLA en Terreno, Emergencia y supuestos; contraste con la iluminación publicada, honesto cuando no está verificada.
+- **SR-706**: glosario de 16 términos en ambas guías PDF y como tooltips en la app.
+- **R6**: Optimizar sitio y fecha en un Web Worker con poda temprana.
+- **SR-710**: prueba del CSV y cabecera con las unidades.
+- Puerta: «Comenzar entrenamiento (Modo Guiado)» / «Abrir Mission Leader (Modo Completo)».
+- README con Quick Start, `.env.example` opcional, e2e sin red (`context.setOffline(true)`), build de producción sin 404.
+
 ## v3.1 (2026-11-15)
 
 Detalle en la sección 6.9 de ARCHITECTURE.md.

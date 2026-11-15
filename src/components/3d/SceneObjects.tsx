@@ -16,6 +16,7 @@ import {
 } from '../../engine';
 import { bodyQuaternion, enuToScene, steeredBoresightEnu } from './SceneContingency';
 import { sceneFocus, useApp } from '../../state/store';
+import { currentUnits } from '../../lib/units';
 import {
   BODY_DISTANCE_KM, LiveSky, RING_ELEVATION_GAIN, SKYLINE_RADIUS_KM, SceneFrame, dirToScene, hudTags, landerAnim, mapToScene, resultFrame,
   useSceneUi,
@@ -462,10 +463,10 @@ export function DteBeam({ result, live, dem }: CommonProps & { dem: DemStack }) 
       const visible = !open && hitKm !== null && tip.z < 1 && Math.abs(tip.x) < 1 && Math.abs(tip.y) < 1;
       tag.style.display = visible ? 'block' : 'none';
       if (visible && hitKm !== null) {
-        const km = hitKm < 10 ? hitKm.toFixed(2) : hitKm.toFixed(0);
+        const km = currentUnits().kmStr(hitKm, hitKm < 10 ? 2 : 0);
         const text = hitKm < 0.15
           ? (lang === 'es' ? 'Tierra bajo el terreno local' : 'Earth below the local ground')
-          : (lang === 'es' ? `LOS bloqueada a ${km} km` : `LOS blocked at ${km} km`);
+          : (lang === 'es' ? `LOS bloqueada a ${km}` : `LOS blocked at ${km}`);
         if (tag.textContent !== text) tag.textContent = text;
         const x = ((tip.x + 1) / 2) * size.width, y = ((1 - tip.y) / 2) * size.height;
         tag.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) translate(-50%, -260%)`;

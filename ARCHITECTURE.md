@@ -1062,6 +1062,33 @@ Valores medidos (narrados en vivo, no copiados):
 - Las cifras del guion (110°, 1,0 m, 5000 Wh, 35°, 2100 m, 41 y 87/100) se sustituyen por condiciones y valores que da el motor.
 - En la misión 1, el rumbo que el usuario elija puede empeorar el deslumbramiento, y la narración lo dice.
 
+## 6.10 v3.1 final: entrega NASA Space Apps Concepción (2026-11-15)
+
+Cierre de los requisitos SR del XMind y de los riesgos R1–R12 que dependían de la app. Ninguna cifra nueva sale de fuera del motor: lo que se agregó lee el resultado de la misión o fórmulas puras de `src/engine/`.
+
+| Requisito | Qué se hizo | Dónde |
+|---|---|---|
+| SR-403 | Elevación solar efectiva como KPI de potencia: elevación ahora y máxima de la ventana, disco visible f☉, factor de incidencia de la montura, potencia ahora / pico, arco de 0–5°. En Signos vitales, en la tabla de KPI (fila «Elevación solar máx.») y en la cabecera de Energía / térmico. | `engine/solarKpi.ts`, `components/SolarKpi.tsx` |
+| SR-711 | `unitSystem: 'si' \| 'imperial'` en el store, recordado en `localStorage` (`clps.units`, `?units=imperial` lo fuerza). Selector junto al idioma en la puerta («Unidades: SI (m, °C) \| Imperial (ft, °F)») y en la barra superior (SI / IMP). Cambian longitudes, distancias, temperaturas, velocidades y áreas en tarjetas, deslizadores, ejes, etiquetas 3-D y narración; W, Wh, GHz, tasas, dB y ángulos no. El motor y el CSV siguen en SI. | `lib/units.ts`, `components/UnitToggle.tsx` |
+| SR-502, SR-708 | Ventana «Aprender más: Física Lunar vs. Tierra» con siete temas (cielo y Sol rasante; por qué 200 m lo cambian todo; frío radiativo; radio, libración y curvatura; polvo balístico; trampas frías; resumen maestro). Dos columnas Tierra / Polo Sur, un diagrama SVG y cifras calculadas: Sol máximo por latitud y oblicuidad, horizonte y caída por curvatura, σT⁴, alcance balístico, velocidad de vuelco con g lunar y terrestre, la malla de dispersión real de la misión. Botón grande en cada celebración y en el diploma; botón discreto en la barra de subsistemas de Mission Leader. | `engine/earthMoon.ts`, `components/LearnMore.tsx` |
+| SR-204 | Telémetro del cursor sobre todo el terreno 3-D: distancia (m / km o ft / mi con separador de miles) y rumbo desde el lander, elevación y pendiente bajo el cursor; ámbar fuera del cuadro de ±500 m; línea punteada lander → cursor. | `3d/SceneExtras.tsx` (`DoubleClickLand`) |
+| SR-104, R1, R5 | Bloque «Límites de los datos topográficos LOLA (Barker et al. 2023)» en Terreno › Dispersión y escape, en el paso 3 de Emergencia y en la tabla de supuestos. Las resoluciones y parámetros salen de las constantes del motor. | `components/DataLimits.tsx` |
+| R2 | Ya cumplido desde la v2: las corridas de incertidumbre dan P10 / P50 / P90 de luz, Tierra a la vista, descarga, tiempo con vida y datos. | `engine/uncertainty.ts`, `EngineeringView.tsx` |
+| R8, SR-101 | Contraste con mapas publicados: coordenada de referencia del enunciado y luz calculada junto a la iluminación anual publicada (`PUBLISHED_ILLUMINATION`). | `engine/sites.ts`, `DataLimits.tsx`, `SiteCards.tsx` |
+| SR-706 | Glosario de 16 términos, una sola fuente para los tooltips y para la sección final de ambas guías (`scripts/glossary-md.ts`). Tooltips en la narración del Principiante (hover y foco de teclado). | `lib/glossary.ts`, `components/Glossary.tsx` |
+| R6 | La búsqueda de rescate / optimización es un generador puro; corre en un Web Worker o, si no hay workers, en tramos de 24 ms en el hilo principal. Poda temprana: puntos más empinados que el ángulo de estabilidad estática no se vuelan, y el paseo por fechas se detiene en la primera que deja de ser NO-GO. | `engine/rescue.ts`, `state/rescue.worker.ts`, `state/verdict.ts` |
+| SR-710 | Prueba unitaria del CSV: 26 columnas, una fila por muestra, unidad en el nombre de cada columna, cabecera `# units=SI … display_units=…`. | `lib/__tests__/final.test.ts` |
+| SR-704 | Cambiar de versión conserva escenario, idioma y unidades. Botones de la puerta: «Comenzar entrenamiento (Modo Guiado)» y «Abrir Mission Leader (Modo Completo)». | `beginner/Gate.tsx` |
+
+**Sin conexión y en cualquier PC.** Todos los datos esenciales están versionados (`public/dem`, `public/science`, `public/beginner`, `public/brand`, `public/guide`, `data/horizons`); `.gitignore` solo excluye `node_modules`, `dist`, logs y `artifacts`. No hay rutas absolutas en el código ni en los scripts. La app no necesita `.env` (`.env.example` documenta la única variable opcional). La e2e corta toda petición que no sea local, comprueba que no hubo ninguna ni respuestas 4xx en el build de producción, y luego usa `context.setOffline(true)` para verificar que la vista 3-D, las consolas y la ventana de comparación siguen funcionando sin red.
+
+**Límites que se declaran en vez de inventar.**
+- **Iluminación publicada por sitio.** Ningún valor se ha verificado contra el artículo, así que la app dice «sin dato verificado» y nombra Mazarico et al. 2011, Bussey et al. 2010 y De Rosa et al. 2012. Un valor solo puede llenarse junto con su referencia (prueba unitaria).
+- **Píxeles interpolados.** La fracción interpolada entre trazas LOLA no se calcula: el bloque dice «la mayoría» y que varía por sitio.
+- **Rugosidad.** El prompt atribuía el coeficiente 0.079 a Rosenburg et al. 2011; el motor lo atribuye a Trask 1966 (citado de memoria) y así se muestra.
+- **Interpolación bicúbica (R1).** No se aplicó sobre las mallas de 20 m: cambiaría los horizontes, los escenarios del entrenamiento validados y los 175 tests sin una medición que lo justifique. El muestreo sigue siendo bilineal, y el límite se declara en el bloque LOLA.
+- **Pesos del índice.** Los modos «Engineering first / Science first» siguen sin existir (ver 6.9); el índice multicriterio se explica en el glosario como «Índice SOM-RF» con su advertencia.
+
 ## 7. Interfaz
 
 **Paleta y tipografía** según el enunciado: fondo `#080B11`, paneles `#111827`,
@@ -1146,8 +1173,8 @@ precompilación de shaders al montar la escena.
 | Comando | Qué comprueba | Resultado |
 |---|---|---|
 | `npm run typecheck` / `npm run lint` | `tsc --noEmit`, modo estricto | sin errores |
-| `npm test` | 147 tests: motor, JPL Horizons, terreno LOLA, relays, contingencia, capas, evoluciones v3, ventanas, v4 (banda 80–90° S, parches de 20 m, micro-relieve, veredicto), catálogo de sitios, titular y salida de emergencia, rangos del índice y tabla de supuestos, modo heredado, exportación, umbrales de telemetría y etiquetas sin abreviar | 147/147 |
-| `npm run build && npm run e2e` | 116 comprobaciones en Chromium headless, sobre terreno LOLA | 116/116 |
+| `npm test` | 175 tests: motor, JPL Horizons, terreno LOLA, relays, contingencia, capas, evoluciones v3, ventanas, v4 (banda 80–90° S, parches de 20 m, micro-relieve, veredicto), catálogo de sitios, titular y salida de emergencia, rangos del índice y tabla de supuestos, modo heredado, exportación, umbrales de telemetría y etiquetas sin abreviar | 175/175 (v3.1 final: unidades, CSV, KPI solar, Tierra vs. Luna, glosario, iluminación publicada, búsqueda de rescate) |
+| `npm run build && npm run e2e` | 157 comprobaciones en Chromium headless sobre terreno LOLA: 132 de Mission Leader (`e2e:leader`, incluye unidades, KPI solar, telémetro, Aprender más, límites LOLA, Web Worker, cero peticiones externas, cero 404 y `context.setOffline(true)`) y 25 del Principiante (`e2e:beginner`) | 132/132 y 25/25 |
 | `npm run perf` | ritmo de cuadros con y sin vsync | tabla de la sección 8 |
 | `npm run guide` | capturas reales de la app (ES y EN) y la guía PDF desde `docs/` | `docs/img/`, `public/guide/*.pdf` |
 | `npm run measure-micro` | costo del peligro bajo el píxel, LOLA real | peor caso 93 ms |
@@ -1176,8 +1203,8 @@ fijo, idioma, 1280×720, 820 px y consola sin errores. Deja las capturas en
   proxy o espejo con CORS (sección 6.4); sin él queda en 160 m u 800 m.
 - El micro-relieve sub-píxel es estadístico; salvo la densidad de cráteres
   (Trask, 1966) sus parámetros son del equipo, no validados (sección 6.7).
-- La verificación e2e (116 comprobaciones) necesita red para la del parche de
-  20 m en vivo.
+- La verificación e2e (157 comprobaciones) no necesita red; la lectura del
+  parche de 20 m en vivo (`scripts/verify_cog_stream.ts`, aparte) sí.
 - Muestreo horario. Los eventos más cortos que una hora se promedian.
 - La distancia del enlace es al centro de la Tierra, no a una estación concreta
   (±6400 km, 0,15 dB), y no se modela la visibilidad de la estación desde la

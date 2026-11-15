@@ -7,6 +7,7 @@ import { HOUR_MS, MissionResult, T_BATTERY_DEATH_K, T_FREEZE_K } from '../../eng
 import { ScenarioData } from '../../state/mission';
 import { C, FONT_MONO, FONT_UI, useCanvas } from '../../lib/useCanvas';
 import { fmtDateTime, useT } from '../../lib/format';
+import { currentUnits, useUnits } from '../../lib/units';
 import { ScenarioBadge } from '../ScenarioBadge';
 
 const PAD = { l: 46, r: 52, t: 14, b: 22 };
@@ -57,7 +58,7 @@ function drawBase(ctx: CanvasRenderingContext2D, w: number, h: number, r: Missio
     ctx.beginPath(); ctx.moveTo(PAD.l, y); ctx.lineTo(PAD.l + s.pw, y); ctx.stroke();
     ctx.fillStyle = C.dim;
     ctx.textAlign = 'left';
-    ctx.fillText(`${c > 0 ? '+' : ''}${c} °C`, PAD.l + s.pw + 6, y);
+    ctx.fillText(currentUnits().cSigned(c, 0), PAD.l + s.pw + 6, y);
   }
   ctx.textAlign = 'right';
   for (let p = 0; p <= 100; p += 25) {
@@ -175,7 +176,7 @@ function drawOverlay(ctx: CanvasRenderingContext2D, w: number, h: number, r: Mis
   const th = r.adv.thermal;
   const cap = Math.max(1, r.input.power.batteryCapacityWh);
   const parts = [fmtDateTime(r.eph.startMs + idx * r.stepHours * HOUR_MS), `array ${r.powerW[i].toFixed(0)} W`, `SoC ${((100 * r.battery.socWh[i]) / cap).toFixed(0)} %`];
-  if (th) parts.push(`bus ${(th.tBusK[i] - 273.15).toFixed(1)} °C`, `env ${th.tEnvK[i].toFixed(0)} K`, `heater ${th.heaterW[i].toFixed(0)} W`);
+  if (th) parts.push(`bus ${currentUnits().c(th.tBusK[i] - 273.15, 1)}`, `env ${currentUnits().k(th.tEnvK[i])}`, `heater ${th.heaterW[i].toFixed(0)} W`);
   const text = parts.join('   ');
   ctx.font = `10.5px ${FONT_MONO}`;
   const tw = ctx.measureText(text).width + 12;
@@ -190,10 +191,11 @@ function drawOverlay(ctx: CanvasRenderingContext2D, w: number, h: number, r: Mis
 
 export function ThermalChart({ data }: { data: ScenarioData }) {
   const t = useT();
+  const u = useUnits();
   const r = data.result;
   const labels = {
     setpoint: t('heaters on below this', 'calefactores encendidos bajo esto'),
-    freeze: t('battery freezes: −20 °C', 'la batería se congela: −20 °C'),
+    freeze: t(`battery freezes: ${u.c(-20)}`, `la batería se congela: ${u.c(-20)}`),
     death: t('CRITICAL THERMAL DEATH', 'MUERTE TÉRMICA CRÍTICA'),
     off: t('Thermal model switched off: only the state of charge is shown', 'Modelo térmico apagado: solo se muestra el estado de carga'),
     power: t('array power', 'potencia del panel'),

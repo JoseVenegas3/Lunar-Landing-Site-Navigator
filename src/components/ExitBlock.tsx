@@ -10,6 +10,7 @@ import { HOUR_MS } from '../engine';
 import { ExitPlan, SurvivalState } from '../state/exitPlan';
 import { useApp } from '../state/store';
 import { cardinal, fmtDateTime, fmtDuration, fmtNum, useT } from '../lib/format';
+import { Units, unitsFor, useUnits } from '../lib/units';
 
 type T = (en: string, es: string) => string;
 export type Tone = 'ok' | 'warn' | 'crit' | 'busy';
@@ -31,10 +32,10 @@ export interface ExitText {
 export const when = (startMs: number, h: number): string => `${fmtDateTime(startMs + h * HOUR_MS)} UTC (T+${fmtDuration(h)})`;
 
 /** Every text of the headline and the exit block, from the plan alone (unit-tested in both languages). */
-export function exitText(p: ExitPlan, t: T): ExitText {
+export function exitText(p: ExitPlan, t: T, u: Units = unitsFor('si')): ExitText {
   const d = fmtNum(p.horizonH / 24, 0);
   const lossPhrase = (h: number | null, cause: 'thermal' | 'battery' | null): string => (h === null ? '' : cause === 'thermal'
-    ? t(`it leaves its thermal range (bus below −20 °C, battery frozen) on ${when(p.startMs, h)}`, `sale del rango térmico (bus bajo −20 °C, batería congelada) el ${when(p.startMs, h)}`)
+    ? t(`it leaves its thermal range (bus below ${u.c(-20)}, battery frozen) on ${when(p.startMs, h)}`, `sale del rango térmico (bus bajo ${u.c(-20)}, batería congelada) el ${when(p.startMs, h)}`)
     : t(`it runs out of energy on ${when(p.startMs, h)}`, `se queda sin energía el ${when(p.startMs, h)}`));
   const cap = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1);
   const pending = !p.done;
@@ -53,11 +54,11 @@ export function exitText(p: ExitPlan, t: T): ExitText {
   const m = p.move;
   const move: ExitOptionText = m
     ? m.survives
-      ? { key: 'move', tone: 'ok', text: t(`Move ${fmtNum(m.distanceM, 0)} m to the ${cardinal(m.azimuthDeg)} (azimuth ${fmtNum(m.azimuthDeg, 0)}°): it lasts the ${d} d.`, `Moverse ${fmtNum(m.distanceM, 0)} m al ${cardinal(m.azimuthDeg)} (acimut ${fmtNum(m.azimuthDeg, 0)}°): aguanta los ${d} d.`) }
-      : { key: 'move', tone: 'warn', text: t(`Move ${fmtNum(m.distanceM, 0)} m to the ${cardinal(m.azimuthDeg)} (azimuth ${fmtNum(m.azimuthDeg, 0)}°): ${fmtDuration(m.gainH)} more, but ${lossPhrase(m.lossH, m.cause)}.`, `Moverse ${fmtNum(m.distanceM, 0)} m al ${cardinal(m.azimuthDeg)} (acimut ${fmtNum(m.azimuthDeg, 0)}°): ${fmtDuration(m.gainH)} más, pero ${lossPhrase(m.lossH, m.cause)}.`) }
+      ? { key: 'move', tone: 'ok', text: t(`Move ${u.m(m.distanceM)} to the ${cardinal(m.azimuthDeg)} (azimuth ${fmtNum(m.azimuthDeg, 0)}°): it lasts the ${d} d.`, `Moverse ${u.m(m.distanceM)} al ${cardinal(m.azimuthDeg)} (acimut ${fmtNum(m.azimuthDeg, 0)}°): aguanta los ${d} d.`) }
+      : { key: 'move', tone: 'warn', text: t(`Move ${u.m(m.distanceM)} to the ${cardinal(m.azimuthDeg)} (azimuth ${fmtNum(m.azimuthDeg, 0)}°): ${fmtDuration(m.gainH)} more, but ${lossPhrase(m.lossH, m.cause)}.`, `Moverse ${u.m(m.distanceM)} al ${cardinal(m.azimuthDeg)} (acimut ${fmtNum(m.azimuthDeg, 0)}°): ${fmtDuration(m.gainH)} más, pero ${lossPhrase(m.lossH, m.cause)}.`) }
     : pending
-      ? { key: 'move', tone: 'busy', text: t('Move up to 500 m: computing…', 'Moverse hasta 500 m: calculando…') }
-      : { key: 'move', tone: b.survives ? 'ok' : 'crit', text: t('Move up to 500 m: no point within 500 m does better than staying.', 'Moverse hasta 500 m: ningún punto a 500 m o menos mejora quedarse.') };
+      ? { key: 'move', tone: 'busy', text: t(`Move up to ${u.m(500)}: computing…`, `Moverse hasta ${u.m(500)}: calculando…`) }
+      : { key: 'move', tone: b.survives ? 'ok' : 'crit', text: t(`Move up to ${u.m(500)}: no point within ${u.m(500)} does better than staying.`, `Moverse hasta ${u.m(500)}: ningún punto a ${u.m(500)} o menos mejora quedarse.`) };
 
   // (c) wait for the Sun
   const w = p.wait;
@@ -81,7 +82,7 @@ export function exitText(p: ExitPlan, t: T): ExitText {
     title = t('SURVIVES IF…', 'SOBREVIVE SI…');
     const act = p.load && p.load.maxW !== null
       ? t(`it lowers its minimum load to ${fmtNum(p.load.maxW, 1)} W or less`, `baja su carga mínima a ${fmtNum(p.load.maxW, 1)} W o menos`)
-      : t(`it moves ${fmtNum(m?.distanceM ?? 0, 0)} m to the ${cardinal(m?.azimuthDeg ?? 0)}`, `se mueve ${fmtNum(m?.distanceM ?? 0, 0)} m al ${cardinal(m?.azimuthDeg ?? 0)}`);
+      : t(`it moves ${u.m(m?.distanceM ?? 0)} to the ${cardinal(m?.azimuthDeg ?? 0)}`, `se mueve ${u.m(m?.distanceM ?? 0)} al ${cardinal(m?.azimuthDeg ?? 0)}`);
     line = t(`…${act}. If nothing changes, ${lossPhrase(b.lossH, b.cause)}.`, `…${act}. Si no cambia nada, ${lossPhrase(b.lossH, b.cause)}.`);
     tone = 'warn';
   } else if (state === 'lost') {
@@ -117,7 +118,8 @@ function Icon({ tone }: { tone: Tone }) {
 /** One-line headline: survives / survives if… / does not survive. */
 export function SurvivalHeadline({ plan }: { plan: ExitPlan }) {
   const t = useT();
-  const x = exitText(plan, t);
+  const u = useUnits();
+  const x = exitText(plan, t, u);
   return (
     <div className={`surv-head is-${x.tone}`} role="status" aria-live="polite" data-testid="surv-head" data-state={x.state}>
       <Icon tone={x.tone} />
@@ -129,7 +131,8 @@ export function SurvivalHeadline({ plan }: { plan: ExitPlan }) {
 /** The "Way out" block, always visible under the headline. */
 export function ExitBlock({ plan, onMove }: { plan: ExitPlan; onMove: (eastM: number, northM: number) => void }) {
   const t = useT();
-  const x = exitText(plan, t);
+  const u = useUnits();
+  const x = exitText(plan, t, u);
   const lang = useApp((s) => s.lang);
   return (
     <section className={`exit-block is-${x.state === 'lost' ? 'crit' : x.state === 'pending' ? 'busy' : 'ok'}`} aria-label={t('Way out', 'Salida')} data-testid="exit-block" data-state={x.state} lang={lang}>

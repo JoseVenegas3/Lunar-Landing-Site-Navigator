@@ -1,4 +1,18 @@
-# CLPS Lunar Mission Browser v3.0
+# CLPS Lunar Mission Browser v3.1
+
+## Quick Start (clonar y ejecutar en 1 minuto)
+
+Requiere [Node.js](https://nodejs.org) 20 o superior. Funciona igual en Windows, macOS y Linux, sin `.env` ni descargas extra: el terreno LOLA, las capas científicas, las imágenes y las guías vienen en el repositorio.
+
+```bash
+git clone https://github.com/JoseVenegas3/Lunar-Landing-Site-Navigator.git
+cd Lunar-Landing-Site-Navigator
+npm install
+npm run dev
+```
+
+Abre la dirección que imprime Vite (<http://localhost:5173>). Para la versión de producción: `npm run build && npm run preview` (<http://localhost:4173>). Funciona sin conexión a internet; solo las coordenadas libres usan, si hay red, la fuente de 20 m de NASA (sin red se quedan en 160 m y la app lo dice). `.env.example` es opcional y solo sirve para un despliegue estático.
+
 
 Navegador de sitios de alunizaje del Polo Sur lunar. GISAT UdeC, NASA Space
 Apps Challenge 2026.
@@ -16,15 +30,8 @@ v2.1). Para saltar la puerta: `?mode=leader` o `?mode=beginner`.
 
 ## Cómo ejecutarlo
 
-Con doble clic en `run-dev.cmd`, o desde una terminal:
-
-```bash
-npm install
-npm run dev
-```
-
-Abre <http://127.0.0.1:5173>. Requiere Node.js 20 o superior
-(`winget install OpenJS.NodeJS.LTS`).
+Ver **Quick Start** arriba. En Windows también vale doble clic en
+`run-dev.cmd`. Node.js en Windows: `winget install OpenJS.NodeJS.LTS`.
 
 ## Qué hace
 
@@ -49,8 +56,13 @@ Abre <http://127.0.0.1:5173>. Requiere Node.js 20 o superior
   térmico acoplado con calefactores y congelación de batería; índice
   multicriterio; malla de dispersión con vector de escape; activo vecino con
   sombra mutua y eyección por pluma.
-- **Exportar CSV** con un clic: telemetría simulada en 26 columnas SI, una fila
-  por hora.
+- **Exportar CSV** con un clic: telemetría simulada en 26 columnas, siempre en
+  SI (la cabecera lo declara), una fila por hora.
+- **Unidades SI / Imperial** (v3.1), elevación solar como KPI de potencia,
+  telémetro del cursor más allá de ±500 m, ventana «Aprender más: Física
+  Lunar vs. Tierra», límites declarados de LOLA, contraste con mapas de
+  iluminación publicados, glosario con tooltips y búsqueda de rescate en un
+  Web Worker.
 - **Dos modos**: Planificador (un escenario de alunizaje, con comparación A/B
   a demanda dentro de Ventanas de aterrizaje, y fichas de los sitios
   candidatos) y **Emergencia** (posición y energía disponible, evaluado desde
@@ -91,10 +103,10 @@ enunciado; el porqué está en la sección 4.2 de [ARCHITECTURE.md](ARCHITECTURE
 | `npm run dev` | servidor de desarrollo |
 | `npm run build` | verificación de tipos y build de producción en `dist/` |
 | `npm run typecheck` / `npm run lint` | `tsc --noEmit` (el proyecto no usa ESLint) |
-| `npm test` | 147 tests del motor, el catálogo de sitios, la emergencia, la exportación y la interfaz (vitest) |
+| `npm test` | 175 tests del motor, el catálogo de sitios, la emergencia, la exportación y la interfaz (vitest) |
 | `npm run guide` | toma las capturas reales de la app (`npm run guide-shots`, ES y EN) y regenera `public/guide/guia-interfaz-es.pdf` y `-en.pdf` desde `docs/guia-interfaz*.md` |
 | `npm run measure-micro` | mide el costo del peligro bajo el píxel en los cinco sitios |
-| `npm run e2e` | verificación en navegador con Playwright de Mission Leader y del Principiante (requiere `npm run build`); por separado `e2e:leader` y `e2e:beginner` |
+| `npm run e2e` | verificación en navegador con Playwright (requiere `npm run build`): 157 comprobaciones, 132 de Mission Leader (`e2e:leader`, incluida la prueba sin red) y 25 del Principiante (`e2e:beginner`) |
 | `npm run find-scenarios` | busca con el motor los escenarios del entrenamiento y escribe `src/beginner/scenarios.ts` |
 | `npm run perf` | medición de cuadros por segundo |
 | `npm run build-dem` | regenera las mallas LOLA de `public/dem/` (requiere `pip install rasterio numpy`) |

@@ -7,6 +7,8 @@ import {
 import { ScenarioKey, scenarioLatLon, useApp } from '../../state/store';
 import { useMission } from '../../state/mission';
 import { fmtLat, fmtLon, fmtNum, fromDateInput, toDateInput, useT } from '../../lib/format';
+import { PublishedContrast } from '../DataLimits';
+import { useUnits } from '../../lib/units';
 import { SiteCards } from './SiteCards';
 
 const MIN_DATE = Date.UTC(2026, 0, 1);
@@ -74,6 +76,7 @@ export function SitesPanel() {
 
 export function ScenarioPanel({ k }: { k: ScenarioKey }) {
   const t = useT();
+  const u = useUnits();
   const cfg = useApp((s) => s.scenarios[k]);
   const other = useApp((s) => s.scenarios[k === 'A' ? 'B' : 'A']);
   const lang = useApp((s) => s.lang);
@@ -129,10 +132,11 @@ export function ScenarioPanel({ k }: { k: ScenarioKey }) {
       <p className="site-coords mono">{fmtLat(nominal.latDeg)}&nbsp;&nbsp;{fmtLon(nominal.lonDeg)}{data.loading !== null && <em> · DEM {Math.round(data.loading * 100)}%</em>}</p>
       {site && briefKm !== null && briefKm > 0.05 && (
         <p className="site-brief">
-          {t(`Landing point chosen on LOLA terrain, ${briefKm.toFixed(1)} km from the brief coordinate`, `Punto elegido sobre el relieve LOLA, a ${briefKm.toFixed(1)} km de la coordenada del enunciado`)}
+          {t(`Landing point chosen on LOLA terrain, ${u.kmStr(briefKm, 1)} from the brief coordinate`, `Punto elegido sobre el relieve LOLA, a ${u.kmStr(briefKm, 1)} de la coordenada del enunciado`)}
           {' '}<span className="mono">({fmtLat(site.brief.latDeg)} {fmtLon(site.brief.lonDeg)})</span>
         </p>
       )}
+      {site && <PublishedContrast data={data} />}
       <p className={`terrain-tag mono${data.terrain === 'synthetic' || (data.terrainResolutionM ?? 0) > 100 ? ' is-warn' : ''}`} data-testid={`terrain-${k}`}>
         {data.terrain === 'synthetic'
           ? t('Terrain: synthetic model (LOLA files not found)', 'Terreno: modelo sintético (no se hallaron los archivos LOLA)')
@@ -162,11 +166,11 @@ export function ScenarioPanel({ k }: { k: ScenarioKey }) {
 
       <div className="reloc-sliders">
         <label className="field">
-          <span className="field-label">{t('Move east', 'Mover al este')}<output className="mono">{cfg.dxM > 0 ? '+' : ''}{cfg.dxM} m</output></span>
+          <span className="field-label">{t('Move east', 'Mover al este')}<output className="mono">{u.mSigned(cfg.dxM)}</output></span>
           <input type="range" min={-RELOCATION_LIMIT_M} max={RELOCATION_LIMIT_M} step={10} value={cfg.dxM} data-testid={`dx-${k}`} onChange={(e) => setRelocation(k, Number(e.target.value), cfg.dyM)} />
         </label>
         <label className="field">
-          <span className="field-label">{t('Move north', 'Mover al norte')}<output className="mono">{cfg.dyM > 0 ? '+' : ''}{cfg.dyM} m</output></span>
+          <span className="field-label">{t('Move north', 'Mover al norte')}<output className="mono">{u.mSigned(cfg.dyM)}</output></span>
           <input type="range" min={-RELOCATION_LIMIT_M} max={RELOCATION_LIMIT_M} step={10} value={cfg.dyM} data-testid={`dy-${k}`} onChange={(e) => setRelocation(k, cfg.dxM, Number(e.target.value))} />
         </label>
       </div>
@@ -186,6 +190,7 @@ function Group({ title, children, open }: { title: string; children: ReactNode; 
 export function HardwarePanel({ focus = 'all' }: { focus?: 'all' | 'power' | 'comms' }) {
   const showPower = focus !== 'comms', showComms = focus !== 'power';
   const t = useT();
+  const u = useUnits();
   const power = useApp((s) => s.power);
   const rf = useApp((s) => s.rf);
   const setPower = useApp((s) => s.setPower);
@@ -207,8 +212,8 @@ export function HardwarePanel({ focus = 'all' }: { focus?: 'all' | 'power' | 'co
         <label className="field">
           <span className="field-label">{t('Array and antenna height', 'Altura de paneles y antena')}</span>
           <select value={mastM} onChange={(e) => setMast(Number(e.target.value))} data-testid="mast">
-            <option value={2}>{t('2 m, on the lander deck', '2 m, sobre la cubierta del lander')}</option>
-            <option value={10}>{t('10 m, on a mast', '10 m, sobre un mástil')}</option>
+            <option value={2}>{t(`${u.m(2)}, on the lander deck`, `${u.m(2)}, sobre la cubierta del lander`)}</option>
+            <option value={10}>{t(`${u.m(10)}, on a mast`, `${u.m(10)}, sobre un mástil`)}</option>
           </select>
         </label>
         <label className="field">
@@ -283,9 +288,9 @@ export function HardwarePanel({ focus = 'all' }: { focus?: 'all' | 'power' | 'co
             <details className="adv-assume" data-testid="advanced-assumptions">
               <summary>{t('Advanced assumptions', 'Supuestos avanzados')}</summary>
               <dl className="link-grid mono">
-                <div><dt>{t('Heaters switch on below', 'Calefactores se encienden bajo')}</dt><dd>0 °C</dd></div>
-                <div><dt>{t('Battery starts losing capacity below', 'La batería pierde capacidad bajo')}</dt><dd>−10 °C</dd></div>
-                <div><dt>{t('Battery frozen, lander lost at', 'Batería congelada, lander perdido a')}</dt><dd>−20 °C</dd></div>
+                <div><dt>{t('Heaters switch on below', 'Calefactores se encienden bajo')}</dt><dd>{u.c(0)}</dd></div>
+                <div><dt>{t('Battery starts losing capacity below', 'La batería pierde capacidad bajo')}</dt><dd>{u.c(-10)}</dd></div>
+                <div><dt>{t('Battery frozen, lander lost at', 'Batería congelada, lander perdido a')}</dt><dd>{u.c(-20)}</dd></div>
               </dl>
               <p className="kpi-note pad0">{t('Engineering assumption of this tool, typical of lithium-ion cells; not the specification of a real lander.', 'Supuesto de ingeniería de esta herramienta, típico de celdas de ion-litio; no es la especificación de un lander real.')}</p>
             </details>

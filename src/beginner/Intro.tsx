@@ -20,7 +20,8 @@ import {
 } from 'three';
 import { HALF_KM, shadedRelief } from '../components/PolarMap';
 import { R_MOON_KM } from '../engine';
-import { fmtNum, useT } from '../lib/format';
+import { useT } from '../lib/format';
+import { useUnits } from '../lib/units';
 import { useMission } from '../state/mission';
 import { useApp } from '../state/store';
 import { play } from './audio';
@@ -31,6 +32,7 @@ const span = (p: number, a: number, b: number): number => ease((p - a) / (b - a)
 
 export function Intro({ onDone }: { onDone: () => void }) {
   const t = useT();
+  const u = useUnits();
   const host = useRef<HTMLDivElement>(null);
   const caption = useRef<HTMLDivElement>(null);
   const doneRef = useRef(onDone);
@@ -175,7 +177,7 @@ export function Intro({ onDone }: { onDone: () => void }) {
     <div className="intro" ref={host} data-testid="intro" role="img" aria-label={t('The Moon turns, the view tilts to the south pole and dives towards the landing site.', 'La Luna gira, la vista se inclina hacia el polo sur y desciende hacia el sitio de alunizaje.')}>
       <div className="intro-fade" aria-hidden="true" />
       <div className="intro-caption" ref={caption} data-phase="moon" aria-hidden="true">
-        <span className="intro-moon">{rangeKm ? t(`The Moon, ${fmtNum(rangeKm, 0)} km from home.`, `La Luna, a ${fmtNum(rangeKm, 0)} km de casa.`) : t('The Moon.', 'La Luna.')}</span>
+        <span className="intro-moon">{rangeKm ? t(`The Moon, ${u.kmStr(rangeKm, 0)} from home.`, `La Luna, a ${u.kmStr(rangeKm, 0)} de casa.`) : t('The Moon.', 'La Luna.')}</span>
         <span className="intro-pole">{t('Its south pole: the Sun never climbs, the shadows last for weeks.', 'Su polo sur: el Sol nunca sube y las sombras duran semanas.')}</span>
         <span className="intro-dive">{t('Descending towards ', 'Descendiendo hacia ')}{A.name}</span>
       </div>

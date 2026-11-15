@@ -104,7 +104,7 @@ try {
   // The training runs in Spanish (the narration is kept as the final script, docs/guion-principiante.md).
   await p.click('[data-testid="lang-es"]');
   const seen = [];
-  let lockedChecked = false, doItUsed = 0, last = '', sameSince = Date.now();
+  let lockedChecked = false, doItUsed = 0, last = '', sameSince = Date.now(), learnChecked = false, unitsChecked = false;
   const t0 = Date.now();
   while (Date.now() - t0 < 900000) {
     const st = await p.evaluate(() => ({
@@ -127,8 +127,33 @@ try {
       const locked = await p.evaluate(() => ({ sub: document.querySelector('[data-testid="planner"]')?.dataset.subsystem, nudge: document.querySelector('[data-testid="beg-nudge"]')?.textContent ?? '', lock: document.querySelector('[data-testid="subsys-power"]')?.dataset.locked }));
       check('a locked subsystem does not open, and says why', locked.sub === 'overview' && locked.lock === '1', JSON.stringify(locked));
     }
+    if (st.step === 'celebrate' && !learnChecked && /Insignia 2/.test(st.text)) {
+      // v3.1 (SR-502 / SR-708): "Learn more" next to Continue, opening the 200 m comparison
+      learnChecked = true;
+      await p.click('[data-testid="learn-cel"]');
+      await p.waitForSelector('[data-testid="learn-modal"]');
+      const lm = await p.evaluate(() => ({ topic: document.querySelector('[data-testid="learn-modal"]')?.dataset.topic, h: document.querySelector('[data-testid="learn-modal"] h2')?.textContent ?? '' }));
+      await p.screenshot({ path: join(shots, 'learn-200m.png') });
+      await p.click('[data-testid="learn-back"]');
+      check('each celebration offers "Learn more" next to Continue; after mission 2 it explains why 200 m change everything', lm.topic === 'move200' && /200 m/.test(lm.h) && (await p.locator('[data-testid="learn-modal"]').count()) === 0, JSON.stringify(lm));
+      continue;
+    }
+    if (st.step === 'm3-heaters' && !unitsChecked) {
+      // v3.1 (SR-711): the narration follows the unit system
+      unitsChecked = true;
+      await p.click('[data-testid="units-imperial"]');
+      await p.waitForTimeout(400);
+      const fText = await p.evaluate(() => document.querySelector('[data-testid="beg-card"]')?.textContent ?? '');
+      await p.click('[data-testid="units-si"]');
+      await p.waitForTimeout(300);
+      check('the narration switches to °F with the Imperial units and back', /°F/.test(fText) && !/°C/.test(fText), fText.slice(0, 160));
+    }
     if (st.diploma) {
       await p.screenshot({ path: join(shots, 'diploma.png') });
+      await p.click('[data-testid="learn-dip"]');
+      await p.waitForSelector('[data-testid="learn-master"]');
+      check('the diploma offers the master Earth-vs-Moon summary', (await p.locator('[data-testid="learn-master"] tbody tr').count()) >= 8);
+      await p.click('[data-testid="learn-back"]');
       await p.click('[data-testid="beg-to-pro"]');
       break;
     }

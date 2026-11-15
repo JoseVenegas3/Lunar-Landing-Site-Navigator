@@ -22,7 +22,9 @@ import { ScenarioData } from '../state/mission';
 import { ScenarioKey, scenarioLatLon, useApp } from '../state/store';
 import { ExitBlock, SurvivalHeadline } from './ExitBlock';
 import { useExitPlan } from '../state/exitPlan';
-import { cardinal, fmtDateTime, fmtDuration, fmtEnergy, fmtLat, fmtLon, fmtNum, fmtSigned, useT } from '../lib/format';
+import { cardinal, fmtDateTime, fmtDuration, fmtEnergy, fmtLat, fmtLon, fmtNum, useT } from '../lib/format';
+import { LolaLimits } from './DataLimits';
+import { useUnits } from '../lib/units';
 
 /**
  * Days evaluated from now in an emergency, by default: one lunar night. Half a
@@ -167,6 +169,7 @@ export function EmergencyInputs({ data, compact = false }: { data: ScenarioData;
 /** Answers: verdict, time to freeze, where to move. */
 export function EmergencyResult({ data, clocksTestId = 'emg-clocks', extra }: { data: ScenarioData; clocksTestId?: string; extra?: ReactNode }) {
   const t = useT();
+  const u = useUnits();
   const k = data.key;
   const cfg = useApp((s) => s.scenarios[k]);
   const plan = useExitPlan(data);
@@ -181,7 +184,7 @@ export function EmergencyResult({ data, clocksTestId = 'emg-clocks', extra }: { 
         {r ? (
           <>
             <p className="tri-big mono">{fmtLat(r.observer.latDeg)} {fmtLon(r.observer.lonDeg)}</p>
-            <p className="tri-line mono">{fmtSigned(r.kpis.groundElevationM, 0)} m · {t('slope', 'pendiente')} <span className={r.kpis.slopeDeg > 15 ? 'is-crit' : r.kpis.slopeDeg > 10 ? 'is-warn' : ''}>{fmtNum(r.kpis.slopeDeg, 1)}°</span> · {t('tilt', 'inclinación')} {fmtNum(r.adv.kpis.tiltDeg, 1)}°</p>
+            <p className="tri-line mono">{u.mSigned(r.kpis.groundElevationM)} · {t('slope', 'pendiente')} <span className={r.kpis.slopeDeg > 15 ? 'is-crit' : r.kpis.slopeDeg > 10 ? 'is-warn' : ''}>{fmtNum(r.kpis.slopeDeg, 1)}°</span> · {t('tilt', 'inclinación')} {fmtNum(r.adv.kpis.tiltDeg, 1)}°</p>
           </>
         ) : <p className="tri-line">{t('Reading the terrain…', 'Leyendo el terreno…')}</p>}
         {plan ? (
@@ -203,6 +206,7 @@ export function EmergencyResult({ data, clocksTestId = 'emg-clocks', extra }: { 
 
       <Step n={3} title={t('Where can we go?', '¿Hacia dónde podemos ir?')} testId="tri-step-3">
         <DispersionBlock data={data} />
+        <LolaLimits testid="lola-limits-emg" />
       </Step>
     </div>
   );
@@ -216,6 +220,7 @@ export function EmergencyResult({ data, clocksTestId = 'emg-clocks', extra }: { 
  */
 export function DispersionBlock({ data }: { data: ScenarioData }) {
   const t = useT();
+  const u = useUnits();
   const k = data.key;
   const cfg = useApp((s) => s.scenarios[k]);
   const { result: grid, progress } = useDispersion(data, true);
@@ -239,7 +244,7 @@ export function DispersionBlock({ data }: { data: ScenarioData }) {
                           key={i} type="button" role="gridcell" className={`disp-cell${isBest ? ' is-best' : ''}${isCentre ? ' is-centre' : ''}`} data-testid={isBest ? 'disp-best' : undefined}
                           style={{ background: c.lost ? `rgba(239,68,68,${0.25 + 0.55 * (1 - c.merit)})` : `rgba(16,185,129,${0.2 + 0.65 * c.merit})` }}
                           onClick={() => moveTo(c.eastM, c.northM)}
-                          title={`E ${c.eastM > 0 ? '+' : ''}${c.eastM} m, N ${c.northM > 0 ? '+' : ''}${c.northM} m · ${fmtDuration(c.survivalHours)} · ${fmtNum(c.linkPct, 0)} %`}
+                          title={`E ${u.mSigned(c.eastM)}, N ${u.mSigned(c.northM)} · ${fmtDuration(c.survivalHours)} · ${fmtNum(c.linkPct, 0)} %`}
                         >
                           <span className="mono">{c.lost ? fmtDuration(c.survivalHours) : `${fmtNum(c.linkPct, 0)}%`}</span>
                         </button>
@@ -262,7 +267,7 @@ export function DispersionBlock({ data }: { data: ScenarioData }) {
             {escape ? (
               <div className="escape" data-testid="tri-escape">
                 {grid.best.lost && <strong className="is-crit">{t('No point within 200 m saves the lander. The one that lasts longest:', 'Ningún punto a 200 m salva el lander. El que más aguanta:')}</strong>}
-                <output className="mono" data-testid="escape-vector">{fmtNum(escape.distanceM, 0)} m → {cardinal(escape.azimuthDeg)} ({t('azimuth', 'acimut')} {fmtNum(escape.azimuthDeg, 0)}°)</output>
+                <output className="mono" data-testid="escape-vector">{u.m(escape.distanceM)} → {cardinal(escape.azimuthDeg)} ({t('azimuth', 'acimut')} {fmtNum(escape.azimuthDeg, 0)}°)</output>
                 <span>
                   {escape.gainHours > 0.5
                     ? t(`Moving there adds ${fmtDuration(escape.gainHours)} of life`, `Moverse ahí suma ${fmtDuration(escape.gainHours)} de vida`)

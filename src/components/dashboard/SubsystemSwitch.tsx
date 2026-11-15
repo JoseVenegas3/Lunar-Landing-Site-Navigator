@@ -12,6 +12,7 @@ import { CSSProperties, ReactNode, useEffect } from 'react';
 import { create } from 'zustand';
 import { SUBSYSTEMS, SUBSYSTEM_ORDER, Subsystem, useApp } from '../../state/store';
 import { useT } from '../../lib/format';
+import { LearnButton, SUBSYSTEM_TOPIC } from '../LearnMore';
 import { nudge, useBeginner } from '../../beginner/state';
 
 type T = (en: string, es: string) => string;
@@ -140,6 +141,7 @@ export function SubsystemTabs() {
           );
         })}
       </div>
+      {!beginner && <LearnButton topic={SUBSYSTEM_TOPIC[subsystem]} testid="learn-subsys" />}
     </nav>
   );
 }

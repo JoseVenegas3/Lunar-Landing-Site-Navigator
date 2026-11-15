@@ -7,7 +7,8 @@ import { HOUR_MS, MissionResult, STATE_DEPLETED, STATE_DTE, STATE_RF_PHYSICAL, S
 const iso = (ms: number): string => new Date(ms).toISOString().replace('.000Z', 'Z');
 const num = (v: number, d: number): string => (Number.isFinite(v) ? v.toFixed(d) : '');
 
-export interface ExportMeta { site: string; scenario: string }
+/** displayUnits: the unit system on screen when exporting; the CSV itself is always SI and says so. */
+export interface ExportMeta { site: string; scenario: string; displayUnits?: 'si' | 'imperial' }
 
 export const TELEMETRY_COLUMNS = [
   'utc', 'met_h', 'sun_az_deg', 'sun_el_deg', 'sun_disc_fraction', 'earth_az_deg', 'earth_el_deg', 'earth_clearance_deg',
@@ -23,6 +24,7 @@ export function buildTelemetryCsv(r: MissionResult, meta: ExportMeta): string {
   const lines: string[] = [
     '# CLPS Lunar Mission Browser - GISAT UdeC - simulated telemetry',
     `# scenario=${meta.scenario} site=${meta.site}`,
+    `# units=SI (unit suffix in each column name: _deg degrees, _km kilometres, _m metres, _w watts, _wh watt-hours, _pct percent, _c degrees Celsius, _k kelvin, _db decibels, _mbps megabits per second) display_units=${meta.displayUnits ?? 'si'}`,
     `# lander_lat_deg=${r.observer.latDeg.toFixed(5)} lander_lon_deg=${r.observer.lonDeg.toFixed(5)} ground_elevation_m=${(r.observer.groundKm * 1000).toFixed(1)}`,
     `# window_start_utc=${iso(r.eph.startMs)} step_h=${r.stepHours} samples=${r.count}`,
     `# attitude roll_deg=${r.adv.attitude.rollDeg} pitch_deg=${r.adv.attitude.pitchDeg} yaw_deg=${r.adv.attitude.yawDeg} gimbal_deg=${r.adv.attitude.gimbalRangeDeg}`,

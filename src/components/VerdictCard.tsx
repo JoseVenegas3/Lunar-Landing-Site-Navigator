@@ -7,6 +7,7 @@ import { ScenarioData } from '../state/mission';
 import { useRescue, useVerdict } from '../state/verdict';
 import { RESCUE_SPANS, useApp } from '../state/store';
 import { cardinal, fmtDateTime, fmtDuration, fmtNum, useT } from '../lib/format';
+import { currentUnits, useUnits } from '../lib/units';
 import { ScenarioBadge } from './ScenarioBadge';
 
 type T = (en: string, es: string) => string;
@@ -22,7 +23,7 @@ export function verdictLabel(v: Verdict, t: T): string {
 
 function causeText(c: VerdictCause, v: Verdict, t: T): string {
   switch (c) {
-    case 'thermal': return t(`Thermal failure on ${dayHour(v.survivalHours, t)}: a long shadow drains the battery and the bus freezes at −20 °C.`, `Falla térmica en ${dayHour(v.survivalHours, t)}: una sombra prolongada agota la batería y el bus se congela a −20 °C.`);
+    case 'thermal': return t(`Thermal failure on ${dayHour(v.survivalHours, t)}: a long shadow drains the battery and the bus freezes at ${currentUnits().c(-20)}.`, `Falla térmica en ${dayHour(v.survivalHours, t)}: una sombra prolongada agota la batería y el bus se congela a ${currentUnits().c(-20)}.`);
     case 'battery': return t(`Battery empty on ${dayHour(v.survivalHours, t)}: the shadows last longer than the stored energy.`, `Batería agotada en ${dayHour(v.survivalHours, t)}: las sombras duran más que la energía almacenada.`);
     case 'no-link': return t('No contact with the Earth: the terrain hides it for the whole mission.', 'Sin contacto con la Tierra: el terreno la oculta durante toda la misión.');
     case 'needs-relay': return t(`It loses contact with the Earth for ${fmtDuration(v.longestLinkGapH)} in a row. It needs a relay satellite.`, `Pierde contacto con la Tierra ${fmtDuration(v.longestLinkGapH)} seguidas. Necesita un satélite relay.`);
@@ -67,6 +68,7 @@ export function verdictGloss(v: Verdict, t: T): string {
 
 export function VerdictCard({ data, gloss = false }: { data: ScenarioData; gloss?: boolean }) {
   const t = useT();
+  const u = useUnits();
   const v = useVerdict(data);
   const rescue = useRescue(data);
   const days = useApp((s) => s.rescueDays);
@@ -85,10 +87,10 @@ export function VerdictCard({ data, gloss = false }: { data: ScenarioData; gloss
             <Chip v={o.before} t={t} /><span aria-hidden="true">→</span><Chip v={o.after} t={t} />
             <span>
               {o.after.level === 'nogo' && o.action !== 'none' && t(`No point within 200 m and no date in the next ${days} days saves this mission. Best found: `, `Ningún punto a 200 m ni fecha en los próximos ${days} días salva esta misión. Lo mejor hallado: `)}
-              {o.action === 'move' && t(`moved ${fmtNum(Math.hypot(o.eastM, o.northM), 0)} m to the ${cardinal((Math.atan2(o.eastM, o.northM) * 180) / Math.PI)}`, `movido ${fmtNum(Math.hypot(o.eastM, o.northM), 0)} m al ${cardinal((Math.atan2(o.eastM, o.northM) * 180) / Math.PI)}`)}
+              {o.action === 'move' && t(`moved ${u.m(Math.hypot(o.eastM, o.northM))} to the ${cardinal((Math.atan2(o.eastM, o.northM) * 180) / Math.PI)}`, `movido ${u.m(Math.hypot(o.eastM, o.northM))} al ${cardinal((Math.atan2(o.eastM, o.northM) * 180) / Math.PI)}`)}
               {o.action === 'date' && o.startMs !== null && t(`landing moved to ${fmtDateTime(o.startMs)} UTC`, `alunizaje movido al ${fmtDateTime(o.startMs)} UTC`)}
               {o.action === 'none' && t(`No better point within 200 m and no better date in the next ${days} days. Try a shorter mission, a larger battery or another site`, `No hay mejor punto a 200 m ni mejor fecha en los próximos ${days} días. Prueba una misión más corta, una batería mayor u otro sitio`)}
-              {' · '}{o.missions} {t('missions in', 'misiones en')} {fmtNum(o.elapsedMs / 1000, 1)} s
+              {' · '}<span data-testid="rescue-record" data-engine={o.engine}>{o.missions} {t('missions in', 'misiones en')} {fmtNum(o.elapsedMs / 1000, 1)} s{o.engine === 'worker' ? ` (Web Worker${o.pruned ? t(`, ${o.pruned} too steep skipped`, `, ${o.pruned} demasiado empinados omitidos`) : ''})` : o.pruned ? ` (${t(`${o.pruned} too steep skipped`, `${o.pruned} demasiado empinados omitidos`)})` : ''}</span>
             </span>
           </p>
         )}

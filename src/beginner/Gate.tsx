@@ -13,6 +13,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Experience, useApp } from '../state/store';
 import { useT } from '../lib/format';
 import { unlockAudio } from './audio';
+import { UnitToggle } from '../components/UnitToggle';
 
 type Step = 'ask' | 'no' | 'yes' | 'confirm-pro';
 
@@ -47,10 +48,14 @@ export function Gate({ ready, progress, onEnter }: { ready: boolean; progress: n
             <strong>CLPS Lunar Mission Browser</strong>
             <span>NASA Space Apps 2026 · GISAT UdeC</span>
           </div>
+        </div>
+        <div className="gate-prefs">
           <div className="lang gate-lang" role="group" aria-label="Language / Idioma">
+            <span className="units-cap">{t('Language', 'Idioma')}</span>
             <button type="button" className={lang === 'en' ? 'is-on' : ''} aria-pressed={lang === 'en'} onClick={() => setLang('en')} data-testid="gate-lang-en">EN</button>
             <button type="button" className={lang === 'es' ? 'is-on' : ''} aria-pressed={lang === 'es'} onClick={() => setLang('es')} data-testid="gate-lang-es">ES</button>
           </div>
+          <UnitToggle long testid="gate-units" />
         </div>
 
         {pending ? (
@@ -76,14 +81,14 @@ export function Gate({ ready, progress, onEnter }: { ready: boolean; progress: n
             </div>
             {step === 'no' && (
               <div className="gate-actions">
-                <button ref={first} type="button" className="btn gate-main" onClick={() => go('beginner')} data-testid="gate-start-training">{t('Start training', 'Comenzar entrenamiento')}</button>
+                <button ref={first} type="button" className="btn gate-main" onClick={() => go('beginner')} data-testid="gate-start-training">{t('Start training (Guided mode)', 'Comenzar entrenamiento (Modo Guiado)')}</button>
                 <button type="button" className="btn btn-small gate-minor" onClick={() => setStep('confirm-pro')} data-testid="gate-skip-pro">{t('Go straight to the Pro version', 'Ir directo a la versión Pro')}</button>
               </div>
             )}
             {step === 'yes' && (
               <div className="gate-actions">
-                <button ref={first} type="button" className="btn gate-main" onClick={() => go('leader')} data-testid="gate-open-leader">{t('Open Mission Leader', 'Abrir Mission Leader')}</button>
-                <button type="button" className="btn btn-small gate-minor" onClick={() => go('beginner')} data-testid="gate-forgot">{t('Forgot how it works?', '¿Te olvidaste cómo funciona?')}</button>
+                <button ref={first} type="button" className="btn gate-main" onClick={() => go('leader')} data-testid="gate-open-leader">{t('Open Mission Leader (Full mode)', 'Abrir Mission Leader (Modo Completo)')}</button>
+                <button type="button" className="btn btn-small gate-minor" onClick={() => go('beginner')} data-testid="gate-forgot">{t('Forgot how it works? Go to the training', '¿Te olvidaste cómo funciona? Ir al entrenamiento')}</button>
               </div>
             )}
           </div>

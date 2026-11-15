@@ -21,11 +21,15 @@ import { AppState, Subsystem, scenarioLatLon, useApp } from '../state/store';
 import { DISPERSION_RADIUS_M, DISPERSION_SIZE, useInsights } from '../state/insights';
 import { EXIT_MOVE_RADIUS_M } from '../state/exitPlan';
 import { cardinal, fmtDateTime, fmtDuration, fmtEnergy, fmtNum } from '../lib/format';
+import { Units, unitsFor } from '../lib/units';
 import { Sfx } from './audio';
 import { Reveal, useBeginner } from './state';
 import { TUTORIAL_SCENARIOS as SC } from './scenarios';
 
 export type T = (en: string, es: string) => string;
+
+/** Display units of the narration (SR-711): every length and temperature follows the selector. */
+const U = (c: Ctx): Units => unitsFor(c.app.unitSystem);
 
 export interface Ctx {
   app: AppState;
@@ -89,6 +93,11 @@ const peakHour = (c: Ctx): number => {
   return best;
 };
 const powerAt = (c: Ctx, h: number): number => c.A.result?.powerW[Math.max(0, Math.min(c.A.result.count - 1, Math.round(h)))] ?? 0;
+/** Elevation of the centre of the solar disc at a mission hour, degrees (from the result). */
+const elevAt = (c: Ctx, h: number): number => {
+  const r = c.A.result;
+  return r ? r.sunEl[Math.max(0, Math.min(r.count - 1, Math.round(h / r.stepHours)))] : 0;
+};
 
 /** Put scenario A on a tutorial scenario, with the default hardware (the training changes one thing at a time). */
 function scenario(sc: { siteId: string; startMs: number; days: number }, patch: { dxM?: number; dyM?: number } = {}): void {
@@ -148,9 +157,10 @@ export const SCRIPT: Step[] = [
     id: 'm0-low-sun', mission: 0, auto: 6000,
     say: (c, t) => {
       const h = peakHour(c), p0 = powerAt(c, 0), pm = powerAt(c, h);
+      const e0 = elevAt(c, 0), em = elevAt(c, h);
       return t(
-        `The Sun is low on the panels: ${fmtNum(p0, 0)} W now, ${fmtNum(pm > 0 ? (100 * p0) / pm : 0, 0)} % of what they will give at ${at(c, h)} UTC (T+${fmtDuration(h)}), when the Sun is in its best position of the day (${fmtNum(pm, 0)} W). At the pole the Sun never climbs more than a couple of degrees: "best position" means the most power, not a high Sun.`,
-        `El Sol llega bajo a los paneles: ${fmtNum(p0, 0)} W ahora, el ${fmtNum(pm > 0 ? (100 * p0) / pm : 0, 0)} % de lo que darán a las ${at(c, h)} UTC (T+${fmtDuration(h)}), cuando el Sol esté en su mejor posición del día (${fmtNum(pm, 0)} W). En el polo el Sol nunca sube más de un par de grados: «mejor posición» es la de máxima potencia, no un Sol alto.`,
+        `The Sun is at a poor grazing angle (${fmtNum(e0, 2)}°): ${fmtNum(p0, 0)} W now, ${fmtNum(pm > 0 ? (100 * p0) / pm : 0, 0)} % of what the panels will give at ${at(c, h)} UTC (T+${fmtDuration(h)}), when the solar elevation reaches its best (${fmtNum(em, 2)}°) and the disc clears the ridges (${fmtNum(pm, 0)} W). At the pole the Sun never climbs more than a couple of degrees: tenths of a degree decide the power.`,
+        `El Sol está en un ángulo rasante deficiente (${fmtNum(e0, 2)}°): ${fmtNum(p0, 0)} W ahora, el ${fmtNum(pm > 0 ? (100 * p0) / pm : 0, 0)} % de lo que darán los paneles a las ${at(c, h)} UTC (T+${fmtDuration(h)}), cuando la elevación solar alcance su punto óptimo (${fmtNum(em, 2)}°) y el disco supere las crestas (${fmtNum(pm, 0)} W). En el polo el Sol nunca sube más de un par de grados: décimas de grado deciden la potencia.`,
       );
     },
   },
@@ -314,9 +324,9 @@ export const SCRIPT: Step[] = [
   },
   {
     id: 'm2-move', mission: 2, focus: 'canvas', allow: ['dblclick', 'drag', 'wheel'],
-    say: (_c, t) => t(
-      `Red is steeper than ${SLOPE_STOPS[3][0]}°, green is under ${SLOPE_STOPS[1][0]}°. There is level ground about ${fmtNum(SC.m2.distanceM, 0)} m away: drag the lander or double-click a green patch (up to ±${RELOCATION_LIMIT_M} m).`,
-      `El rojo supera los ${SLOPE_STOPS[3][0]}° y el verde está bajo ${SLOPE_STOPS[1][0]}°. Hay terreno nivelado a unos ${fmtNum(SC.m2.distanceM, 0)} m: arrastra el módulo o haz doble clic en una zona verde (hasta ±${RELOCATION_LIMIT_M} m).`,
+    say: (c, t) => t(
+      `Red is steeper than ${SLOPE_STOPS[3][0]}°, green is under ${SLOPE_STOPS[1][0]}°. Move the cursor over the map: next to it you read the distance, bearing, elevation and slope live, even beyond ±${U(c).m(RELOCATION_LIMIT_M)}. There is level ground about ${U(c).m(SC.m2.distanceM, 0)} away: drag the lander or double-click a green patch (up to ±${U(c).m(RELOCATION_LIMIT_M)}).`,
+      `El rojo supera los ${SLOPE_STOPS[3][0]}° y el verde está bajo ${SLOPE_STOPS[1][0]}°. Pasa el cursor por el mapa: junto a él lees en vivo la distancia, el rumbo, la elevación y la pendiente, incluso más allá de ±${U(c).m(RELOCATION_LIMIT_M)}. Hay terreno nivelado a unos ${U(c).m(SC.m2.distanceM, 0)}: arrastra el módulo o haz doble clic en una zona verde (hasta ±${U(c).m(RELOCATION_LIMIT_M)}).`,
     ),
     until: (c) => ready(c) && (c.A.result?.kpis.slopeDeg ?? 99) < SLOPE_STOPS[1][0] && tipP(c) < 0.01,
     doIt: () => s0().setRelocation('A', SC.m2.safeDxM, SC.m2.safeDyM),
@@ -326,18 +336,18 @@ export const SCRIPT: Step[] = [
     id: 'm2-ok', mission: 2, auto: 0, sfx: 'success',
     say: (c, t) => {
       const a = c.app.scenarios.A;
-      return t(`Lander offset ${fmtNum(Math.hypot(a.dxM, a.dyM), 0)} m. Slope ${fmtNum(c.A.result?.kpis.slopeDeg ?? 0, 1)}°, tip-over probability ${fmtNum(100 * tipP(c), 1)} %.`, `Desplazamiento del módulo ${fmtNum(Math.hypot(a.dxM, a.dyM), 0)} m. Pendiente ${fmtNum(c.A.result?.kpis.slopeDeg ?? 0, 1)}°, probabilidad de vuelco ${fmtNum(100 * tipP(c), 1)} %.`);
+      return t(`Lander offset ${U(c).m(Math.hypot(a.dxM, a.dyM), 0)}. Slope ${fmtNum(c.A.result?.kpis.slopeDeg ?? 0, 1)}°, tip-over probability ${fmtNum(100 * tipP(c), 1)} %.`, `Desplazamiento del módulo ${U(c).m(Math.hypot(a.dxM, a.dyM), 0)}. Pendiente ${fmtNum(c.A.result?.kpis.slopeDeg ?? 0, 1)}°, probabilidad de vuelco ${fmtNum(100 * tipP(c), 1)} %.`);
     },
   },
   {
     id: 'm2-disp', mission: 2, auto: 0, focus: '[data-testid="dispersion-block"]',
     enter: () => { s0().setOverlay('none'); s0().openPanel('survival'); },
     until: () => Boolean(document.querySelector('[data-testid="dispersion-grid"]')),
-    say: (_c, t) => t(`The thrusters do not land to the metre: the lander can come down anywhere in this ${DISPERSION_SIZE} × ${DISPERSION_SIZE} grid within ${DISPERSION_RADIUS_M} m, and each cell is a full mission. The laser map (LOLA) also has a height error.`, `Los propulsores no aterrizan al metro: la nave puede posarse en cualquier punto de esta malla ${DISPERSION_SIZE} × ${DISPERSION_SIZE} a ${DISPERSION_RADIUS_M} m, y cada celda es una misión completa. Además, el mapa láser (LOLA) tiene un error de altura.`),
+    say: (c, t) => t(`The thrusters do not land to the metre: the lander can come down anywhere in this ${DISPERSION_SIZE} × ${DISPERSION_SIZE} grid within ${U(c).m(DISPERSION_RADIUS_M)}, and each cell is a full mission. The laser map (LOLA) also has limits: most of its pixels are interpolated between orbit tracks, rocks smaller than a pixel are not in it, and its heights carry an error. The amber box below lists them.`, `Los propulsores no aterrizan al metro: la nave puede posarse en cualquier punto de esta malla ${DISPERSION_SIZE} × ${DISPERSION_SIZE} a ${U(c).m(DISPERSION_RADIUS_M)}, y cada celda es una misión completa. Además, el mapa láser (LOLA) tiene límites: la mayoría de sus píxeles se interpolan entre trazas orbitales, las rocas menores que un píxel no aparecen y sus alturas tienen error. El recuadro ámbar de abajo los detalla.`),
   },
   {
     id: 'm2-rms', mission: 2, focus: '[data-testid="unc-sigma"]',
-    say: (_c, t) => t(`Raise the "Height error (RMS)" above the typical ${fmtNum(DEFAULT_UNCERTAINTY.sigmaM, 1)} m to test a worse terrain model.`, `Sube el «Error de altura (RMS)» por encima de los ${fmtNum(DEFAULT_UNCERTAINTY.sigmaM, 1)} m típicos para probar un modelo de terreno peor.`),
+    say: (c, t) => t(`Raise the "Height error (RMS)" above the typical ${U(c).m(DEFAULT_UNCERTAINTY.sigmaM, 1)} to test a worse terrain model.`, `Sube el «Error de altura (RMS)» por encima de los ${U(c).m(DEFAULT_UNCERTAINTY.sigmaM, 1)} típicos para probar un modelo de terreno peor.`),
     until: () => Number((document.querySelector('[data-testid="unc-sigma"]') as HTMLInputElement | null)?.value ?? 0) > DEFAULT_UNCERTAINTY.sigmaM,
     doIt: () => {
       const el = document.querySelector('[data-testid="unc-sigma"]') as HTMLInputElement | null;
@@ -391,21 +401,21 @@ export const SCRIPT: Step[] = [
     say: (c, t) => {
       const a = c.A.result?.adv.kpis;
       if (!a) return t('Reading the thermal model…', 'Leyendo el modelo térmico…');
-      const heat = a.heaterHours > 0 ? t(` (the survival heaters, which switch on below ${fmtNum(T_FREEZE_K - 273.15, 0)} °C, run ${fmtDuration(a.heaterHours)})`, ` (los calefactores de supervivencia, que se encienden bajo ${fmtNum(T_FREEZE_K - 273.15, 0)} °C, funcionan ${fmtDuration(a.heaterHours)})`) : '';
+      const heat = a.heaterHours > 0 ? t(` (the survival heaters, which switch on below ${U(c).c(T_FREEZE_K - 273.15, 0)}, run ${fmtDuration(a.heaterHours)})`, ` (los calefactores de supervivencia, que se encienden bajo ${U(c).c(T_FREEZE_K - 273.15, 0)}, funcionan ${fmtDuration(a.heaterHours)})`) : '';
       return t(
         a.thermalDeathH !== null
-          ? `In the dark the battery drains${heat} and the bus freezes at ${fmtNum(T_BATTERY_DEATH_K - 273.15, 0)} °C at T+${fmtDuration(a.thermalDeathH)}. Let us change the vehicle in Hardware.`
-          : `The heaters run ${fmtDuration(a.heaterHours)} and the bus does not drop below ${fmtNum(Math.round(a.minBusC ?? 0) || 0, 0)} °C. Let us still improve the vehicle in Hardware.`,
+          ? `In the dark the battery drains${heat} and the bus freezes at ${U(c).c(T_BATTERY_DEATH_K - 273.15, 0)} at T+${fmtDuration(a.thermalDeathH)}. Let us change the vehicle in Hardware.`
+          : `The heaters run ${fmtDuration(a.heaterHours)} and the bus does not drop below ${U(c).c(Math.round(a.minBusC ?? 0) || 0, 0)}. Let us still improve the vehicle in Hardware.`,
         a.thermalDeathH !== null
-          ? `En la sombra la batería se agota${heat} y el bus se congela a ${fmtNum(T_BATTERY_DEATH_K - 273.15, 0)} °C en T+${fmtDuration(a.thermalDeathH)}. Modifiquemos el vehículo en Equipo.`
-          : `Los calefactores funcionan ${fmtDuration(a.heaterHours)} y el bus no baja de ${fmtNum(Math.round(a.minBusC ?? 0) || 0, 0)} °C. Aun así, mejoremos el vehículo en Equipo.`,
+          ? `En la sombra la batería se agota${heat} y el bus se congela a ${U(c).c(T_BATTERY_DEATH_K - 273.15, 0)} en T+${fmtDuration(a.thermalDeathH)}. Modifiquemos el vehículo en Equipo.`
+          : `Los calefactores funcionan ${fmtDuration(a.heaterHours)} y el bus no baja de ${U(c).c(Math.round(a.minBusC ?? 0) || 0, 0)}. Aun así, mejoremos el vehículo en Equipo.`,
       );
     },
   },
   {
     id: 'm3-mast', mission: 3, focus: '[data-testid="mast"]', sfx: 'servo',
     enter: () => { if (s0().panels.leftTab !== 'hardware') s0().openPanel('hardware'); },
-    say: (_c, t) => t('Step 1: raise the "Array and antenna height" from 2 m to the 10 m mast to lift the array above the ridge that shades it.', 'Paso 1: sube la «Altura de paneles y antena» de 2 m al mástil de 10 m para asomar el panel por encima de la cresta que le da sombra.'),
+    say: (c, t) => t(`Step 1: raise the "Array and antenna height" from ${U(c).m(2)} to the ${U(c).m(10)} mast to lift the array above the ridge that shades it.`, `Paso 1: sube la «Altura de paneles y antena» de ${U(c).m(2)} al mástil de ${U(c).m(10)} para asomar el panel por encima de la cresta que le da sombra.`),
     until: (c) => c.app.mastM === 10,
     doIt: () => s0().setMast(10),
   },
@@ -429,8 +439,8 @@ export const SCRIPT: Step[] = [
       const r = c.A.result;
       const ok = r?.kpis.survives;
       return t(
-        `${ok ? 'Saved from freezing!' : 'Not enough yet.'} On the mast with the tracker the array collects ${fmtEnergy(r?.kpis.energyWh ?? 0)} over the window and the bus stays above ${fmtNum(Math.round(r?.adv.kpis.minBusC ?? 0) || 0, 0)} °C: ${ok ? 'the lander gets through the night' : 'it would still need a better site or date'}.`,
-        `${ok ? '¡Salvados del congelamiento!' : 'Todavía no alcanza.'} En el mástil y con el seguidor el panel capta ${fmtEnergy(r?.kpis.energyWh ?? 0)} en la ventana y el bus no baja de ${fmtNum(Math.round(r?.adv.kpis.minBusC ?? 0) || 0, 0)} °C: ${ok ? 'la nave resiste la noche' : 'aún necesitaría un mejor sitio o fecha'}.`,
+        `${ok ? 'Saved from freezing!' : 'Not enough yet.'} On the mast with the tracker the array collects ${fmtEnergy(r?.kpis.energyWh ?? 0)} over the window and the bus stays above ${U(c).c(Math.round(r?.adv.kpis.minBusC ?? 0) || 0, 0)}: ${ok ? 'the lander gets through the night' : 'it would still need a better site or date'}.`,
+        `${ok ? '¡Salvados del congelamiento!' : 'Todavía no alcanza.'} En el mástil y con el seguidor el panel capta ${fmtEnergy(r?.kpis.energyWh ?? 0)} en la ventana y el bus no baja de ${U(c).c(Math.round(r?.adv.kpis.minBusC ?? 0) || 0, 0)}: ${ok ? 'la nave resiste la noche' : 'aún necesitaría un mejor sitio o fecha'}.`,
       );
     },
   },
@@ -553,7 +563,7 @@ export const SCRIPT: Step[] = [
     until: () => Boolean(document.querySelector('[data-testid="asset-kpis"]')),
     say: (c, t) => {
       const radius = document.querySelector('[data-testid="asset-kpis"] .stat output')?.textContent?.trim() ?? '';
-      return t(`Our braking engine blasts regolith like bullets (plume-surface interaction). The asset is ${fmtNum(c.app.asset.distanceM, 0)} m away, inside the exclusion radius of ${radius}.`, `El chorro de nuestro motor de frenado lanza regolito como balas (interacción pluma-superficie). El activo está a ${fmtNum(c.app.asset.distanceM, 0)} m, dentro del radio de exclusión de ${radius}.`);
+      return t(`Our braking engine blasts regolith like bullets (plume-surface interaction). The asset is ${U(c).m(c.app.asset.distanceM, 0)} away, inside the exclusion radius of ${radius}.`, `El chorro de nuestro motor de frenado lanza regolito como balas (interacción pluma-superficie). El activo está a ${U(c).m(c.app.asset.distanceM, 0)}, dentro del radio de exclusión de ${radius}.`);
     },
   },
   {
@@ -607,8 +617,8 @@ export const SCRIPT: Step[] = [
     say: (c, t) => {
       const a = c.A.result?.kpis, b = c.B.result?.kpis;
       return t(
-        `Malapert Massif: sunlight ${fmtNum(b?.illuminationPct ?? 0, 0)} % and Earth in view ${fmtNum(b?.dtePct ?? 0, 0)} %, against ${fmtNum(a?.illuminationPct ?? 0, 0)} % and ${fmtNum(a?.dtePct ?? 0, 0)} % here. More Earth in view means more science data sent home.`,
-        `Malapert Massif: luz solar ${fmtNum(b?.illuminationPct ?? 0, 0)} % y Tierra a la vista ${fmtNum(b?.dtePct ?? 0, 0)} %, frente a ${fmtNum(a?.illuminationPct ?? 0, 0)} % y ${fmtNum(a?.dtePct ?? 0, 0)} % aquí. Más Tierra a la vista es más ciencia enviada a casa.`,
+        `Malapert Massif: sunlight ${fmtNum(b?.illuminationPct ?? 0, 0)} % and Earth in view ${fmtNum(b?.dtePct ?? 0, 0)} %, against ${fmtNum(a?.illuminationPct ?? 0, 0)} % and ${fmtNum(a?.dtePct ?? 0, 0)} % here. More Earth in view means more science data sent home. These figures are the engine's, for this window; each site card also shows the published annual illumination to compare with orbital maps (marked "not verified" until checked against the paper).`,
+        `Malapert Massif: luz solar ${fmtNum(b?.illuminationPct ?? 0, 0)} % y Tierra a la vista ${fmtNum(b?.dtePct ?? 0, 0)} %, frente a ${fmtNum(a?.illuminationPct ?? 0, 0)} % y ${fmtNum(a?.dtePct ?? 0, 0)} % aquí. Más Tierra a la vista es más ciencia enviada a casa. Estas cifras son del motor, para esta ventana; cada ficha de sitio muestra además la iluminación anual publicada para contrastar con los mapas orbitales (marcada «sin verificar» hasta revisarla contra el artículo).`,
       );
     },
   },
@@ -621,7 +631,7 @@ export const SCRIPT: Step[] = [
     enter: (c) => { c.memo.level = v(c.A)?.level === 'go' ? 1 : 0; },
     say: (c, t) => (c.memo.level === 1
       ? t('The verdict is already green here: nothing to optimise. Continue.', 'Aquí el veredicto ya está en verde: no hay nada que optimizar. Continúa.')
-      : t(`Press "Optimise site and date": the algorithm tries the ${DISPERSION_SIZE * DISPERSION_SIZE} points within ${DISPERSION_RADIUS_M} m, then later dates, and shows the before and after.`, `Presiona «Optimizar sitio y fecha»: el algoritmo prueba los ${DISPERSION_SIZE * DISPERSION_SIZE} puntos a ${DISPERSION_RADIUS_M} m y luego fechas posteriores, y muestra el antes y el después.`)),
+      : t(`Press "Optimise site and date": the algorithm tries the ${DISPERSION_SIZE * DISPERSION_SIZE} points within ${U(c).m(DISPERSION_RADIUS_M)}, then later dates, and shows the before and after. It runs in a Web Worker, so the terrain view stays smooth.`, `Presiona «Optimizar sitio y fecha»: el algoritmo prueba los ${DISPERSION_SIZE * DISPERSION_SIZE} puntos a ${U(c).m(DISPERSION_RADIUS_M)} y luego fechas posteriores, y muestra el antes y el después. Corre en un Web Worker, así que la vista del terreno no se traba.`)),
     until: (c) => c.memo.level === 1 || Boolean(document.querySelector('[data-testid="verdict-after"]')),
     doIt: () => (document.querySelector('[data-testid="verdict-fix"]') as HTMLElement | null)?.click(),
   },
@@ -664,18 +674,18 @@ export const SCRIPT: Step[] = [
   {
     id: 'm7-headline', mission: 7, auto: 0, focus: '[data-testid="tri-step-1"]',
     until: () => (document.querySelector('[data-testid="exit-block"]')?.getAttribute('data-state') ?? 'pending') !== 'pending',
-    say: (_c, t) => {
+    say: (c, t) => {
       const head = document.querySelector('[data-testid="surv-head"]')?.textContent?.trim() ?? '';
-      return t(`Step 2, diagnosis: "${head}". Under it, the way-out block has already weighed the options: cut the load, move within ${EXIT_MOVE_RADIUS_M} m, or wait for the Sun.`, `Paso 2, diagnóstico: «${head}». Debajo, el bloque Salida ya evaluó las opciones: reducir carga, moverse a ${EXIT_MOVE_RADIUS_M} m o esperar al Sol.`);
+      return t(`Step 2, diagnosis: "${head}". Under it, the way-out block has already weighed the options: cut the load, move within ${U(c).m(EXIT_MOVE_RADIUS_M)}, or wait for the Sun.`, `Paso 2, diagnóstico: «${head}». Debajo, el bloque Salida ya evaluó las opciones: reducir carga, moverse a ${U(c).m(EXIT_MOVE_RADIUS_M)} o esperar al Sol.`);
     },
   },
   {
     id: 'm7-exit', mission: 7, focus: '[data-testid="exit-block"]', click: '[data-testid="exit-move"]',
     until: () => Boolean(document.querySelector('[data-testid="exit-move"]')),
-    say: (_c, t) => {
+    say: (c, t) => {
       const btn = document.querySelector('[data-testid="exit-move"]');
       const d = Number(btn?.getAttribute('data-distance-m') ?? 0), az = Number(btn?.getAttribute('data-azimuth-deg') ?? 0);
-      return t(`Step 3, rescue: there is light and safe ground ${fmtNum(d, 0)} m to the ${cardinal(az)}. Click "Run this way out".`, `Paso 3, rescate: hay luz y terreno seguro a ${fmtNum(d, 0)} m al ${cardinal(az)}. Haz clic en «Ejecutar esta salida».`);
+      return t(`Step 3, rescue: there is light and safe ground ${U(c).m(d, 0)} to the ${cardinal(az)}. Click "Run this way out".`, `Paso 3, rescate: hay luz y terreno seguro a ${U(c).m(d, 0)} al ${cardinal(az)}. Haz clic en «Ejecutar esta salida».`);
     },
   },
   {

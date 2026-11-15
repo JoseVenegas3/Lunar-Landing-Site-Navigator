@@ -10,6 +10,7 @@ import {
 import { ScenarioData, cursorIndex } from '../../state/mission';
 import { C, FONT_MONO, FONT_UI, useCanvas } from '../../lib/useCanvas';
 import { cardinal, useT } from '../../lib/format';
+import { currentUnits } from '../../lib/units';
 import { ScenarioBadge } from '../ScenarioBadge';
 
 const PAD = { l: 44, r: 12, t: 22, b: 26 };
@@ -277,7 +278,7 @@ function drawOverlay(
     ctx.arc(hover.x, Y(he), 3, 0, Math.PI * 2);
     ctx.fillStyle = C.text;
     ctx.fill();
-    const text = `az ${az.toFixed(0)}° ${cardinal(az)}   el ${el >= 0 ? '+' : ''}${el.toFixed(1)}°   ${labels.horizon} ${he >= 0 ? '+' : ''}${he.toFixed(2)}° @ ${hd < 10 ? hd.toFixed(2) : hd.toFixed(0)} km`;
+    const text = `az ${az.toFixed(0)}° ${cardinal(az)}   el ${el >= 0 ? '+' : ''}${el.toFixed(1)}°   ${labels.horizon} ${he >= 0 ? '+' : ''}${he.toFixed(2)}° @ ${currentUnits().kmStr(hd, hd < 10 ? 2 : 0)}`;
     ctx.font = `10.5px ${FONT_MONO}`;
     const tw = ctx.measureText(text).width + 14;
     const tx = Math.min(Math.max(PAD.l + 2, hover.x - tw / 2), PAD.l + pw - tw - 2);

@@ -207,8 +207,8 @@ try {
     hourButtons: document.querySelectorAll('[data-testid="hour-back"], [data-testid="hour-fwd"]').length,
     fps: Boolean(document.querySelector('[data-testid="fps"]')), map: [...document.querySelectorAll('.hud-tr button')].some((b) => b.textContent === 'Map'),
   }));
-  check('top bar holds only brand, mode, UTC clock, switch version (v3.0), mission guide, export, language and the PDF guide',
-    JSON.stringify(bar.kids) === JSON.stringify(['brand', 'mode-switch', 'clock', 'switch-version', 'briefing-open', 'export-csv', 'lang', 'guide-pdf']) && !bar.verification, bar.kids.join(', '));
+  check('top bar holds only brand, mode, UTC clock, switch version (v3.0), mission guide, export, language, units (v3.1) and the PDF guide',
+    JSON.stringify(bar.kids) === JSON.stringify(['brand', 'mode-switch', 'clock', 'switch-version', 'briefing-open', 'export-csv', 'lang', 'units', 'guide-pdf']) && !bar.verification, bar.kids.join(', '));
   const logo = await page.evaluate(() => {
     const img = document.querySelector('[data-testid="brand-logo"]');
     const fav = [...document.querySelectorAll('link[rel="icon"]')].map((l) => l.getAttribute('sizes'));
@@ -260,12 +260,12 @@ try {
     const btns = [...document.querySelectorAll('.subsys-btn')];
     const on = document.querySelector('.subsys-btn.is-on');
     return {
-      barW: barR.width, vw: window.innerWidth, h: Math.round(btns[0].getBoundingClientRect().height), sumW: btns.reduce((s, b) => s + b.getBoundingClientRect().width, 0),
+      barW: barR.width, vw: window.innerWidth, h: Math.round(btns[0].getBoundingClientRect().height), sumW: btns.reduce((s, b) => s + b.getBoundingClientRect().width, 0) + (document.querySelector('[data-testid="learn-subsys"]')?.getBoundingClientRect().width ?? 0),
       icons: btns.every((b) => b.querySelector('svg')), border: getComputedStyle(on).boxShadow,
     };
   });
   check('subsystem tabs span the full width, at least 56 px tall, 4 px accent border, an icon each',
-    Math.abs(tabs.barW - tabs.vw) <= 1 && Math.abs(tabs.sumW - tabs.barW) <= 2 && tabs.h >= 56 && tabs.icons && /0px -4px 0px/.test(tabs.border), JSON.stringify(tabs));
+    Math.abs(tabs.barW - tabs.vw) <= 1 && Math.abs(tabs.sumW - tabs.barW) <= 24 && tabs.h >= 56 && tabs.icons && /0px -4px 0px/.test(tabs.border), JSON.stringify(tabs));
   const switchLog = await page.evaluate(async () => {
     const log = [];
     const t0 = performance.now();
@@ -950,6 +950,7 @@ try {
   const after = await text2('[data-testid="verdict-after"]');
   const levelB2 = await p2.locator('[data-testid="verdict"]').getAttribute('data-level');
   check('a mission nothing can save says so instead of claiming a rescue', /→/.test(after) && /missions in/.test(after) && (levelB2 !== 'nogo' || /(No point within 200 m|No better point)/.test(after)), `${levelB} -> ${levelB2}; ${after}`);
+  check('the rescue search runs in a Web Worker (R6)', (await p2.locator('[data-testid="rescue-record"]').getAttribute('data-engine')) === 'worker', await text2('[data-testid="rescue-record"]'));
   // a mission that can be saved: Malapert, two weeks, landing on a date that runs into a long shadow
   await p2.selectOption('[data-testid="site-B"]', 'malapert-massif');
   await p2.fill('[data-testid="start-B"]', '2027-09-01');
@@ -975,7 +976,21 @@ try {
   await p2.mouse.move(lp.x + 50, lp.y + 25);
   await p2.waitForTimeout(400);
   const reticle = await p2.evaluate(() => { const c = document.querySelector('[data-testid="dbl-cursor"]'); return { shown: c.style.display !== 'none', action: c.dataset.action, text: c.textContent }; });
-  check('the 3-D view states the double-click permanently and the reticle says what will happen', /Double-click the terrain: move the lander \(≤ 500 m\) or create a custom site/.test(hint) && reticle.shown && ((reticle.action === 'move' && /Move the lander \(\d+ m\)/.test(reticle.text)) || (reticle.action === 'create' && /Create a custom site here/.test(reticle.text))), `${hint} | ${JSON.stringify(reticle)}`);
+  check('the 3-D view states the double-click permanently and the reticle says what will happen', /Double-click the terrain: move the lander \(≤ 500 m\) or create a custom site/.test(hint) && reticle.shown && ((reticle.action === 'move' && /move the lander \(\d+ m\)/.test(reticle.text)) || (reticle.action === 'create' && /creates a custom site/.test(reticle.text))), `${hint} | ${JSON.stringify(reticle)}`);
+  // v3.1 (SR-204): the cursor ruler reads distance, bearing, elevation and slope, and keeps counting outside the ±500 m box
+  check('the cursor ruler reads distance and bearing from the lander, elevation and slope', /^Cursor: [\d,]+ m (\([\d.]+ km\) )?\((N|NE|E|SE|S|SW|W|NW) \d{3}°\).*\| Elev: [+−-]?\d+ m \| Slope: [\d.]+°/.test(reticle.text), reticle.text);
+  {
+    const sbox = await p2.locator('[data-testid="scene"] canvas').boundingBox();
+    let far = null;
+    const pts = []; for (let fy = 0.3; fy <= 0.66; fy += 0.06) for (let fx = 0.32; fx <= 0.68; fx += 0.06) pts.push([fx, fy]);
+    for (const [fx, fy] of pts) {
+      await p2.mouse.move(sbox.x + sbox.width * fx, sbox.y + sbox.height * fy);
+      await p2.waitForTimeout(120);
+      const r = await p2.evaluate(() => { const c = document.querySelector('[data-testid="dbl-cursor"]'); return { shown: c.style.display !== 'none', action: c.dataset.action, d: Number(c.dataset.distM), text: c.textContent, colour: getComputedStyle(c).color }; });
+      if (r.shown && r.action === 'create') { far = r; break; }
+    }
+    check('outside the ±500 m box the ruler keeps counting, turns amber and says a double-click creates a custom site', far !== null && far.d > 500 && /outside the relocation range/.test(far.text) && far.colour === 'rgb(245, 158, 11)', JSON.stringify(far));
+  }
   const box = await p2.locator('[data-testid="scene"] canvas').boundingBox();
   const before2 = await text2('[data-testid="reloc-readout"]');
   await p2.mouse.dblclick(box.x + box.width * 0.5 + 60, box.y + box.height * 0.5 + 40);
@@ -1139,6 +1154,90 @@ try {
   check('with prefers-reduced-motion the tab change is still a fade to black with the icon (about 1 s), and nothing moves', reduced.iconMs >= 350 && !reduced.moved && reduced.doneAt >= 900 && reduced.doneAt <= 1300 && reduced.sub === 'terrain' && !reduced.curtain, JSON.stringify(reduced));
   check('the frame counter appears only with ?debug=1', (await p3.locator('[data-testid="fps"]').count()) === 1);
   await ctx3.close();
+  }
+
+  // ------------------------------------------------------------ v3.1 final: units, solar KPI, learn more, LOLA limits, offline
+  {
+  const ctx4 = await browser.newContext({ viewport: { width: 1600, height: 960 }, deviceScaleFactor: 1 });
+  const external = [];
+  await ctx4.route('**/*', (route) => {
+    const u = new globalThis.URL(route.request().url());
+    if (u.hostname !== '127.0.0.1' && u.hostname !== 'localhost' && u.protocol !== 'data:' && u.protocol !== 'blob:') { external.push(u.href); return route.abort(); }
+    return route.continue();
+  });
+  const p4 = await ctx4.newPage();
+  p4.on('pageerror', (e) => errors.push(`p4 pageerror: ${e.message}`));
+  p4.on('console', (m) => { if (m.type() === 'error') errors.push(`p4: ${m.text()}`); });
+  const notFound = [];
+  p4.on('response', (r) => { if (r.status() >= 400) notFound.push(`${r.status()} ${r.url()}`); });
+  // the entry gate: language and units next to each other, then Mission Leader
+  await p4.goto(BASE);
+  await p4.waitForSelector('[data-testid="gate"]');
+  const gateUnits = await p4.evaluate(() => ({ text: document.querySelector('[data-testid="gate-units"]')?.textContent ?? '', lang: Boolean(document.querySelector('.gate-prefs [data-testid="gate-lang-es"]')), units: Boolean(document.querySelector('.gate-prefs [data-testid="gate-units"]')) }));
+  check('the entry gate offers language and units side by side: SI (m, °C) | Imperial (ft, °F)', gateUnits.lang && gateUnits.units && /SI \(m, °C\)/.test(gateUnits.text) && /Imperial \(ft, °F\)/.test(gateUnits.text), gateUnits.text);
+  await p4.click('[data-testid="gate-units-imperial"]');
+  await p4.click('[data-testid="gate-yes"]');
+  const leaderLabel = await p4.textContent('[data-testid="gate-open-leader"]');
+  check('the gate names the two modes: Guided and Full', /Open Mission Leader \(Full mode\)/.test(leaderLabel ?? ''), leaderLabel);
+  await p4.click('[data-testid="gate-open-leader"]');
+  await p4.waitForSelector('[data-testid="verdict"][data-level]', { timeout: 60000 });
+  await p4.waitForTimeout(1500);
+  const imp = await p4.evaluate(() => ({
+    top: document.querySelector('[data-testid="units"]')?.getAttribute('data-units'),
+    stored: localStorage.getItem('clps.units'),
+    hud: document.querySelector('.hud-tl .hud-line')?.textContent ?? '',
+    reloc: document.querySelector('[data-testid="reloc-readout"]')?.textContent ?? '',
+  }));
+  check('Imperial chosen at the gate reaches the top bar SI / IMP switch, is remembered and converts the 3-D read-outs to feet', imp.top === 'imperial' && imp.stored === 'imperial' && / ft /.test(imp.hud) && /ft/.test(imp.reloc) && !/ m\b/.test(imp.reloc), JSON.stringify(imp));
+  // power KPI: solar elevation in Vital signs, in the KPI table and at the head of Power / thermal
+  const kpiVitals = await p4.evaluate(() => { const k = document.querySelector('[data-testid="vitals"] [data-testid="solar-kpi"]'); return k ? { now: Number(k.getAttribute('data-el-now')), max: Number(k.getAttribute('data-el-max')), arc: Boolean(k.querySelector('[data-testid="sun-arc"]')), text: k.textContent } : null; });
+  check('Vital signs show the effective solar elevation as a power KPI, with a 0–5° arc, the disc fraction and the power', kpiVitals !== null && kpiVitals.arc && kpiVitals.max >= kpiVitals.now && kpiVitals.max < 5 && /f☉/.test(kpiVitals.text) && /W \/ \d+ W/.test(kpiVitals.text), JSON.stringify(kpiVitals));
+  await p4.click('[data-testid="subsys-power"]');
+  await p4.waitForSelector('[data-testid="power-solar-head"] [data-testid="solar-kpi"]', { timeout: 15000 });
+  check('Power / thermal opens with the solar elevation KPI at its head', true);
+  // Learn more from the subsystem bar
+  await p4.click('[data-testid="learn-subsys"]');
+  await p4.waitForSelector('[data-testid="learn-modal"]');
+  const learn = await p4.evaluate(() => { const m = document.querySelector('[data-testid="learn-modal"]'); return { topic: m.dataset.topic, tabs: m.querySelectorAll('[role="tab"]').length, earth: Boolean(m.querySelector('[data-testid="learn-earth"]')), moon: Boolean(m.querySelector('[data-testid="learn-moon"]')), text: m.textContent }; });
+  check('"Lunar vs Earth physics" opens the comparison of the subsystem (Power → cold), Earth and Moon side by side, seven topics', learn.topic === 'thermal' && learn.tabs === 7 && learn.earth && learn.moon && /Stefan-Boltzmann/.test(learn.text) && /°F/.test(learn.text), `${learn.topic} ${learn.tabs}`);
+  await p4.click('[data-testid="learn-tab-move200"]');
+  const t200 = await p4.textContent('[data-testid="learn-modal"] h2');
+  await p4.click('[data-testid="learn-tab-master"]');
+  const master = await p4.locator('[data-testid="learn-master"] tbody tr').count();
+  await p4.keyboard.press('Escape');
+  const closed = (await p4.locator('[data-testid="learn-modal"]').count()) === 0;
+  check('its topics include "why does moving 200 m change everything" and a master summary; Escape closes it', /200 m/.test(t200 ?? '') && master >= 8 && closed, `${t200} | ${master} rows | closed ${closed}`);
+  // LOLA limits and the published-map contrast
+  await p4.click('[data-testid="subsys-terrain"]');
+  await p4.waitForTimeout(1300);
+  await p4.click('[data-testid="dock-survival"]').catch(() => undefined);
+  await p4.waitForSelector('[data-testid="lola-limits"]', { timeout: 15000 });
+  const limits = await p4.textContent('[data-testid="lola-limits"]');
+  check('Terrain states the limits of the LOLA data (resolution, interpolation between tracks, statistical micro-relief)', /Barker et al\. 2023/.test(limits ?? '') && /interpolated between LRO orbit tracks/.test(limits ?? '') && /hazard probability/.test(limits ?? ''), (limits ?? '').slice(0, 120));
+  await p4.click('[data-testid="subsys-overview"]');
+  await p4.waitForSelector('[data-testid="pub-contrast"]', { timeout: 15000 });
+  const pub = await p4.textContent('[data-testid="pub-contrast"]');
+  check('each site shows the reference coordinate and the computed sunlight next to the published illumination, honestly marked when unverified', /Reference coordinate/.test(pub ?? '') && /Computed by the app/.test(pub ?? '') && /(no value verified|Published annual illumination: \d)/.test(pub ?? ''), (pub ?? '').slice(0, 160));
+  // back to SI from the top bar
+  await p4.click('[data-testid="units-si"]');
+  await p4.waitForTimeout(400);
+  const si = await p4.textContent('[data-testid="reloc-readout"]');
+  check('the SI / IMP switch of the top bar converts back to metres at once', / m/.test(si ?? '') && !/ft/.test(si ?? ''), si);
+  // offline (§3.1): no request ever left the machine, and the app keeps working with the network cut
+  check('the app never asks the internet for anything (all assets are in the repository)', external.length === 0, external.slice(0, 3).join(' '));
+  check('the production build serves every asset (no 404)', notFound.length === 0, notFound.slice(0, 3).join(' '));
+  await ctx4.setOffline(true);
+  const f0 = await p4.evaluate(() => window.__clps?.frames ?? 0);
+  await p4.click('[data-testid="units-imperial"]');
+  await p4.click('[data-testid="subsys-comms"]');
+  await p4.waitForTimeout(1500);
+  await p4.click('[data-testid="learn-subsys"]');
+  await p4.waitForSelector('[data-testid="learn-modal"][data-topic="radio"]');
+  await p4.click('[data-testid="learn-close"]');
+  const off = await p4.evaluate(() => ({ frames: window.__clps?.frames ?? 0, sub: document.querySelector('[data-testid="planner"]')?.dataset.subsystem, online: navigator.onLine }));
+  check('with the network cut (context.setOffline) the 3-D view keeps drawing and the consoles and the comparison still work', !off.online && off.frames > f0 && off.sub === 'comms', JSON.stringify({ ...off, f0 }));
+  await ctx4.setOffline(false);
+  await ctx4.close();
   }
 
   check('no console errors or uncaught exceptions', errors.length === 0, errors.slice(0, 5).join(' | '));

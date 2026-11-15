@@ -8,9 +8,12 @@ import { useApp } from '../../state/store';
 import { fmtDuration, fmtEnergy, fmtNum, useT } from '../../lib/format';
 import { ScenarioBadge } from '../ScenarioBadge';
 import { hibernationHours } from './SiteCards';
+import { SolarKpi } from '../SolarKpi';
+import { useUnits } from '../../lib/units';
 
 export function SurvivalPanel({ data }: { data: ScenarioData }) {
   const t = useT();
+  const u = useUnits();
   const thermalOn = useApp((s) => s.thermalOn);
   const power = useApp((s) => s.power);
   const battH = hibernationHours(power.batteryCapacityWh, power.survivalLoadW);
@@ -19,13 +22,16 @@ export function SurvivalPanel({ data }: { data: ScenarioData }) {
 
   return (
     <>
+      <section className="panel block solar-head" data-testid="power-solar-head">
+        <SolarKpi data={data} />
+      </section>
       <section className="panel block" data-testid="thermal-kpis">
         <h3><ScenarioBadge k={data.key} />{t('Night survival', 'Supervivencia nocturna')}</h3>
         {r && a ? (
           <>
             {a.thermalDeathH !== null && (
               <p className="alert" role="alert" data-testid="thermal-death">
-                {t(`CRITICAL THERMAL DEATH at T+${fmtDuration(a.thermalDeathH)}: bus below −20 °C, battery frozen.`, `MUERTE TÉRMICA CRÍTICA en T+${fmtDuration(a.thermalDeathH)}: bus bajo −20 °C, batería congelada.`)}
+                {t(`CRITICAL THERMAL DEATH at T+${fmtDuration(a.thermalDeathH)}: bus below ${u.c(-20)}, battery frozen.`, `MUERTE TÉRMICA CRÍTICA en T+${fmtDuration(a.thermalDeathH)}: bus bajo ${u.c(-20)}, batería congelada.`)}
               </p>
             )}
             <div className="stat-grid">
@@ -35,7 +41,7 @@ export function SurvivalPanel({ data }: { data: ScenarioData }) {
               </div>
               <div className="stat">
                 <span>{t('Lowest bus temperature', 'Temperatura mínima del bus')}</span>
-                <output className="mono">{a.minBusC === null ? t('thermal model off', 'modelo térmico apagado') : `${fmtNum(a.minBusC, 1)} °C`}</output>
+                <output className="mono">{a.minBusC === null ? t('thermal model off', 'modelo térmico apagado') : u.c(a.minBusC, 1)}</output>
               </div>
               <div className="stat">
                 <span>{t('Heaters on', 'Calefactores encendidos')}</span>

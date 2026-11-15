@@ -11,6 +11,7 @@ import { loadScienceLayers } from './state/science';
 import { MissionProvider } from './state/mission';
 import { maxCursorHours, useApp } from './state/store';
 import { useT } from './lib/format';
+import { LearnModal } from './components/LearnMore';
 
 /** Advances the shared time cursor while playback is on. */
 function usePlayback(): void {
@@ -84,6 +85,7 @@ export function App() {
         {mode === 'triage' ? <TriageLayout /> : <PlannerLayout />}
         {experience === 'leader' && <MissionBriefingTour />}
         {experience === 'beginner' && <Beginner />}
+        <LearnModal />
       </div>
     </MissionProvider>
   );

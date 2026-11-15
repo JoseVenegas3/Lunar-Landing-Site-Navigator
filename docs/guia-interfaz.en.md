@@ -1,4 +1,4 @@
-# Interface guide — CLPS Lunar Mission Browser v2.1
+# Interface guide — CLPS Lunar Mission Browser v3.1
 
 GISAT UdeC · NASA Space Apps 2026 · Lunar South Pole landing site navigator
 
@@ -178,3 +178,59 @@ It answers first with a plain-language headline: **SURVIVES**, **SURVIVES IF…*
 * Ephemerides: astronomy-engine. Stations: DSN (Goldstone, Madrid, Canberra).
 * The descent trajectory, the fuel and the navigation errors are not modelled. The default vehicle is illustrative.
 * The Deygout formula and the micro-relief parameters were written without checking them against the cited standard or literature.
+
+## 13. Final release v3.1: what is new
+
+**Entry gate and two modes.** The app opens with "Have you used this app before?". *No* → **Start training (Guided mode)**, the Beginner mode: eight narrated missions that unlock the subsystems one by one and award one badge per mission. *Yes* → **Open Mission Leader (Full mode)**. In the top bar, **Switch version** goes back to the question; the scenario, the language and the units are kept.
+
+**SI / Imperial units.** Next to EN / ES, on the entry gate (**Units: SI (m, °C) | Imperial (ft, °F)**) and in the top bar (**SI / IMP**). Lengths, distances, temperatures, speeds and areas change in cards, sliders, axes, 3-D labels and the narration. Power (W), energy (Wh), frequency (GHz), data rates, dB and angles do not. It is remembered between visits. The engine and the CSV always work in SI (the CSV says so in its header).
+
+**Effective solar elevation (power KPI).** In Vital signs, in the KPI table and at the head of Power / thermal: elevation of the centre of the solar disc now and the highest of the window, the visible disc f☉, the incidence factor on the array and the power now / peak, on a 0° to 5° arc. At the pole the Sun skims the horizon: tenths of a degree decide whether the disc clears a ridge.
+
+**Cursor ruler.** Moving the cursor over the 3-D terrain reads, live, the distance and bearing from the lander, the elevation and the slope under the cursor, inside and outside the ±500 m box. A dashed line joins the lander and the cursor. Outside the box the read-out turns amber and says that a double-click creates a custom site.
+
+**Learn more: Lunar vs Earth physics.** A button on every mission celebration and on the diploma of the Beginner mode, and a **Lunar vs Earth physics** button in the subsystem bar of the Full mode. It opens a window with two columns (On Earth / At the lunar south pole), a simple diagram and numbers computed by the engine: sky and grazing Sun, why 200 m change everything, radiative cold, radio and libration, ballistic dust, cold traps and a master summary.
+
+**Limits of the LOLA data.** A block in Terrain › Dispersion and escape, in the Emergency mode and in the assumptions table states the resolution (20 m/px at the sites, 160 m/px at free coordinates, 800 m/px for the far horizon out to 250 km), the interpolation between laser tracks and the statistical nature of the micro-relief. The uncertainty runs propagate the height error to sunlight, Earth view and survival as P10 / P50 / P90 bands.
+
+**Contrast with published maps.** Each site shows the reference coordinate of the brief and the sunlight computed by the app next to the published annual illumination. Until a value has been checked against the paper (Mazarico et al. 2011, Bussey et al. 2010, De Rosa et al. 2012), the app says "no value verified" instead of making one up.
+
+**Optimise site and date in the background.** The rescue search (25 points and later dates) runs in a Web Worker, pruning points too steep to rest on, and never stalls the 3-D view. The record of the result says whether it ran in the Worker.
+
+**Offline.** All the terrain, the science layers, the images and the guides are in the repository; the app works without internet.
+
+## Lunar & Engineering Glossary
+
+The same definitions appear in the app as tooltips: hover over (or focus with the keyboard) a dotted term, above all in the Beginner narration.
+
+**DTE (Direct-to-Earth).** A radio link from the lander straight to an antenna on Earth, with no relay satellite. It needs the Earth above the local horizon and a ground station that can see the Moon.
+
+**LOS (Line of Sight / Loss of Signal).** Line of sight: the straight path between the antenna and the target. When terrain cuts it, the signal is lost (also called LOS, loss of signal).
+
+**Lunar libration.** The Moon always shows the same face to the Earth, but its tilted, elliptical orbit makes it seem to rock about ±7.9° in longitude and ±6.7° in latitude. Seen from the Moon, the Earth wanders inside a small box of the sky instead of rising and setting.
+
+**DEM (Digital Elevation Model).** A grid of ground heights, one value per cell (here 20 m per pixel near the sites). Every shadow, slope and horizon of the app comes from it.
+
+**LOLA (Lunar Orbiter Laser Altimeter).** Laser altimeter on NASA's Lunar Reconnaissance Orbiter. It measured the height of the surface along orbit tracks; between tracks the polar maps are interpolated (Barker et al. 2023).
+
+**PSR (Permanently Shadowed Region).** Ground at the bottom of polar craters that the Sun never reaches, because near the pole it never climbs more than a degree or two above the horizon. PSRs are cold traps where water ice can last.
+
+**WEH (Water-Equivalent Hydrogen).** Hydrogen measured from orbit by neutron spectrometers, expressed as if it were all water ice (weight %). A clue to ice, not a direct detection.
+
+**DoD (Depth of Discharge).** How much of the battery capacity has been used. Deep discharges shorten battery life, so missions set a safe limit.
+
+**Knife-edge diffraction (Deygout / ITU-R P.526).** Radio waves bend a little over a ridge, losing strength. ITU-R P.526 gives the loss of one sharp edge; the Deygout method adds the main ridge and the secondary ones (here up to three).
+
+**First Fresnel zone.** The cigar-shaped volume around the line of sight that carries most of the radio energy. Its radius is √(λ·d1·d2/(d1+d2)); terrain inside it weakens the link even when the line of sight is clear.
+
+**Multipath on regolith.** Part of the signal bounces off the ground and arrives slightly late, adding to or cancelling the direct signal. It matters most when the Earth is low, as at the pole. The regolith is modelled with permittivity εr = 3.7.
+
+**6-DOF attitude (roll, pitch, yaw).** A body has six degrees of freedom: three positions and three rotations. The attitude is the three rotations: roll, pitch and yaw. A tilted lander points its panels and antenna the wrong way.
+
+**Gimbal.** A pivoting mount that lets the antenna turn relative to the lander body. Its range (degrees) says how far from the body axis it can still point at the Earth.
+
+**PSI (Plume-Surface Interaction).** The rocket exhaust of a landing lander blasts the regolith. With no air to slow it, the dust flies in fast, low ballistic paths that can sand-blast hardware far away.
+
+**ELFO (Elliptical Lunar Frozen Orbit).** A very elongated orbit whose shape stays nearly fixed for years, with its far point over the south pole: a relay satellite there sees the pole for many hours per orbit.
+
+**SOM-RF index.** The multi-criteria score this app uses to rank sites (Earth view, light, slope, roughness, ice, etc.). Its weights come from the team's state-of-the-art document, which cites a self-organising-map and random-forest study; they have not been checked against that paper.

@@ -81,6 +81,19 @@ export const TELEMETRY_KEY = 'clps.telemetry';
 const telemetryOpen = (): boolean => {
   try { return typeof localStorage !== 'undefined' && localStorage.getItem(TELEMETRY_KEY) === '1'; } catch { return false; }
 };
+/** Display unit system (SR-711), remembered between visits; `?units=imperial` forces it. The engine always works in SI. */
+export type UnitSystem = 'si' | 'imperial';
+export const UNITS_KEY = 'clps.units';
+export function storedUnitSystem(): UnitSystem {
+  try {
+    if (typeof window !== 'undefined') {
+      const q = new URLSearchParams(window.location.search).get('units');
+      if (q === 'imperial' || q === 'si') return q;
+    }
+    return typeof localStorage !== 'undefined' && localStorage.getItem(UNITS_KEY) === 'imperial' ? 'imperial' : 'si';
+  } catch { return 'si'; }
+}
+
 /** Tutorial taken or skipped ('done'); since v3.0 it no longer opens anything by itself (the entry gate does). */
 export const BRIEFING_KEY = 'clps.briefing';
 
@@ -113,6 +126,7 @@ export interface AppState {
   nowOverride: number | null;
   mode: AppMode;
   lang: Lang;
+  unitSystem: UnitSystem;
   scenarios: Record<ScenarioKey, ScenarioCfg>;
   /** A second scenario (B) is being compared with A. Off: the planner works on A alone and B is not evaluated. */
   compare: boolean;
@@ -161,6 +175,7 @@ export interface AppState {
   /** Accepts any value: an unknown or retired mode (v2.0 'explorer') becomes the planner. */
   setMode: (m: AppMode | string) => void;
   setLang: (l: Lang) => void;
+  setUnitSystem: (u: UnitSystem) => void;
   setActive: (k: ScenarioKey) => void;
   /** Start a comparison (B = copy of A) or end it (B disappears). */
   setCompare: (on: boolean) => void;
@@ -203,6 +218,7 @@ export const useApp = create<AppState>((set) => ({
   nowOverride: null,
   mode: 'planner',
   lang: 'en',
+  unitSystem: storedUnitSystem(),
   scenarios: {
     A: { siteId: CANDIDATE_SITES[0].id, customLat: -89.2, customLon: 140, dxM: 0, dyM: 0, startMs: DEFAULT_START, days: 60 },
     B: { siteId: CANDIDATE_SITES[1].id, customLat: -87.45, customLon: -5.12, dxM: 0, dyM: 0, startMs: DEFAULT_START, days: 60 },
@@ -262,6 +278,7 @@ export const useApp = create<AppState>((set) => ({
 
   setMode: (mode) => set({ mode: normaliseMode(mode) }),
   setLang: (lang) => set({ lang }),
+  setUnitSystem: (unitSystem) => { try { localStorage.setItem(UNITS_KEY, unitSystem); } catch { /* storage unavailable */ } set({ unitSystem }); },
   setActive: (active) => set((s) => ({ active: s.compare ? active : 'A' })),
   setCompare: (on) => set((s) => (on
     ? { compare: true, scenarios: { ...s.scenarios, B: { ...s.scenarios.A } }, science: { ...s.science, B: { ...s.science.A } } }

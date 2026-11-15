@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { reopenGate } from '../beginner/lifecycle';
 import { BeginnerHud } from '../beginner/Hud';
 import { useBeginner } from '../beginner/state';
+import { UnitToggle } from './UnitToggle';
 
 export function TopBar() {
   const t = useT();
@@ -70,8 +71,8 @@ export function TopBar() {
       </button>}
       {(experience !== 'beginner' || reveal.includes('export')) && <button
         type="button" className="btn btn-verif btn-export" data-testid="export-csv" disabled={!data.result}
-        onClick={() => { if (data.result) downloadText(`${exportStem(data.name, data.result)}_telemetry.csv`, buildTelemetryCsv(data.result, { site: data.name, scenario: data.key }), 'text/csv;charset=utf-8'); }}
-        title={t('Download the simulated telemetry of the mission on screen: CSV, 26 columns in SI units, one row per hour', 'Descarga la telemetría simulada de la misión en pantalla: CSV, 26 columnas en unidades SI, una fila por hora')}
+        onClick={() => { if (data.result) downloadText(`${exportStem(data.name, data.result)}_telemetry.csv`, buildTelemetryCsv(data.result, { site: data.name, scenario: data.key, displayUnits: useApp.getState().unitSystem }), 'text/csv;charset=utf-8'); }}
+        title={t('Download the simulated telemetry of the mission on screen: CSV, 26 columns, always in SI units (the unit is in each column name), one row per hour', 'Descarga la telemetría simulada de la misión en pantalla: CSV, 26 columnas, siempre en unidades SI (la unidad va en el nombre de cada columna), una fila por hora')}
       >
         <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path d="M8 2v8M4.5 6.8 8 10.3l3.5-3.5M2.5 13.5h11" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
         {t('Export CSV', 'Exportar CSV')}
@@ -81,6 +82,7 @@ export function TopBar() {
         <button type="button" className={lang === 'en' ? 'is-on' : ''} aria-pressed={lang === 'en'} onClick={() => setLang('en')}>EN</button>
         <button type="button" className={lang === 'es' ? 'is-on' : ''} aria-pressed={lang === 'es'} onClick={() => setLang('es')} data-testid="lang-es">ES</button>
       </div>
+      <UnitToggle />
 
       {experience !== 'beginner' && <a
         className="btn btn-verif btn-guide-pdf" href={`${import.meta.env.BASE_URL}guide/guia-interfaz-${lang}.pdf`} target="_blank" rel="noopener" data-testid="guide-pdf"
