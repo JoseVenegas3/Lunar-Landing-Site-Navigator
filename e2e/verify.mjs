@@ -1069,6 +1069,7 @@ try {
   await p4.waitForSelector('[data-testid="verdict"][data-level]', { timeout: 60000 });
   await p4.click('[data-testid="mode-triage"]');
   await p4.waitForSelector('[data-testid="emg-inputs"]');
+  await p4.waitForFunction(() => /next 15 d/.test(document.querySelector('[data-testid="emg-now"]')?.textContent ?? ''), null, { timeout: 30000 }).catch(() => {});
   const horizon = await p4.locator('[data-testid="emg-horizon"]').inputValue();
   check('the emergency horizon is one lunar night (half a synodic month, 14.77 d, rounded up to 15 d), with 3 and 7 d offered', horizon === '15' && (await p4.locator('[data-testid="emg-horizon"] option').count()) === 3 && /next 15 d/.test(await p4.locator('[data-testid="emg-now"]').innerText()), horizon);
   const CASES = [
