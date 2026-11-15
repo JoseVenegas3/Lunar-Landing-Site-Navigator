@@ -1089,6 +1089,26 @@ Cierre de los requisitos SR del XMind y de los riesgos R1–R12 que dependían d
 - **Interpolación bicúbica (R1).** No se aplicó sobre las mallas de 20 m: cambiaría los horizontes, los escenarios del entrenamiento validados y los 175 tests sin una medición que lo justifique. El muestreo sigue siendo bilineal, y el límite se declara en el bloque LOLA.
 - **Pesos del índice.** Los modos «Engineering first / Science first» siguen sin existir (ver 6.9); el índice multicriterio se explica en el glosario como «Índice SOM-RF» con su advertencia.
 
+## 6.11 Video pitch de 3 minutos (`?pitch=true`, 2026-11-15)
+
+Reproductor de presentación sobre la app real, a 1920 × 1080, y grabador a video.
+
+- **Línea de tiempo** (`src/pitch/timeline.ts`, pura y probada): 180,0 s en seis actos (0:00 gancho, 0:25 propuesta, 0:45 entrenamiento, 1:20 Mission Leader, 2:15 emergencia, 2:40 cierre) y diecisiete escenas; las cinco de Mission Leader duran 11 s cada una. Cada escena trae su línea de teleprompter ES / EN; las cifras se rellenan en vivo (`{head}`, `{move}`, `{tests}`) y una prueba impide escribir números a mano.
+- **Director** (`src/pitch/director.ts`): por escena, un `enter` que deja la app en su estado inicial (sitio, fecha, equipo, consola, cámara, efectos) y señales temporizadas (preset IM-1, mástil 2 → 10 m, seguidor solar, estación GISAT, relevo, cardán, activo vecino, «Optimizar», «Ejecutar esta salida»). Saltar con ← / → ejecuta `enter` y las señales hasta ese instante, así que el estado siempre es coherente. Los escenarios son los del entrenamiento (`src/beginner/scenarios.ts`), validados con el motor.
+- **Capas** (`src/pitch/PitchShow.tsx`): tipografía cinética, odómetros, chips y etiquetas ancladas al lander, con valores leídos del motor (inclinación y datos perdidos, temperatura del bus, elevación solar, disponibilidad del enlace, radio de exclusión, veredicto y titular de emergencia del DOM real). HUD (ocultable con H): barra con las marcas 0:00 · 0:25 · 0:45 · 1:20 · 2:15 · 2:40 · 3:00, reproducir / pausa (Espacio), reiniciar (R), escena anterior / siguiente (← / →), ES / EN, subtítulos (C), sonido (M), grabar y salir.
+- **Sonido** (`src/pitch/pitchAudio.ts`): pad espacial procedural, pulso de telemetría e intensidad por acto (crescendo en V–VI); efectos de los sintetizadores del entrenamiento, con contexto y silencio propios.
+- **Grabación**: el botón «Grabar video (1080p)» captura la pestaña (video, capas y sonido) con `getDisplayMedia` + `MediaRecorder` y descarga un WebM. `npm run record-pitch` hace lo mismo sin intervención (Chromium con la captura de pestaña autoaceptada; si no está disponible, la grabación de Playwright sin sonido) y, con ffmpeg (`FFMPEG_PATH` o en el PATH), escribe además un MP4 H.264 en `public/pitch/`.
+- **Verificación**: `npm run e2e:pitch` reproduce los 180 s en tiempo real en Chromium headless y comprueba orden de escenas y actos, duración exacta, cuadros por segundo, el rescate que cambia el titular a SOBREVIVE, los efectos de sonido, ES / EN, ← / →, H, las marcas, cero peticiones a internet y cero errores de consola.
+
+**Lo que el brief pedía y se reemplazó por datos verificables.**
+- «Solo el 5,08 % del Polo Sur es viable»: la app no calcula esa cifra; el acto I muestra tres valores del motor (Sol máximo por latitud y eje lunar, caja de libración, caída del horizonte 3,7 veces más rápida).
+- «INCOSE Verified»: no hay tal verificación; el sello dice «Trazado a SR-101…SR-711».
+- «41 → 88/100», «NO SOBREVIVE en 18 h», «280 m al noreste», «31 % de margen», «1,42° máx», «1,420 m»: se muestran los valores que da el motor en cada escena.
+- «100 % de requisitos SR» y «120+ tests»: el cierre muestra los recuentos reales de la última verificación (`src/pitch/facts.ts`).
+- «~90 % interpolado» y «concordancia con Bussey et al.»: no verificados (ver 6.10); el cierre remite a los supuestos y límites que la app muestra.
+- Estación GISAT UdeC 3,7 m: se nombra como hipotética, igual que en el motor.
+- IM-1: el preset de 30° se aplica al caso de inclinación del entrenamiento (Shackleton), donde el motor muestra la caída del enlace; en Malapert el mismo preset apenas cuesta datos, y la pantalla dice dónde se aplica.
+
 ## 7. Interfaz
 
 **Paleta y tipografía** según el enunciado: fondo `#080B11`, paneles `#111827`,
@@ -1173,8 +1193,8 @@ precompilación de shaders al montar la escena.
 | Comando | Qué comprueba | Resultado |
 |---|---|---|
 | `npm run typecheck` / `npm run lint` | `tsc --noEmit`, modo estricto | sin errores |
-| `npm test` | 175 tests: motor, JPL Horizons, terreno LOLA, relays, contingencia, capas, evoluciones v3, ventanas, v4 (banda 80–90° S, parches de 20 m, micro-relieve, veredicto), catálogo de sitios, titular y salida de emergencia, rangos del índice y tabla de supuestos, modo heredado, exportación, umbrales de telemetría y etiquetas sin abreviar | 175/175 (v3.1 final: unidades, CSV, KPI solar, Tierra vs. Luna, glosario, iluminación publicada, búsqueda de rescate) |
-| `npm run build && npm run e2e` | 157 comprobaciones en Chromium headless sobre terreno LOLA: 132 de Mission Leader (`e2e:leader`, incluye unidades, KPI solar, telémetro, Aprender más, límites LOLA, Web Worker, cero peticiones externas, cero 404 y `context.setOffline(true)`) y 25 del Principiante (`e2e:beginner`) | 132/132 y 25/25 |
+| `npm test` | 181 tests: motor, JPL Horizons, terreno LOLA, relays, contingencia, capas, evoluciones v3, ventanas, v4 (banda 80–90° S, parches de 20 m, micro-relieve, veredicto), catálogo de sitios, titular y salida de emergencia, rangos del índice y tabla de supuestos, modo heredado, exportación, umbrales de telemetría y etiquetas sin abreviar | 181/181 (v3.1 final: unidades, CSV, KPI solar, Tierra vs. Luna, glosario, iluminación publicada, búsqueda de rescate; línea de tiempo del video pitch) |
+| `npm run build && npm run e2e` | 170 comprobaciones en Chromium headless sobre terreno LOLA: 13 del video pitch (`e2e:pitch`), 132 de Mission Leader (`e2e:leader`, incluye unidades, KPI solar, telémetro, Aprender más, límites LOLA, Web Worker, cero peticiones externas, cero 404 y `context.setOffline(true)`) y 25 del Principiante (`e2e:beginner`) | 13/13, 132/132 y 25/25 |
 | `npm run perf` | ritmo de cuadros con y sin vsync | tabla de la sección 8 |
 | `npm run guide` | capturas reales de la app (ES y EN) y la guía PDF desde `docs/` | `docs/img/`, `public/guide/*.pdf` |
 | `npm run measure-micro` | costo del peligro bajo el píxel, LOLA real | peor caso 93 ms |
@@ -1203,7 +1223,7 @@ fijo, idioma, 1280×720, 820 px y consola sin errores. Deja las capturas en
   proxy o espejo con CORS (sección 6.4); sin él queda en 160 m u 800 m.
 - El micro-relieve sub-píxel es estadístico; salvo la densidad de cráteres
   (Trask, 1966) sus parámetros son del equipo, no validados (sección 6.7).
-- La verificación e2e (157 comprobaciones) no necesita red; la lectura del
+- La verificación e2e (170 comprobaciones) no necesita red; la lectura del
   parche de 20 m en vivo (`scripts/verify_cog_stream.ts`, aparte) sí.
 - Muestreo horario. Los eventos más cortos que una hora se promedian.
 - La distancia del enlace es al centro de la Tierra, no a una estación concreta

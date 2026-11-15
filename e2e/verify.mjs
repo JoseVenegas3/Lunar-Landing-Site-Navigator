@@ -208,7 +208,7 @@ try {
     fps: Boolean(document.querySelector('[data-testid="fps"]')), map: [...document.querySelectorAll('.hud-tr button')].some((b) => b.textContent === 'Map'),
   }));
   check('top bar holds only brand, mode, UTC clock, switch version (v3.0), mission guide, export, language, units (v3.1) and the PDF guide',
-    JSON.stringify(bar.kids) === JSON.stringify(['brand', 'mode-switch', 'clock', 'switch-version', 'briefing-open', 'export-csv', 'lang', 'units', 'guide-pdf']) && !bar.verification, bar.kids.join(', '));
+    JSON.stringify(bar.kids) === JSON.stringify(['brand', 'mode-switch', 'clock', 'switch-version', 'briefing-open', 'export-csv', 'lang', 'units', 'pitch-open', 'guide-pdf']) && !bar.verification, bar.kids.join(', '));
   const logo = await page.evaluate(() => {
     const img = document.querySelector('[data-testid="brand-logo"]');
     const fav = [...document.querySelectorAll('link[rel="icon"]')].map((l) => l.getAttribute('sizes'));

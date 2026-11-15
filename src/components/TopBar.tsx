@@ -22,6 +22,7 @@ export function TopBar() {
   const data = useActiveScenario();
   const startMs = data.result?.eph.startMs ?? null;
   const experience = useApp((s) => s.experience);
+  const pitch = useApp((s) => s.pitch);
   const [sure, setSure] = useState(false);
   const reveal = useBeginner((s) => s.reveal);
 
@@ -83,6 +84,7 @@ export function TopBar() {
         <button type="button" className={lang === 'es' ? 'is-on' : ''} aria-pressed={lang === 'es'} onClick={() => setLang('es')} data-testid="lang-es">ES</button>
       </div>
       <UnitToggle />
+      {experience === 'leader' && !pitch && <a className="btn btn-verif btn-pitch" href={`${import.meta.env.BASE_URL}?pitch=true`} data-testid="pitch-open" aria-label="Video pitch (3:00)" title={t('Three-minute animated pitch over the real app, with teleprompter and recorder', 'Pitch animado de tres minutos sobre la app real, con teleprompter y grabador')}><svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path d="M5 3.5v9l7-4.5z" fill="currentColor" /></svg><span>{t('Video pitch (3:00)', 'Video pitch (3:00)')}</span></a>}
 
       {experience !== 'beginner' && <a
         className="btn btn-verif btn-guide-pdf" href={`${import.meta.env.BASE_URL}guide/guia-interfaz-${lang}.pdf`} target="_blank" rel="noopener" data-testid="guide-pdf"

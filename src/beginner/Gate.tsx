@@ -56,6 +56,7 @@ export function Gate({ ready, progress, onEnter }: { ready: boolean; progress: n
             <button type="button" className={lang === 'es' ? 'is-on' : ''} aria-pressed={lang === 'es'} onClick={() => setLang('es')} data-testid="gate-lang-es">ES</button>
           </div>
           <UnitToggle long testid="gate-units" />
+          {!useApp.getState().pitch && <a className="btn btn-small gate-pitch" href={`${import.meta.env.BASE_URL}?pitch=true`} data-testid="gate-pitch">{t('Video pitch (3:00)', 'Video pitch (3:00)')}</a>}
         </div>
 
         {pending ? (

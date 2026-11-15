@@ -12,6 +12,7 @@ import { MissionProvider } from './state/mission';
 import { maxCursorHours, useApp } from './state/store';
 import { useT } from './lib/format';
 import { LearnModal } from './components/LearnMore';
+import { PitchShow } from './pitch/PitchShow';
 
 /** Advances the shared time cursor while playback is on. */
 function usePlayback(): void {
@@ -55,6 +56,7 @@ function BootScreen({ progress }: { progress: number }) {
 export function App() {
   const mode = useApp((s) => s.mode);
   const experience = useApp((s) => s.experience);
+  const pitch = useApp((s) => s.pitch);
   const setExperience = useApp((s) => s.setExperience);
   const reveal = useBeginner((s) => s.reveal);
   const [progress, setProgress] = useState(0);
@@ -80,12 +82,13 @@ export function App() {
   if (!ready) return <BootScreen progress={progress} />;
   return (
     <MissionProvider>
-      <div className={`app app-${mode}`} data-experience={experience} data-reveal={experience === 'beginner' ? reveal.join(' ') : undefined}>
+      <div className={`app app-${mode}${pitch ? ' is-pitch' : ''}`} data-experience={experience} data-reveal={experience === 'beginner' ? reveal.join(' ') : undefined}>
         <TopBar />
         {mode === 'triage' ? <TriageLayout /> : <PlannerLayout />}
         {experience === 'leader' && <MissionBriefingTour />}
         {experience === 'beginner' && <Beginner />}
         <LearnModal />
+        {pitch && <PitchShow />}
       </div>
     </MissionProvider>
   );

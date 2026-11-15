@@ -13,7 +13,14 @@ export type AppMode = 'planner' | 'triage';
  * `?mode=leader` / `?mode=beginner` skip the gate (tests, captures, links).
  */
 export type Experience = 'gate' | 'beginner' | 'leader';
+/** `?pitch=true` (or `?pitch=1`): the 3-minute video pitch player (v3.1), on top of Mission Leader. */
+export function pitchFromUrl(search: string = typeof location === 'undefined' ? '' : location.search): boolean {
+  const p = new URLSearchParams(search).get('pitch');
+  return p === 'true' || p === '1';
+}
+
 export function experienceFromUrl(search: string = typeof location === 'undefined' ? '' : location.search): Experience {
+  if (pitchFromUrl(search)) return 'leader';
   const m = new URLSearchParams(search).get('mode');
   return m === 'leader' ? 'leader' : m === 'beginner' ? 'beginner' : 'gate';
 }
@@ -122,6 +129,8 @@ export interface AppState {
   experience: Experience;
   /** Subsystems the user may open. Mission Leader: all of them, always. */
   unlocked: Subsystem[];
+  /** The video pitch player is running (`?pitch=true`). */
+  pitch: boolean;
   /** Beginner only: the "now" of the emergency flow, so the tutorial does not depend on the real date. Null = the real clock. */
   nowOverride: number | null;
   mode: AppMode;
@@ -215,6 +224,7 @@ export const maxCursorHours = (s: Pick<AppState, 'scenarios' | 'mode' | 'active'
 export const useApp = create<AppState>((set) => ({
   experience: experienceFromUrl(),
   unlocked: [...SUBSYSTEM_ORDER],
+  pitch: pitchFromUrl(),
   nowOverride: null,
   mode: 'planner',
   lang: 'en',
@@ -248,9 +258,9 @@ export const useApp = create<AppState>((set) => ({
   panels: panelsFor('overview'),
 
   // Leaving the Beginner always frees every subsystem and the real clock.
-  setExperience: (experience) => set(experience === 'beginner' ? { experience } : { experience, unlocked: [...SUBSYSTEM_ORDER], nowOverride: null }),
+  setExperience: (experience) => set((s) => (experience === 'beginner' || s.pitch ? { experience } : { experience, unlocked: [...SUBSYSTEM_ORDER], nowOverride: null })),
   setUnlocked: (unlocked) => set((s) => ({ unlocked: s.experience === 'beginner' ? unlocked : [...SUBSYSTEM_ORDER] })),
-  setNowOverride: (nowOverride) => set((s) => ({ nowOverride: s.experience === 'beginner' ? nowOverride : null })),
+  setNowOverride: (nowOverride) => set((s) => ({ nowOverride: s.experience === 'beginner' || s.pitch ? nowOverride : null })),
   setSubsystem: (subsystem) => set((s) => (s.subsystem === subsystem ? {} : {
     subsystem, panels: panelsFor(subsystem, s.panels), overlay: SUBSYSTEMS[subsystem].overlay,
   })),

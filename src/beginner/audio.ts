@@ -228,3 +228,10 @@ function stopMusic(): void {
   if (musicTimer) { window.clearTimeout(musicTimer); musicTimer = 0; }
   if (pad) { pad.stop(); pad = null; }
 }
+
+/** Play an effect on another audio graph (the video pitch has its own context and mute). */
+export function synthOn(s: Sfx, c: AudioContext, out: AudioNode, when: number): void {
+  SYNTH[s](c, out, when);
+}
+/** Reverb impulse for another audio graph. */
+export const impulseFor = impulse;

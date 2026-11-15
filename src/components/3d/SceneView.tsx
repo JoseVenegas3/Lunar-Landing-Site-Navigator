@@ -129,7 +129,7 @@ function CameraRig({ live, result, siteKey }: { live: LiveSky; result: MissionRe
 
 function SceneContents({ dem, result, overlay, scenarioKey }: { dem: DemStack; result: MissionResult; overlay: OverlayKind; scenarioKey: ScenarioKey }) {
   const focus = useApp(sceneFocus);
-  const beginner = useApp((s) => s.experience === 'beginner');
+  const beginner = useApp((s) => s.experience === 'beginner' || s.pitch);
   const t = useT();
   const u = useUnits();
   const dblText = useMemo(() => ({

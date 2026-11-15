@@ -185,7 +185,7 @@ try {
         continue;
       }
     }
-    if (st.doit) { doItUsed++; await p.click('[data-testid="beg-doit"]'); sameSince = Date.now(); await p.waitForTimeout(400); continue; }
+    if (st.doit) { doItUsed++; await p.click('[data-testid="beg-doit"]', { timeout: 5000 }).catch(() => p.click('[data-testid="beg-doit"]', { force: true, timeout: 5000 }).catch(() => undefined)); sameSince = Date.now(); await p.waitForTimeout(400); continue; }
     if (Date.now() - sameSince > 120000) { check(`step ${st.step} does not end`, false, st.text); break; }
     await p.waitForTimeout(250);
   }
