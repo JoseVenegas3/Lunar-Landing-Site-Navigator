@@ -13,7 +13,7 @@ import {
 } from '../engine';
 import { SLOPE_STOPS } from '../components/3d/Terrain';
 import { im1Attitude } from './scenarioCheck';
-import { camProbe } from '../components/3d/sceneMath';
+import { camProbe, landerAnim } from '../components/3d/sceneMath';
 import { requestSubsystem, cancelSubsystemSwitch } from '../components/dashboard/SubsystemSwitch';
 import { ScenarioData } from '../state/mission';
 import { AppState, Subsystem, scenarioLatLon, useApp } from '../state/store';
@@ -48,8 +48,10 @@ export interface Step {
   click?: string;
   /** The step ends when this is true. */
   until?: (c: Ctx) => boolean;
-  /** Timed narration (ms at normal speed). */
+  /** Narration the user reads at their own pace: it ends with "Continue" (enabled once `until`, if any, holds). */
   auto?: number;
+  /** Cinematic: ends by itself when `until` holds (the descent). */
+  cine?: boolean;
   /** Big message with a "Continue" button. */
   cont?: boolean;
   /** "Do it for me" (offered after 45 s). Defaults to clicking `click`. */
@@ -107,7 +109,7 @@ function scenario(sc: { siteId: string; startMs: number; days: number }, patch: 
 export const SCRIPT: Step[] = [
   // ---------------------------------------------------------------- mission 0: first landing
   {
-    id: 'm0-approach', mission: 0, auto: 4500, sfx: 'landing',
+    id: 'm0-approach', mission: 0, cine: true, sfx: 'thrusters',
     enter: () => {
       const s = s0();
       s.setMode('planner');
@@ -115,11 +117,14 @@ export const SCRIPT: Step[] = [
       s.setOverlay('none');
       scenario(SC.m0);
       camProbe.aim = 'far';
+      landerAnim.deploy = 0;
+      landerAnim.drop = DESCENT_KM;
     },
-    say: (c, t) => t(`Approaching the lunar south pole: ${site(c)}, ${at(c, 0)} UTC. Touchdown…`, `Aproximación al polo sur lunar: ${site(c)}, ${at(c, 0)} UTC. Alunizando…`),
+    say: (c, t) => t(`Powered descent over ${site(c)}, ${at(c, 0)} UTC.`, `Descenso propulsado sobre ${site(c)}, ${at(c, 0)} UTC.`),
+    until: () => landerAnim.drop === 0,
   },
   {
-    id: 'm0-landed', mission: 0, auto: 3500, sfx: 'deploy',
+    id: 'm0-landed', mission: 0, auto: 3500, sfx: 'deploy', until: () => landerAnim.deploy >= 1,
     say: (_c, t) => t('Successful landing: deploying the solar arrays to recover energy.', 'Alunizaje exitoso: procedemos a recuperar energía desplegando los paneles solares.'),
   },
   {
@@ -305,7 +310,7 @@ export const SCRIPT: Step[] = [
     doIt: () => s0().setMast(10),
   },
   {
-    id: 'm3-ok', mission: 3, auto: 7000, sfx: 'success',
+    id: 'm3-ok', mission: 3, auto: 7000, sfx: 'servo',
     until: (c) => ready(c) && c.A.input?.mastM === 10,
     say: (c, t) => {
       const r = c.A.result;
@@ -490,6 +495,21 @@ export const SCRIPT: Step[] = [
     id: 'm7-diploma', mission: 7, diploma: true, seal: true, sfx: 'success',
     say: (_c, t) => t('You have learnt to read the grazing light, protect the lander from the polar cold, search for landing windows, rescue the link after an impact and solve emergencies in real time. You are ready to operate without assistance.', 'Has aprendido a leer la luz rasante, proteger la nave del frío polar, buscar ventanas de aterrizaje, rescatar la comunicación tras un impacto y resolver emergencias en tiempo real. Estás listo para operar sin asistencia.'),
   },
+];
+
+/** Height the lander starts the descent from, scene km (about 600 m above the ground). */
+export const DESCENT_KM = 0.6;
+
+/** What each mission is about and what it unlocks, for the splash and the celebration cards. */
+export const MISSION_INFO: { goal: [string, string]; unlocks: Subsystem | null }[] = [
+  { goal: ['Land, recover energy and call the Earth.', 'Alunizar, recuperar energía y llamar a la Tierra.'], unlocks: 'overview' },
+  { goal: ['Find a date when a lander can touch down and survive.', 'Encontrar una fecha en que una nave pueda alunizar y sobrevivir.'], unlocks: 'terrain' },
+  { goal: ['Move the landing point off a slope that would tip the lander over.', 'Sacar el punto de alunizaje de una ladera que volcaría la nave.'], unlocks: 'power' },
+  { goal: ['Keep the battery from freezing through the lunar night.', 'Evitar que la batería se congele durante la noche lunar.'], unlocks: 'comms' },
+  { goal: ['Restore contact with the Earth when the terrain hides it.', 'Recuperar el contacto con la Tierra cuando el relieve la oculta.'], unlocks: null },
+  { goal: ['Save the radio link after a rough landing.', 'Salvar el enlace de radio tras un alunizaje accidentado.'], unlocks: 'science' },
+  { goal: ['Choose where the mission is worth sending.', 'Elegir adónde vale la pena enviar la misión.'], unlocks: null },
+  { goal: ['Rescue a lander that came down blind, with no time to spare.', 'Rescatar una nave que cayó a ciegas, sin tiempo que perder.'], unlocks: null },
 ];
 
 export const MISSION_TITLES: [string, string][] = [

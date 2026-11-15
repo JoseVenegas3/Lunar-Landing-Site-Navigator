@@ -114,9 +114,18 @@ export const hudTags: {
  * direction and the Sun / the Earth, distance to the target, and a pending
  * aim request ("do it for me"). Written by the camera rig every frame.
  */
-export const camProbe: { sunOffDeg: number; earthOffDeg: number; dist: number; frames: number; aim: 'sun' | 'earth' | 'far' | 'zoom' | null } = {
+export const camProbe: { sunOffDeg: number; earthOffDeg: number; dist: number; frames: number; aim: 'sun' | 'earth' | 'far' | 'zoom' | 'close' | null } = {
   sunOffDeg: 180, earthOffDeg: 180, dist: 0, frames: 0, aim: null,
 };
+
+/**
+ * Animation state of the lander model (v3.0). `deploy` folds (0) or opens (1)
+ * the solar array; `drop` lifts the whole lander above the ground (scene km)
+ * for the descent of the training intro; `mastK` follows the mast height the
+ * engine uses (0 = deck, 1 = 10 m mast) and is eased by the model itself.
+ * Mission Leader keeps deploy = 1 and drop = 0.
+ */
+export const landerAnim = { deploy: 1, drop: 0, mastK: 0, size: 1, sizeTarget: 1, dustAt: 0 };
 
 /** Radii (km) of the far-field shells drawn around the lander. */
 export const SKYLINE_RADIUS_KM = 40;

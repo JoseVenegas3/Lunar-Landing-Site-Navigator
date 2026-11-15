@@ -1028,3 +1028,93 @@ input[type="range"] { width: 100%; accent-color: var(--rock); height: 18px; marg
 .beg-nudge { position: fixed; left: 50%; bottom: 120px; transform: translateX(-50%); background: rgba(8, 11, 17, 0.95); border: 1px solid var(--line); color: var(--bright); padding: 8px 14px; border-radius: 6px; font-size: 13px; }
 .beg-caption { position: fixed; left: 50%; bottom: 76px; transform: translateX(-50%); background: rgba(0, 0, 0, 0.85); color: #fff; padding: 4px 10px; border-radius: 4px; font: 12.5px var(--mono); }
 @media (prefers-reduced-motion: reduce) { .beg-spot { transition: none; } .beg-spot.is-pulse { animation: none; box-shadow: 0 0 0 5px rgba(245, 158, 11, 0.5); } }
+
+/* ===================================================== v3.0 Beginner, redesign: CAPCOM channel and mission patches */
+:root { --patch-orange: #E8762B; --patch-blue: #16336a; --gold: #E8B44A; --capcom: #06B6D4; }
+
+/* Opening cinematic */
+.intro { position: fixed; inset: 0; z-index: 90; background: #03050a; pointer-events: auto; }
+.intro-canvas { width: 100%; height: 100%; display: block; }
+.intro-caption { position: absolute; left: 50%; bottom: 14vh; transform: translateX(-50%); width: min(760px, 90vw); text-align: center; color: #e6edf7; font: 400 clamp(20px, 2.6vw, 30px)/1.35 var(--ui); text-shadow: 0 2px 18px #000; }
+.intro-caption span { display: none; animation: intro-in 900ms ease-out both; }
+.intro-caption[data-phase="moon"] .intro-moon, .intro-caption[data-phase="pole"] .intro-pole, .intro-caption[data-phase="dive"] .intro-dive { display: block; }
+@keyframes intro-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.intro-skip { position: absolute; right: 24px; bottom: 24px; background: rgba(255, 255, 255, 0.08); color: #c9d4e3; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 20px; padding: 8px 16px; font: 14px var(--ui); cursor: pointer; }
+.intro-skip:hover, .intro-skip:focus-visible { background: rgba(255, 255, 255, 0.16); color: #fff; }
+
+/* Mission patch */
+.patch-n { font: 700 34px var(--ui); fill: #fff; }
+.patch-icon { color: #fff; stroke: #fff; }
+.patch.is-locked { filter: grayscale(0.85) brightness(0.7); }
+.patch.is-locked .patch-n { display: none; }
+.patch.is-stitched .patch-stitch { stroke-dasharray: 3 3.2; animation: patch-stitch 1.6s ease-out both; }
+@keyframes patch-stitch { from { stroke-dashoffset: 320; opacity: 0.2; } to { stroke-dashoffset: 0; opacity: 1; } }
+
+/* CAPCOM transmission panel: the voice of the training */
+.capcom {
+  position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); width: min(720px, calc(100vw - 32px));
+  background: linear-gradient(180deg, rgba(14, 22, 38, 0.97), rgba(9, 14, 25, 0.97)); border: 1px solid rgba(6, 182, 212, 0.45);
+  border-radius: 14px; padding: 16px 20px 16px; pointer-events: auto; box-shadow: 0 18px 50px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(6, 182, 212, 0.08) inset;
+  display: grid; gap: 10px; z-index: 64;
+}
+.capcom.is-top { top: 118px; bottom: auto; }
+.capcom.is-action { border-color: rgba(245, 158, 11, 0.7); }
+.capcom-head { display: flex; align-items: center; gap: 10px; }
+.capcom-wave { display: inline-flex; align-items: center; gap: 2px; height: 18px; }
+.capcom-wave i { width: 3px; height: 4px; border-radius: 2px; background: var(--capcom); }
+.capcom-wave.is-live i { animation: capcom-wave 0.9s ease-in-out infinite; animation-delay: calc(var(--k) * 90ms); }
+@keyframes capcom-wave { 50% { height: 16px; } }
+.capcom-who { font: 700 13px var(--ui); color: var(--capcom); letter-spacing: 0.06em; }
+.capcom-where { margin-left: auto; font: 13px var(--ui); color: var(--dim); }
+.capcom-text { margin: 0; font: 400 clamp(17px, 1.35vw, 20px)/1.5 var(--ui); color: #f1f5fb; min-height: 3em; cursor: default; }
+.capcom-goal { margin: 0; display: flex; gap: 10px; align-items: center; font: 15px var(--ui); color: #fde7c2; }
+.capcom-goal b { background: var(--sun); color: #0b0d12; border-radius: 6px; padding: 3px 10px; font-weight: 700; }
+.capcom-hint { margin: 0; font: 15px var(--ui); color: var(--sun); }
+.capcom-actions { display: flex; gap: 10px; justify-content: flex-end; align-items: center; flex-wrap: wrap; }
+.capcom-skip { background: transparent; color: var(--dim); }
+.capcom-help { background: rgba(245, 158, 11, 0.14); border-color: var(--sun); color: #fde7c2; font-size: 15px; padding: 9px 16px; }
+.beg-go { font: 700 17px var(--ui); padding: 12px 26px; border-radius: 10px; background: var(--sun); border-color: var(--sun); color: #0b0d12; cursor: pointer; }
+.beg-go:hover:not(:disabled), .beg-go:focus-visible { background: #ffb636; box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.35); }
+.beg-go:disabled { opacity: 0.45; cursor: progress; }
+
+/* Mission splash and celebration */
+.beg-splash, .beg-celebrate {
+  position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(560px, calc(100vw - 32px));
+  background: radial-gradient(120% 90% at 50% 0%, #1a2b4f 0%, #0c1324 60%); border: 1px solid rgba(232, 118, 43, 0.6); border-radius: 18px;
+  padding: 28px 30px 30px; display: grid; justify-items: center; gap: 12px; text-align: center; pointer-events: auto; box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7); z-index: 66; overflow: hidden;
+}
+.beg-splash-kicker { margin: 4px 0 0; color: #f6b27f; font: 15px var(--ui); }
+.beg-splash h2, .beg-celebrate h2 { margin: 0; font: 700 clamp(26px, 2.6vw, 34px)/1.15 var(--ui); color: #fff; }
+.beg-splash-goal { margin: 0; color: #d6deea; font: 18px/1.45 var(--ui); max-width: 40ch; }
+.beg-splash-reward, .beg-unlock { display: flex; align-items: center; gap: 10px; margin: 4px 0; padding: 8px 14px; border-radius: 10px; background: rgba(6, 182, 212, 0.1); border: 1px solid rgba(6, 182, 212, 0.35); color: #cdf6fd; font: 15px var(--ui); }
+.beg-splash-reward svg, .beg-unlock svg { color: var(--capcom); stroke: var(--capcom); }
+.beg-unlock { background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.5); color: #c8f5e4; animation: beg-pop 600ms 900ms both; }
+.beg-stars { display: flex; gap: 10px; font-size: 44px; line-height: 1; }
+.beg-stars span { color: #2a3550; }
+.beg-stars span.is-on { color: var(--gold); text-shadow: 0 0 18px rgba(232, 180, 74, 0.6); animation: beg-pop 500ms both; animation-delay: calc(400ms + var(--k) * 220ms); }
+@keyframes beg-pop { from { transform: scale(0.3); opacity: 0; } 70% { transform: scale(1.18); opacity: 1; } to { transform: none; } }
+.beg-xp { margin: 0; color: var(--gold); font-size: 18px; }
+.beg-cel-note { margin: 0; color: var(--dim); font: 14px var(--ui); }
+.beg-next { display: flex; gap: 12px; align-items: center; text-align: left; padding: 10px 14px; border-radius: 12px; border: 1px dashed rgba(255, 255, 255, 0.2); color: #d6deea; font: 15px/1.4 var(--ui); width: 100%; }
+.beg-next small { color: var(--dim); font-size: 13px; }
+.beg-confetti { position: absolute; inset: 0; pointer-events: none; }
+.beg-confetti i { position: absolute; top: -12px; left: calc(4% + var(--k) * 3.6%); width: 7px; height: 12px; border-radius: 2px; background: hsl(calc(var(--k) * 37), 85%, 60%); animation: beg-fall 2.4s ease-in both; animation-delay: calc(var(--k) * 45ms); }
+@keyframes beg-fall { from { transform: translateY(0) rotate(0); opacity: 1; } to { transform: translateY(560px) rotate(540deg); opacity: 0; } }
+.beg-diploma { width: min(640px, calc(100vw - 32px)); padding: 30px; border-radius: 18px; overflow: hidden; z-index: 66; }
+.beg-diploma h2 { font: 700 clamp(24px, 2.4vw, 32px)/1.2 var(--ui); letter-spacing: 0.01em; }
+.beg-dip-patches { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.beg-pro { font-size: 18px; padding: 15px 26px; border-radius: 12px; }
+.beg-nudge { font-size: 15px; padding: 10px 16px; z-index: 70; bottom: 180px; }
+.beg-caption { z-index: 70; bottom: 160px; font-size: 14px; }
+.beg-spot { border-width: 3px; border-radius: 10px; }
+@media (prefers-reduced-motion: reduce) {
+  .intro-caption span, .beg-stars span.is-on, .beg-unlock, .patch.is-stitched .patch-stitch, .capcom-wave.is-live i { animation: none; }
+}
+
+/* Training controls in the top bar: compact icon buttons, the brand subtitle hidden to make room. */
+.app[data-experience="beginner"] .brand span { display: none; }
+.beg-ic { padding: 5px 7px; display: inline-grid; place-items: center; }
+.beg-ic[aria-pressed="true"] { color: var(--sun); border-color: rgba(245, 158, 11, 0.6); }
+.beg-xp-chip { color: var(--gold); font-size: 12.5px; white-space: nowrap; }
+.beg-vol input { width: 64px; }
+.beg-seals li { width: 20px; height: 20px; font-size: 10.5px; }

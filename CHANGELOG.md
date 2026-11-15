@@ -22,6 +22,13 @@ sección 6.8 de [ARCHITECTURE.md](ARCHITECTURE.md) y el guion real en
 - «Adoptar este sitio» en Comparar.
 - e2e del Principiante (`npm run e2e:beginner`).
 
+- Rediseño del Principiante tras la primera revisión: cinemática inicial
+  (Luna, polo sur, descenso y alunizaje), canal CAPCOM grande con el ritmo a
+  cargo del usuario, portada e insignia de cada misión, celebraciones con
+  estrellas y puntos, diploma con las 8 insignias, módulo 3D que despliega
+  paneles y sube el mástil, 17 efectos de sonido y música ambiental
+  desactivable, pestañas en orden de desbloqueo.
+
 ### Cambiado
 - Mission Leader = la v2.1. Ya no abre la tarjeta de bienvenida (la sustituye
   la puerta); el tutorial de 10 pasos sigue en «Guía de misión».

@@ -61,19 +61,6 @@ function CameraRig({ live, result, siteKey }: { live: LiveSky; result: MissionRe
     const c = controls.current;
     if (!c || !live.valid) return;
     const cam = camera as PerspectiveCamera;
-    // Camera aim requested by the Beginner training ("do it for me"): look at the Sun or the Earth, or pull back.
-    const aim = camProbe.aim;
-    if (aim && view === 'orbit') {
-      camProbe.aim = null;
-      if (aim === 'far') cam.position.copy(live.lander).add(dir.set(9, 6, 11));
-      else {
-        dir.copy(aim === 'sun' ? live.sunDir : live.earthDir).setY(0).normalize();
-        const d = aim === 'zoom' ? 0.9 : 2.2;
-        if (aim === 'zoom') dir.copy(cam.position).sub(live.lander).setY(0).normalize().negate();
-        cam.position.copy(live.lander).addScaledVector(dir, -d).add(dir.set(0, d * 0.28, 0));
-      }
-      c.target.copy(live.lander);
-    }
     if (pending.current) {
       pending.current = false;
       if (view === 'orbit') {
@@ -87,6 +74,22 @@ function CameraRig({ live, result, siteKey }: { live: LiveSky; result: MissionRe
         c.target.copy(live.eye).addScaledVector(dir, 0.01);
       }
       cam.updateProjectionMatrix();
+    }
+    // Camera aim requested by the Beginner training ("do it for me"): look at the Sun or the Earth, or pull back.
+    const aim = camProbe.aim;
+    if (aim && view === 'orbit') {
+      camProbe.aim = null;
+      if (aim === 'far') cam.position.copy(live.lander).add(dir.set(9, 6, 11));
+      // close-up with the Sun behind the camera: the user then turns the view to find it
+      else if (aim === 'close') cam.position.copy(live.lander).add(dir.copy(live.sunDir).setY(0).normalize().multiplyScalar(0.55)).add(dir.set(0.12, 0.2, 0.08));
+      // zoom: halve the distance along the current view
+      else if (aim === 'zoom') cam.position.sub(live.lander).multiplyScalar(0.5).add(live.lander);
+      else {
+        dir.copy(aim === 'sun' ? live.sunDir : live.earthDir).setY(0).normalize();
+        const d = 2.2;
+        cam.position.copy(live.lander).addScaledVector(dir, -d).add(dir.set(0, d * 0.28, 0));
+      }
+      c.target.copy(live.lander);
     }
     if (view === 'eye') {
       // Keep the eye on the mast: re-anchor after the controls have orbited the look-at point.

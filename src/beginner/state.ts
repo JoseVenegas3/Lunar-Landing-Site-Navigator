@@ -11,13 +11,13 @@ import { ScenarioCfg, Subsystem } from '../state/store';
 export type Reveal = 'transport' | 'subsys' | 'trays' | 'verdict' | 'telemetry' | 'mode';
 
 const SOUND_KEY = 'clps.beginner.sound';
-interface SoundPrefs { muted: boolean; volume: number; subtitles: boolean }
+interface SoundPrefs { muted: boolean; volume: number; subtitles: boolean; music: boolean }
 const readPrefs = (): SoundPrefs => {
   try {
     const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(SOUND_KEY) : null;
-    if (raw) return { muted: false, volume: 0.6, subtitles: false, ...JSON.parse(raw) };
+    if (raw) return { muted: false, volume: 0.7, subtitles: false, music: true, ...JSON.parse(raw) };
   } catch { /* storage unavailable */ }
-  return { muted: false, volume: 0.6, subtitles: false };
+  return { muted: false, volume: 0.7, subtitles: false, music: true };
 };
 
 export interface BeginnerState extends SoundPrefs {
@@ -40,19 +40,26 @@ export interface BeginnerState extends SoundPrefs {
   done: number;
   /** Site validated in mission 6, kept when the training ends. */
   validated: ScenarioCfg | null;
+  /**
+   * What is on screen: the opening cinematic, the splash of a mission, a step,
+   * or the celebration of a finished mission.
+   */
+  phase: 'intro' | 'splash' | 'step' | 'celebrate';
+  /** Points earned (stars and XP of the celebration cards). */
+  xp: number;
   set: (p: Partial<BeginnerState>) => void;
   setSound: (p: Partial<SoundPrefs>) => void;
 }
 
 export const useBeginner = create<BeginnerState>((set, get) => ({
   ...readPrefs(),
-  step: -1, stepAt: 0, stuck: 0, reveal: [], fresh: null, nudge: null, caption: null, done: 0, validated: null,
+  step: -1, stepAt: 0, stuck: 0, reveal: [], fresh: null, nudge: null, caption: null, done: 0, validated: null, phase: 'intro', xp: 0,
   fast: typeof location !== 'undefined' && new URLSearchParams(location.search).get('tutorialSpeed') === 'fast',
   set: (p) => set(p),
   setSound: (p) => {
     set(p);
-    const { muted, volume, subtitles } = { ...get(), ...p };
-    try { localStorage.setItem(SOUND_KEY, JSON.stringify({ muted, volume, subtitles })); } catch { /* storage unavailable */ }
+    const { muted, volume, subtitles, music } = { ...get(), ...p };
+    try { localStorage.setItem(SOUND_KEY, JSON.stringify({ muted, volume, subtitles, music })); } catch { /* storage unavailable */ }
   },
 }));
 

@@ -51,7 +51,8 @@ function lolaProxy(): Plugin {
 
 export default defineConfig({
   plugins: [react(), lolaProxy()],
-  server: { port: 5173, strictPort: true, host: '127.0.0.1' },
+  // fs.allow '..': node_modules may be a link to a sibling checkout (the v2 / v3 worktrees share one install).
+  server: { port: 5173, strictPort: true, host: '127.0.0.1', fs: { allow: ['..'] } },
   preview: { port: 4173, strictPort: true, host: '127.0.0.1' },
   build: { target: 'es2022', chunkSizeWarningLimit: 1600 },
   test: { environment: 'node', include: ['src/**/*.test.ts'], testTimeout: 60000 },

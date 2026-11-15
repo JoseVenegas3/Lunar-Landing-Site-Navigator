@@ -207,8 +207,8 @@ try {
     hourButtons: document.querySelectorAll('[data-testid="hour-back"], [data-testid="hour-fwd"]').length,
     fps: Boolean(document.querySelector('[data-testid="fps"]')), map: [...document.querySelectorAll('.hud-tr button')].some((b) => b.textContent === 'Map'),
   }));
-  check('top bar holds only brand, mode, UTC clock, mission guide, export, language and the PDF guide',
-    JSON.stringify(bar.kids) === JSON.stringify(['brand', 'mode-switch', 'clock', 'briefing-open', 'export-csv', 'lang', 'guide-pdf']) && !bar.verification, bar.kids.join(', '));
+  check('top bar holds only brand, mode, UTC clock, switch version (v3.0), mission guide, export, language and the PDF guide',
+    JSON.stringify(bar.kids) === JSON.stringify(['brand', 'mode-switch', 'clock', 'switch-version', 'briefing-open', 'export-csv', 'lang', 'guide-pdf']) && !bar.verification, bar.kids.join(', '));
   const logo = await page.evaluate(() => {
     const img = document.querySelector('[data-testid="brand-logo"]');
     const fav = [...document.querySelectorAll('link[rel="icon"]')].map((l) => l.getAttribute('sizes'));

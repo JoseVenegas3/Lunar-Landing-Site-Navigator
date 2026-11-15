@@ -17,7 +17,7 @@ import {
 import { bodyQuaternion, enuToScene, steeredBoresightEnu } from './SceneContingency';
 import { sceneFocus, useApp } from '../../state/store';
 import {
-  BODY_DISTANCE_KM, LiveSky, RING_ELEVATION_GAIN, SKYLINE_RADIUS_KM, SceneFrame, dirToScene, hudTags, mapToScene, resultFrame,
+  BODY_DISTANCE_KM, LiveSky, RING_ELEVATION_GAIN, SKYLINE_RADIUS_KM, SceneFrame, dirToScene, hudTags, landerAnim, mapToScene, resultFrame,
   useSceneUi,
 } from './sceneMath';
 
@@ -46,6 +46,8 @@ export function Lander({ result, frame, live, dem }: CommonProps & { dem: DemSta
   const group = useRef<Group>(null);
   const tracker = useRef<Group>(null);
   const dish = useRef<Group>(null);
+  const pole = useRef<Mesh>(null);
+  const panel = useRef<Mesh>(null);
   const { camera, gl, controls } = useThree();
   const mount = result.input.power.mount;
   const active = useApp((s) => s.active);
@@ -56,13 +58,26 @@ export function Lander({ result, frame, live, dem }: CommonProps & { dem: DemSta
     if (!g || !live.valid) return;
     g.visible = useApp.getState().view !== 'eye';
     g.position.copy(live.lander);
+    g.position.y += landerAnim.drop;
     const dist = camera.position.distanceTo(live.lander);
-    g.scale.setScalar(Math.max(0.001, dist * 0.0075));
+    // The training shows the lander bigger while it lands and unfolds (landerAnim.size), then eases back.
+    landerAnim.size += (landerAnim.sizeTarget - landerAnim.size) * 0.03;
+    g.scale.setScalar(Math.max(0.001, dist * 0.0075 * landerAnim.size));
     // The model tilts with the landing attitude; array and antenna are then steered in the body frame.
     bodyQuaternion(result.adv.attitude, result.observer.lonDeg, g.quaternion);
     LANDER_QINV.copy(g.quaternion).invert();
     LANDER_TMP.copy(live.sunDir).applyQuaternion(LANDER_QINV);
     if (tracker.current) tracker.current.rotation.y = Math.atan2(LANDER_TMP.x, LANDER_TMP.z);
+    // Mast and array follow the configuration: a 10 m mast raises the array, folded arrays open (v3.0).
+    const mastTarget = result.input.mastM > 2 ? 1 : 0;
+    landerAnim.mastK += (mastTarget - landerAnim.mastK) * 0.04;
+    if (Math.abs(mastTarget - landerAnim.mastK) < 0.002) landerAnim.mastK = mastTarget;
+    if (pole.current) { pole.current.scale.y = 1 + landerAnim.mastK * 4; pole.current.position.y = 0.7 * (1 + landerAnim.mastK * 4); }
+    if (panel.current) {
+      const d = landerAnim.deploy;
+      panel.current.position.y = 1.9 + landerAnim.mastK * 5.6 - (1 - d) * 0.9;
+      panel.current.scale.set(0.12 + 0.88 * d, 0.25 + 0.75 * d, 1);
+    }
     if (dish.current) {
       const steered = steeredBoresightEnu(result.adv.attitude, result.adv.boresightBody, enuFromAzEl(live.earthAz, live.earthEl));
       enuToScene(result.observer.lonDeg, steered, LANDER_TMP).normalize().applyQuaternion(LANDER_QINV);
@@ -167,11 +182,11 @@ export function Lander({ result, frame, live, dem }: CommonProps & { dem: DemSta
       {/* solar tracker: vertical array on a mast, facing the solar azimuth */}
       {mount === 'tracker1axis' && (
         <group ref={tracker} position={[0, 1.7, 0]}>
-          <mesh position={[0, 0.7, 0]}>
+          <mesh ref={pole} position={[0, 0.7, 0]}>
             <cylinderGeometry args={[0.05, 0.05, 1.4, 6]} />
             <meshLambertMaterial color="#9aa5b5" />
           </mesh>
-          <mesh position={[0, 1.9, 0]}>
+          <mesh ref={panel} position={[0, 1.9, 0]}>
             <boxGeometry args={[2.6, 1.3, 0.05]} />
             <meshLambertMaterial color="#1f3a6b" emissive="#0a1630" />
           </mesh>

@@ -1,8 +1,5 @@
 /**
  * 3-D effects of the Beginner training (v3.0), drawn only in the training:
- *  - the telescopic mast: a pole from the deck to the array height the
- *    engine uses (`live.eye`, set by the mast selector), which grows when the
- *    mast goes from 2 m to 10 m;
  *  - radio waves: rings that travel from the antenna towards the Earth while
  *    the link is open, on the steps that talk about the radio link.
  * With prefers-reduced-motion the mast appears at once and the rings stay
@@ -10,8 +7,8 @@
  */
 import { useEffect, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { CylinderGeometry, DoubleSide, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, Quaternion, RingGeometry, Vector3 } from 'three';
-import { LiveSky } from '../components/3d/sceneMath';
+import { DoubleSide, Group, Mesh, MeshBasicMaterial, Quaternion, RingGeometry, Vector3 } from 'three';
+import { LiveSky, landerAnim } from '../components/3d/sceneMath';
 import { useBeginner } from './state';
 import { SCRIPT } from './script';
 
@@ -20,11 +17,8 @@ const reduced = (): boolean => typeof window !== 'undefined' && Boolean(window.m
 const RADIO_STEPS = new Set(['m0-earth-sets', 'm4-ok', 'm5-ok']);
 
 export function BeginnerFx({ live, linkOpen }: { live: LiveSky; linkOpen: () => boolean }) {
-  const { mast, waves, group } = useMemo(() => {
+  const { waves, group, dust } = useMemo(() => {
     const g = new Group();
-    const pole = new Mesh(new CylinderGeometry(1, 1, 1, 10), new MeshStandardMaterial({ color: 0xc9d4e3, metalness: 0.6, roughness: 0.4 }));
-    pole.geometry.translate(0, 0.5, 0);
-    g.add(pole);
     const rings: Mesh[] = [];
     for (let k = 0; k < 3; k++) {
       const r = new Mesh(new RingGeometry(0.8, 1, 40), new MeshBasicMaterial({ color: 0x06b6d4, transparent: true, opacity: 0.6, side: DoubleSide, depthWrite: false }));
@@ -32,23 +26,30 @@ export function BeginnerFx({ live, linkOpen }: { live: LiveSky; linkOpen: () => 
       g.add(r);
       rings.push(r);
     }
-    return { mast: pole, waves: rings, group: g };
+    const dust = new Mesh(new RingGeometry(0.6, 1, 48), new MeshBasicMaterial({ color: 0xcbbfa8, transparent: true, opacity: 0, side: DoubleSide, depthWrite: false }));
+    dust.rotation.x = -Math.PI / 2;
+    g.add(dust);
+    return { waves: rings, group: g, dust };
   }, []);
   const q = useMemo(() => new Quaternion(), []);
   const v = useMemo(() => new Vector3(), []);
-  const state = useMemo(() => ({ height: 0 }), []);
 
   useEffect(() => () => {
     for (const o of group.children) { const m = o as Mesh; m.geometry.dispose(); (m.material as MeshBasicMaterial).dispose(); }
   }, [group]);
 
-  useFrame((_, dt) => {
+  useFrame(() => {
     if (!live.valid) return;
-    // Mast: deck to the array height of the engine, growing at 1/s of the full height.
-    const target = live.eye.y - live.lander.y;
-    state.height = reduced() ? target : state.height + Math.sign(target - state.height) * Math.min(Math.abs(target - state.height), Math.max(0.002, Math.abs(target)) * dt * 1.2);
-    mast.position.copy(live.lander);
-    mast.scale.set(0.0018, Math.max(0.0001, state.height), 0.0018);
+    // Dust ring at touchdown: 1.6 s, expanding on the ground.
+    const age = (performance.now() - landerAnim.dustAt) / 1600;
+    const dm = dust.material as MeshBasicMaterial;
+    if (landerAnim.dustAt > 0 && age < 1) {
+      dust.position.copy(live.lander);
+      dust.position.y += 0.0005;
+      const s = 0.004 + age * 0.06;
+      dust.scale.set(s, s, s);
+      dm.opacity = 0.75 * (1 - age);
+    } else dm.opacity = 0;
     // Radio waves towards the Earth (one ring every 0.6 s, under 2 per second).
     const st = useBeginner.getState();
     const step = st.step >= 0 ? SCRIPT[st.step]?.id : '';

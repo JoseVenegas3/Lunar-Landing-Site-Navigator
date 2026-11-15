@@ -10,6 +10,14 @@ import { finishTraining } from './lifecycle';
 import { MISSION_TITLES, SCRIPT } from './script';
 import { useBeginner } from './state';
 
+function IconBtn({ label, d, onClick, testId, pressed }: { label: string; d: string; onClick: () => void; testId: string; pressed?: boolean }) {
+  return (
+    <button type="button" className="btn btn-small beg-ic" aria-label={label} title={label} aria-pressed={pressed} onClick={onClick} data-testid={testId}>
+      <svg viewBox="0 0 20 20" width="17" height="17" aria-hidden="true"><path d={d} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+    </button>
+  );
+}
+
 export function BeginnerHud() {
   const t = useT();
   const lang = useApp((s) => s.lang);
@@ -34,14 +42,17 @@ export function BeginnerHud() {
             </li>
           ))}
         </ol>
-        <span className="beg-title">{t('Mission', 'Misión')} {step.mission} · {MISSION_TITLES[step.mission][lang === 'es' ? 1 : 0]}</span>
-        <button type="button" className="btn btn-small" aria-pressed={b.muted} onClick={() => b.setSound({ muted: !b.muted })} data-testid="beg-mute">{b.muted ? t('Sound off', 'Sonido apagado') : t('Sound on', 'Sonido activo')}</button>
+        <span className="beg-xp-chip mono" title={t('Points', 'Puntos')}>{b.xp} XP</span>
+        <IconBtn label={b.muted ? t('Sound off: turn on', 'Sonido apagado: activar') : t('Sound on: mute', 'Sonido activo: silenciar')} pressed={b.muted} onClick={() => b.setSound({ muted: !b.muted })} testId="beg-mute"
+          d={b.muted ? 'M3 8h3l4-3v10l-4-3H3zM13 8l4 4M17 8l-4 4' : 'M3 8h3l4-3v10l-4-3H3zM13 7.5a3.5 3.5 0 0 1 0 5M15 5.5a6.5 6.5 0 0 1 0 9'} />
         <label className="beg-vol">
           <span className="sr-only">{t('Volume', 'Volumen')}</span>
           <input type="range" min={0} max={1} step={0.05} value={b.volume} onChange={(e) => b.setSound({ volume: Number(e.target.value) })} aria-label={t('Volume', 'Volumen')} data-testid="beg-volume" />
         </label>
-        <button type="button" className="btn btn-small" aria-pressed={b.subtitles} onClick={() => b.setSound({ subtitles: !b.subtitles })} data-testid="beg-subtitles">{t('Subtitles', 'Subtítulos')}</button>
-        <button type="button" className="btn btn-small" onClick={repeat} data-testid="beg-repeat">{t('Repeat step', 'Repetir paso')}</button>
+        <IconBtn label={b.music ? t('Music on: turn off', 'Música activa: apagar') : t('Music off: turn on', 'Música apagada: activar')} pressed={!b.music} onClick={() => b.setSound({ music: !b.music })} testId="beg-music"
+          d={b.music ? 'M8 15V5l8-2v10M8 15a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM16 13a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z' : 'M8 15V5l8-2v10M8 15a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM3 3l14 14'} />
+        <IconBtn label={t('Subtitles', 'Subtítulos')} pressed={b.subtitles} onClick={() => b.setSound({ subtitles: !b.subtitles })} testId="beg-subtitles" d="M3 5h14v10H3zM6 11h3M11 11h3M6 8.5h8" />
+        <IconBtn label={t('Repeat step', 'Repetir paso')} onClick={repeat} testId="beg-repeat" d="M4 10a6 6 0 1 0 2-4.5M4 3v3h3" />
         <button type="button" className="btn btn-small" onClick={() => setConfirmExit(true)} data-testid="beg-exit">{t('Exit to Pro', 'Salir al Pro')}</button>
       </header>
 

@@ -1004,6 +1004,16 @@ Valores medidos (narrados en vivo, no copiados):
 | «Ejecutar reubicación de escape» | Botón del bloque Salida, rotulado «Ejecutar esta salida» (antes «Mover ahí»). |
 | Libración «la Tierra descendió tras la montaña» | Se explica en general; el panorama de horizonte muestra el perfil real. |
 
+**Rediseño de la experiencia (2026-11-15).** Primera revisión del usuario: faltaba la cinemática inicial, los textos pasaban rápido y eran pequeños, el módulo 3D no cambiaba, no se oía sonido y nada invitaba a seguir. Cambios:
+
+- **Cinemática inicial (`Intro.tsx`).** La Luna entera gira, la vista se inclina al polo sur y se zambulle; la distancia a la Tierra sale de las efemérides del motor. Luego, en la escena 3D real, el módulo desciende desde unos 600 m con rugido de motor, toca suelo con golpe y anillo de polvo, y despliega el panel solar. «Saltar» siempre visible.
+- **Modelo 3D (`SceneObjects.tsx`, `landerAnim`).** El panel se pliega y despliega. El mástil sube cuando se elige 10 m: refleja la configuración real también en Mission Leader. Durante el aterrizaje el módulo se muestra más grande y luego vuelve a su tamaño.
+- **Canal CAPCOM.** Panel grande abajo (texto de 17 a 20 px) que «transmite» la narración con efecto de máquina de escribir y onda animada. El ritmo lo pone el usuario con «Continuar»; ningún texto avanza solo. En los pasos de acción aparece «Tu turno»; después vienen la pista y «Hazlo por mí».
+- **Portada de misión e insignias (`Patch.tsx`).** Cada misión abre con su insignia bordada (colores de la insignia GISAT), objetivo y recompensa. Cada misión cerrada se celebra con la insignia que se cose, estrellas (3 sin ayuda, menos con «Hazlo por mí»), +100 XP, la consola desbloqueada y el adelanto de la siguiente. El diploma reúne las 8 insignias.
+- **Sonido.** Corregido el defecto de la primera versión: el `AudioContext` se cerraba en el doble montaje de React StrictMode, así que no sonaba nada. Ahora hay 17 efectos (motor, golpe, despliegue, servo del mástil, objetivo, fanfarria, puntos, paso de escena…), un tono suave por letra y música ambiental espacial generativa (pad filtrado y campanas pentatónicas con eco), desactivable y recordada.
+- **Pestañas en orden de desbloqueo** durante el entrenamiento: Resumen, Terreno, Energía, Comunicaciones, Ciencia.
+- La barra superior queda siempre usable (el oscurecido empieza bajo ella) y los controles del entrenamiento son botones de ícono con su nombre en `title` y `aria-label`.
+
 **Cambios compartidos (§4) y su prueba en Mission Leader.**
 - `experience` y la puerta: Mission Leader se abre con `?mode=leader` y pasa la misma e2e de la v2.1, ajustada solo en la tarjeta de bienvenida, que ya no existe.
 - Candados: `unlocked` siempre completo fuera del entrenamiento (`store.test.ts`).

@@ -86,6 +86,7 @@ try {
   await g.click('[data-testid="gate-forgot"]');
   await g.waitForSelector('[data-testid="beginner"]', { timeout: 90000 });
   check('Yes → "Forgot how it works?" opens the training', true);
+  if (await g.locator('[data-testid="intro-skip"]').count()) await g.click('[data-testid="intro-skip"]');
   // switch version from the training: two clicks (progress warning), back to the gate
   await g.click('[data-testid="switch-version"]');
   const warn2 = await g.locator('[data-testid="switch-version"]').innerText();
@@ -111,6 +112,9 @@ try {
       text: (document.querySelector('[data-testid="beg-card"], [data-testid="beg-big"], [data-testid="diploma"]')?.textContent ?? '').replace(/\s+/g, ' ').trim(),
       doit: Boolean(document.querySelector('[data-testid="beg-doit"]')),
       cont: Boolean(document.querySelector('[data-testid="beg-continue"]')),
+      next: Boolean(document.querySelector('[data-testid="beg-next"]:not([disabled])')),
+      splash: Boolean(document.querySelector('[data-testid="beg-start-mission"]')),
+      intro: Boolean(document.querySelector('[data-testid="intro-skip"]')),
       diploma: Boolean(document.querySelector('[data-testid="diploma"]')),
     }));
     if (!st.step) break;
@@ -128,6 +132,9 @@ try {
       await p.click('[data-testid="beg-to-pro"]');
       break;
     }
+    if (st.intro) { if (!seen.some((x) => x.id === 'intro-shot')) { seen.push({ id: 'intro-shot', text: '' }); await p.screenshot({ path: join(shots, 'intro.png') }); } await p.waitForTimeout(300); continue; }
+    if (st.splash) { await p.screenshot({ path: join(shots, `splash-${seen.length}.png`) }); await p.click('[data-testid="beg-start-mission"]'); await p.waitForTimeout(200); continue; }
+    if (st.next) { await p.click('[data-testid="beg-next"]'); await p.waitForTimeout(150); continue; }
     if (st.cont) { await p.screenshot({ path: join(shots, `${st.step}.png`) }); await p.click('[data-testid="beg-continue"]'); await p.waitForTimeout(200); continue; }
     // Real clicks where the step asks for one; "Do it for me" otherwise once it appears.
     const target = await p.evaluate(() => {
@@ -151,8 +158,9 @@ try {
     await p.waitForTimeout(250);
   }
   const ids = seen.map((s) => s.id);
-  check('the training runs from mission 0 to the diploma', ids[0] === 'm0-approach' && ids.includes('m7-diploma'), ids.join(' > '));
+  check('the training opens with the cinematic, then runs from mission 0 to the diploma', ['intro', 'splash'].includes(ids[0]) && ids.includes('m0-approach') && ids.includes('m7-diploma') && ids.includes('celebrate'), ids.join(' > '));
   const bad = seen.filter((s) => /NaN|undefined|Infinity|null/.test(s.text));
+  check('missions open with a splash and end with a celebration (stars, points, what comes next)', ids.filter((x) => x === 'splash').length >= 7 && ids.filter((x) => x === 'celebrate').length >= 7, '');
   check('no narration shows NaN, undefined or a missing value', bad.length === 0, bad.map((s) => `${s.id}: ${s.text}`).join(' | '));
   check('"Do it for me" appears when the user is stuck and performs the action', doItUsed > 0, `${doItUsed} times`);
   await p.waitForSelector('[data-testid="planner"]');
@@ -163,14 +171,19 @@ try {
   }));
   check('the Pro console opens with every lock removed and the validated site kept', !after.beginner && after.locked === 0 && after.mode === 'leader' && /Malapert/.test(after.site), JSON.stringify(after));
   const played = await p.evaluate(() => window.__clpsAudioMock.played);
-  check('the sound effects play through the (mocked) audio module', ['landing', 'unlock', 'siren', 'success'].every((s) => played.includes(s)), played.join(','));
+  check('the sound effects play through the (mocked) audio module', ['thrusters', 'landing', 'deploy', 'fanfare', 'xp', 'unlock', 'siren', 'success'].every((s) => played.includes(s)), played.join(','));
   writeFileSync(join(shots, 'narration.json'), JSON.stringify(seen, null, 2));
   await p.context().close();
 
   // ---------------------------------------------------------------- (e) reduced motion, subtitles, exit
   const r = await newPage({ reduced: true });
   await r.goto(`${URL}?mode=beginner&tutorialSpeed=fast`);
+  await r.waitForSelector('[data-testid="beg-start-mission"], [data-testid="intro-skip"]', { timeout: 90000 });
+  if (await r.locator('[data-testid="intro-skip"]').count()) await r.click('[data-testid="intro-skip"]');
+  await r.click('[data-testid="beg-start-mission"]');
   await r.waitForSelector('[data-testid="beg-card"]', { timeout: 90000 });
+  const still = await r.evaluate(() => getComputedStyle(document.querySelector('.capcom-wave i') ?? document.body).animationName);
+  check('reduced motion: the text appears at once and the CAPCOM wave does not move', still === 'none' || still === '', still);
   await r.click('[data-testid="beg-mute"]');
   await r.waitForSelector('[data-testid="beg-caption"]', { timeout: 20000 }).catch(() => {});
   const cap = await r.locator('[data-testid="beg-caption"]').count();

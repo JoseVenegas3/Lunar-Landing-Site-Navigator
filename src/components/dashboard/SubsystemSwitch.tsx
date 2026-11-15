@@ -25,6 +25,9 @@ export const SUB_ICON: Record<Subsystem, ReactNode> = {
   science: <path d="M8 2.5v5.2L3.5 15.4A1.4 1.4 0 0 0 4.7 17.5h10.6a1.4 1.4 0 0 0 1.2-2.1L12 7.7V2.5M7 2.5h6M6 12.5h8" {...stroke} />,
 };
 
+/** Order in which the Beginner training unlocks the consoles; the tabs follow it during the training. */
+export const UNLOCK_ORDER: Subsystem[] = ['overview', 'terrain', 'power', 'comms', 'science'];
+
 const LOCK_ICON = <path d="M6 9V6.5a4 4 0 0 1 8 0V9M4.5 9h11v8h-11zM10 12.3v2.2" {...stroke} />;
 
 export function subsystemLabel(s: Subsystem, t: T): string {
@@ -116,11 +119,12 @@ export function SubsystemTabs() {
   const denied = useSwitch((s) => s.denied);
   const unlocked = useApp((s) => s.unlocked);
   const fresh = useBeginner((s) => s.fresh);
+  const beginner = useApp((s) => s.experience === 'beginner');
   const shown = pending ?? subsystem;
   return (
     <nav className="subsys-bar" aria-label={t('Mission subsystem', 'Subsistema de misión')} data-testid="subsys-bar">
       <div className="subsys-list" role="tablist">
-        {SUBSYSTEM_ORDER.map((s) => {
+        {(beginner ? UNLOCK_ORDER : SUBSYSTEM_ORDER).map((s) => {
           const locked = !unlocked.includes(s);
           return (
             <button
