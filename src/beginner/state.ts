@@ -5,7 +5,7 @@
  * (the gate asks again on every load).
  */
 import { create } from 'zustand';
-import { Subsystem } from '../state/store';
+import { ScenarioCfg, Subsystem } from '../state/store';
 
 /** Parts of the interface the training reveals one by one. */
 export type Reveal = 'transport' | 'subsys' | 'trays' | 'verdict' | 'telemetry' | 'mode';
@@ -38,13 +38,15 @@ export interface BeginnerState extends SoundPrefs {
   fast: boolean;
   /** Missions completed (0..8), for the progress seals. */
   done: number;
+  /** Site validated in mission 6, kept when the training ends. */
+  validated: ScenarioCfg | null;
   set: (p: Partial<BeginnerState>) => void;
   setSound: (p: Partial<SoundPrefs>) => void;
 }
 
 export const useBeginner = create<BeginnerState>((set, get) => ({
   ...readPrefs(),
-  step: -1, stepAt: 0, stuck: 0, reveal: [], fresh: null, nudge: null, caption: null, done: 0,
+  step: -1, stepAt: 0, stuck: 0, reveal: [], fresh: null, nudge: null, caption: null, done: 0, validated: null,
   fast: typeof location !== 'undefined' && new URLSearchParams(location.search).get('tutorialSpeed') === 'fast',
   set: (p) => set(p),
   setSound: (p) => {

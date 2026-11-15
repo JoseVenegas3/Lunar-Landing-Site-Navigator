@@ -1,5 +1,33 @@
 # Cambios
 
+## v3.0 (2026-11-14)
+
+Dos experiencias en una app, detrás de una puerta de entrada. Detalle en la
+sección 6.8 de [ARCHITECTURE.md](ARCHITECTURE.md) y el guion real en
+[docs/guion-principiante.md](docs/guion-principiante.md).
+
+### Añadido
+- **Puerta de entrada** en cada carga: «¿Has usado esta app alguna vez?», con
+  sus cuatro caminos y la advertencia del atajo Pro. `?mode=leader` y
+  `?mode=beginner` la saltan. Enlace «Cambiar de versión» en la barra.
+- **Principiante**: entrenamiento guiado de 8 misiones (primer alunizaje,
+  sitio y fecha, terreno, energía y frío, comunicaciones, contingencia,
+  ciencia, emergencia) que desbloquea las consolas una a una y termina con el
+  diploma y el acceso a la consola Pro. Foco con oscurecido, acciones reales
+  detectadas por el estado, pista a 15 s, «Hazlo por mí» a 45 s, repetir paso,
+  salir al Pro con confirmación, sellos de progreso.
+- Sonido procedural WebAudio (10 efectos) con silencio, volumen y subtítulos.
+- Escenarios hallados con el motor (`npm run find-scenarios`) y revalidados en
+  pruebas; sin red.
+- «Adoptar este sitio» en Comparar.
+- e2e del Principiante (`npm run e2e:beginner`).
+
+### Cambiado
+- Mission Leader = la v2.1. Ya no abre la tarjeta de bienvenida (la sustituye
+  la puerta); el tutorial de 10 pasos sigue en «Guía de misión».
+- El botón del bloque Salida se rotula «Ejecutar esta salida».
+- Emergencia reancla también una ventana que no es de 3 / 7 / 15 d.
+
 ## v2.1 (2026-11-14)
 
 Regla de la versión: toda cifra o umbral visible tiene una razón escrita

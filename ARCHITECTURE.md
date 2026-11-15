@@ -911,6 +911,108 @@ contenga la noche entera, con selector 3 / 7 / 15 d.
   2027-09-01 00:00 UTC para que los tres casos de emergencia sean
   reproducibles.
 
+## 6.8 v3.0: puerta de entrada y entrenamiento Principiante (2026-11-14)
+
+La v3.0 reúne dos experiencias en una app. **Mission Leader** es la interfaz
+v2.1 sin cambios de comportamiento. **Principiante** es un entrenamiento
+guiado de ocho misiones que maneja el estado real de la app y lo observa;
+nunca simula resultados. Código nuevo en `src/beginner/`.
+
+**Puerta de entrada.** Es lo primero en cada carga, sobre la carga del terreno,
+que sigue detrás. Pregunta «¿Has usado esta app alguna vez?» y ofrece:
+
+| Respuesta | Oferta principal | Opción secundaria |
+|---|---|---|
+| No | Comenzar entrenamiento | Ir directo a la versión Pro, con advertencia de dos pasos |
+| Sí | Abrir Mission Leader | ¿Te olvidaste cómo funciona? (abre el entrenamiento) |
+
+- La respuesta no se guarda.
+- `?mode=leader` y `?mode=beginner` saltan la puerta (pruebas, capturas, enlaces).
+- «Cambiar de versión» en la barra la reabre; desde el entrenamiento pide un segundo clic porque se pierde el progreso.
+- La tarjeta de bienvenida de la v2.1 ya no se abre sola; el tutorial de 10 pasos sigue en «Guía de misión» de Mission Leader.
+
+**Excepción acotada a «sin modales» (6.5).** La puerta, el mensaje grande con «Continuar» y el diploma son superposiciones propias a pantalla completa:
+- `role="dialog"` y `aria-modal`;
+- foco inicial en la respuesta;
+- Esc no cierra la puerta.
+
+Solo existen en la puerta y en el entrenamiento; Mission Leader sigue sin modales.
+
+**Estado.**
+- `experience: 'gate' | 'beginner' | 'leader'`.
+- `unlocked`: subsistemas abiertos. En Mission Leader son siempre todos; `setUnlocked` no puede cerrarlos fuera del entrenamiento.
+- `nowOverride`: «ahora» del flujo de emergencia, solo en el Principiante.
+- Al salir del entrenamiento (diploma o «Salir al Pro» confirmado) se liberan los candados y se limpian actitud, equipo, relevo, mástil y `nowOverride`; se conserva el sitio validado.
+
+**Director (`Beginner.tsx`, `script.ts`).** Cada paso es una entrada
+declarativa con estos campos:
+- `enter`: lleva la app al estado del paso.
+- `say`: narración leída del motor al dibujar.
+- `focus`: selector, la vista 3D o nada.
+- `allow`: gestos permitidos en la vista 3D.
+- `click` o `until`: la acción real que cierra el paso.
+- `auto` (narración temporizada) o `cont` (botón «Continuar»).
+- `doIt`, `hint`, `sfx`, `reveal` y `unlock`.
+
+La capa de foco oscurece todo salvo el objetivo con cuatro paneles que reciben el puntero y responden con una microayuda; reutiliza el foco que sigue al objetivo del tutorial v2.1. En los pasos 3D, un filtro en fase de captura deja pasar solo los gestos del paso. A los 15 s sin avance el foco late; a los 45 s aparece «Hazlo por mí», que ejecuta la acción esperada. `?tutorialSpeed=fast` (solo pruebas) divide los tiempos por 10. El HUD vive en la barra superior para no tapar nunca un objetivo: ocho sellos de misión, sonido, volumen, subtítulos, repetir paso y salir al Pro.
+
+**Candados.** `SubsystemSwitch` muestra un candado y rechaza un subsistema bloqueado con una sacudida de 400 ms y «Aún no: completa la misión actual». El desbloqueo da un destello, un sonido y la etiqueta «¡Nuevo!». Lo que aún no se ha revelado (pestañas, bandejas, veredicto, control de tiempo, selector de modo) queda oculto por CSS según `data-reveal`.
+
+**Sonido (`audio.ts`).**
+- Solo WebAudio procedural, sin archivos, licencias ni red.
+- El `AudioContext` nace con el clic de la puerta y se cierra al salir del entrenamiento.
+- Diez efectos, cada uno con su subtítulo, visible con el sonido apagado o con «Subtítulos».
+- Silencio, volumen y subtítulos persisten en `clps.beginner.sound`.
+- La e2e reemplaza el audio por un registro (`window.__clpsAudioMock`).
+
+**Fotosensibilidad.**
+- La alerta roja ocupa solo un borde y late 2 veces por segundo durante 1,5 s; luego queda fija.
+- La pista late 1 vez por segundo. Todo queda por debajo de 3 Hz (WCAG 2.3.1).
+- Con `prefers-reduced-motion`: borde fijo, sin latidos ni sacudidas.
+
+**Escenarios (`scripts/find-tutorial-scenarios.ts`, `src/beginner/scenarios.ts`).**
+Se buscan con el motor real (`npm run find-scenarios`), solo sobre los seis
+sitios cuyo LOLA de 20 m viene en `public/dem/`, así que el entrenamiento no
+usa red. `src/beginner/__tests__/scenarios.test.ts` revalida cada condición.
+Valores medidos (narrados en vivo, no copiados):
+
+| Misión | Escenario | Lo que dice el motor |
+|---|---|---|
+| 0 | Cresta de Shackleton, 2027-04-27 18:00 UTC | Paneles a 90 W al alunizar (12 % de su máximo); máximo de 731 W en T+36 h; el enlace con la Tierra se cierra 21 h después. |
+| 1 | IM-2 Athena, 2027-01-03 | Sin luz y sin enlace al alunizar, veredicto crítico; la búsqueda de 60 días halla ventanas. |
+| 2 | Malapert Massif, +350 m E, +414 m N | Pendiente 16,7° (roja en el mapa); terreno de 0,8° y vuelco 0,3 % a 101 m. |
+| 3 | Cresta de Shackleton, 2027-03-08 | Paneles a 2 m: el bus llega a −20 °C en T+309 h. En el mástil de 10 m sobrevive. |
+| 4 | Cresta de Shackleton, 2027-01-01 | Enlace directo el 50 % del tiempo, silencio de 167 h; con el relevo, 100 %. |
+| 5 | Cresta de Shackleton, 2027-09-01, antena fija | Con la inclinación de IM-1 la descarga cae de 35 % a 7 %; con 20° de cardán vuelve a 35 %. |
+| 7 | Nobile Crater Rim, «ahora» = 2027-09-01, 4000 Wh | Se pierde en T+65 h; moviéndose 250 m al E sobrevive los 15 d. |
+
+**Discrepancias del guion con la app, y cómo se resolvieron.**
+
+| Guion | Resolución |
+|---|---|
+| «Cénit» | En el polo el Sol no sube; «mejor posición» es la hora de máxima potencia de los paneles en las 36 h siguientes, narrada con su valor. |
+| Primer alunizaje en un sitio Apolo | Fuera de 80–90° S: cresta de Shackleton. |
+| Comparador A/B, «Escenario B» | Bloque **Comparar** de Ventanas de aterrizaje, con «Adoptar este sitio» (nuevo). |
+| Hidrógeno, «9 criterios SOM-RF» | El índice v2.1 pondera 4 criterios con rango anclado (vista a la Tierra, luz, pendiente, FeO); la narración dice eso. |
+| «Contingency» como 5.º subsistema | Es la bandeja «Actitud y vuelco» de Terreno / alunizaje; Ciencia se desbloquea al superar la misión 5. |
+| Mástil 2 → 10 m | Selector real «Altura de paneles y antena» (2 m o 10 m), en Equipo. |
+| Gimbal «0°–45°», «35°» | Control real «Rango del cardán de antena», 0–60°, ya modelado por el motor (desalineación fuera del rango). La nave del escenario parte con la antena fija (0°) y el valor que basta lo da el motor (20°). |
+| Temperatura «−228 °C», «140 W» | El motor no da esas cifras: se narra la hora del congelamiento, las horas de calefactores, la energía con y sin mástil y la temperatura mínima del bus. |
+| «Enlace 0 kbps / Eb/N0 negativo», «2,0 Mbps» | Se narra el % del tiempo con enlace, el silencio más largo y la tasa lander-relevo configurada. |
+| Puntuación «38 → 88/100» | Se narra la puntuación real del índice para cada sitio. |
+| Emergencia: «NO SOBREVIVE» al inicio | El motor responde «SOBREVIVE SI… se mueve 250 m al E»; el titular real se lee en pantalla. |
+| «Ejecutar reubicación de escape» | Botón del bloque Salida, rotulado «Ejecutar esta salida» (antes «Mover ahí»). |
+| Libración «la Tierra descendió tras la montaña» | Se explica en general; el panorama de horizonte muestra el perfil real. |
+
+**Cambios compartidos (§4) y su prueba en Mission Leader.**
+- `experience` y la puerta: Mission Leader se abre con `?mode=leader` y pasa la misma e2e de la v2.1, ajustada solo en la tarjeta de bienvenida, que ya no existe.
+- Candados: `unlocked` siempre completo fuera del entrenamiento (`store.test.ts`).
+- `nowOverride`: `null` fuera del entrenamiento.
+- «Adoptar este sitio» en Comparar.
+- Rótulo «Ejecutar esta salida».
+- `data-testid` en las capas de la vista 3D y en el cardán.
+- `camProbe` (adónde mira la cámara) en `sceneMath.ts`.
+
 ## 7. Interfaz
 
 **Paleta y tipografía** según el enunciado: fondo `#080B11`, paneles `#111827`,

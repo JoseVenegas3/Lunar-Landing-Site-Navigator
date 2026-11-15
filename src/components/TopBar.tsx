@@ -6,6 +6,7 @@ import { fmtDateTime, fmtDuration, useT } from '../lib/format';
 import { buildTelemetryCsv, downloadText, exportStem } from '../lib/export';
 import { useState } from 'react';
 import { reopenGate } from '../beginner/lifecycle';
+import { BeginnerHud } from '../beginner/Hud';
 
 export function TopBar() {
   const t = useT();
@@ -50,6 +51,7 @@ export function TopBar() {
         <small>T+{fmtDuration(cursor)}</small>
       </div>
 
+      {experience === 'beginner' && <BeginnerHud />}
       <button
         type="button" className="btn btn-link-ver" data-testid="switch-version"
         onClick={() => { if (experience === 'beginner' && !sure) { setSure(true); window.setTimeout(() => setSure(false), 4000); return; } reopenGate(); }}
@@ -64,27 +66,27 @@ export function TopBar() {
       >
         {t('Mission guide', 'Guía de misión')}
       </button>}
-      <button
+      {experience !== 'beginner' && <button
         type="button" className="btn btn-verif btn-export" data-testid="export-csv" disabled={!data.result}
         onClick={() => { if (data.result) downloadText(`${exportStem(data.name, data.result)}_telemetry.csv`, buildTelemetryCsv(data.result, { site: data.name, scenario: data.key }), 'text/csv;charset=utf-8'); }}
         title={t('Download the simulated telemetry of the mission on screen: CSV, 26 columns in SI units, one row per hour', 'Descarga la telemetría simulada de la misión en pantalla: CSV, 26 columnas en unidades SI, una fila por hora')}
       >
         <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path d="M8 2v8M4.5 6.8 8 10.3l3.5-3.5M2.5 13.5h11" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
         {t('Export CSV', 'Exportar CSV')}
-      </button>
+      </button>}
 
       <div className="lang" role="group" aria-label="Language / Idioma">
         <button type="button" className={lang === 'en' ? 'is-on' : ''} aria-pressed={lang === 'en'} onClick={() => setLang('en')}>EN</button>
         <button type="button" className={lang === 'es' ? 'is-on' : ''} aria-pressed={lang === 'es'} onClick={() => setLang('es')} data-testid="lang-es">ES</button>
       </div>
 
-      <a
+      {experience !== 'beginner' && <a
         className="btn btn-verif btn-guide-pdf" href={`${import.meta.env.BASE_URL}guide/guia-interfaz-${lang}.pdf`} target="_blank" rel="noopener" data-testid="guide-pdf"
         title={t('Full guide of every button and panel (PDF, opens in a new tab)', 'Guía completa de cada botón y panel (PDF, se abre en una pestaña nueva)')}
       >
         <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path d="M4 1.5h5.5L13 5v9.5H4zM9.5 1.5V5H13M6 8.5h5M6 11h5" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" /></svg>
         {t('Guide (PDF)', 'Guía (PDF)')}
-      </a>
+      </a>}
     </header>
   );
 }

@@ -9,9 +9,10 @@
  * marked `auto` (timed narration) and `cont` (a "Continue" button).
  */
 import {
-  DEFAULT_POWER, DEFAULT_RELAY, NOMINAL_ATTITUDE, STATE_RF_PHYSICAL, VERDICT_LIMITS, Verdict, emergencyCountdown, missionVerdict, tipoverMap,
+  DEFAULT_POWER, DEFAULT_RELAY, NOMINAL_ATTITUDE, STATE_RF_PHYSICAL, T_BATTERY_DEATH_K, VERDICT_LIMITS, Verdict, emergencyCountdown, missionVerdict, tipoverMap,
 } from '../engine';
 import { SLOPE_STOPS } from '../components/3d/Terrain';
+import { im1Attitude } from './scenarioCheck';
 import { camProbe } from '../components/3d/sceneMath';
 import { requestSubsystem, cancelSubsystemSwitch } from '../components/dashboard/SubsystemSwitch';
 import { ScenarioData } from '../state/mission';
@@ -19,7 +20,7 @@ import { AppState, Subsystem, scenarioLatLon, useApp } from '../state/store';
 import { useInsights } from '../state/insights';
 import { cardinal, fmtDateTime, fmtDuration, fmtEnergy, fmtNum } from '../lib/format';
 import { Sfx } from './audio';
-import { Reveal } from './state';
+import { Reveal, useBeginner } from './state';
 import { TUTORIAL_SCENARIOS as SC } from './scenarios';
 
 export type T = (en: string, es: string) => string;
@@ -291,8 +292,8 @@ export const SCRIPT: Step[] = [
       c.memo.e2 = c.A.result?.kpis.energyWh ?? 0;
       if (!a || a.thermalDeathH === null) return t('Reading the thermal model…', 'Leyendo el modelo térmico…');
       return t(
-        `Cryogenic alert: with the arrays on the deck (2 m), the shadow of the terrain starves them. At T+${fmtDuration(a.thermalDeathH)} (${at(c, a.thermalDeathH)} UTC) the bus reaches −20 °C and the battery freezes, after ${fmtDuration(a.heaterHours)} of heaters. The chart shows the temperature falling.`,
-        `Alerta criogénica: con los paneles sobre la cubierta (2 m), la sombra del relieve los deja sin luz. En T+${fmtDuration(a.thermalDeathH)} (${at(c, a.thermalDeathH)} UTC) el bus llega a −20 °C y la batería se congela, tras ${fmtDuration(a.heaterHours)} de calefactores. La gráfica muestra la temperatura cayendo.`,
+        `Cryogenic alert: with the arrays on the deck (2 m), the shadow of the terrain starves them. At T+${fmtDuration(a.thermalDeathH)} (${at(c, a.thermalDeathH)} UTC) the bus reaches ${fmtNum(T_BATTERY_DEATH_K - 273.15, 0)} °C and the battery freezes, after ${fmtDuration(a.heaterHours)} of heaters. The chart shows the temperature falling.`,
+        `Alerta criogénica: con los paneles sobre la cubierta (2 m), la sombra del relieve los deja sin luz. En T+${fmtDuration(a.thermalDeathH)} (${at(c, a.thermalDeathH)} UTC) el bus llega a ${fmtNum(T_BATTERY_DEATH_K - 273.15, 0)} °C y la batería se congela, tras ${fmtDuration(a.heaterHours)} de calefactores. La gráfica muestra la temperatura cayendo.`,
       );
     },
   },
@@ -309,8 +310,8 @@ export const SCRIPT: Step[] = [
     say: (c, t) => {
       const r = c.A.result;
       return t(
-        `Saved from freezing! On the mast the arrays collect ${fmtEnergy(r?.kpis.energyWh ?? 0)} over the window (${fmtEnergy(c.memo.e2 || 0)} on the deck) and the bus stays above ${fmtNum(r?.adv.kpis.minBusC ?? 0, 0)} °C: the lander gets through the night.`,
-        `¡Salvados del congelamiento! En el mástil los paneles captan ${fmtEnergy(r?.kpis.energyWh ?? 0)} en la ventana (${fmtEnergy(c.memo.e2 || 0)} sobre la cubierta) y el bus no baja de ${fmtNum(r?.adv.kpis.minBusC ?? 0, 0)} °C: la nave resiste la noche.`,
+        `Saved from freezing! On the mast the arrays collect ${fmtEnergy(r?.kpis.energyWh ?? 0)} over the window (${fmtEnergy(c.memo.e2 || 0)} on the deck) and the bus stays above ${fmtNum(Math.round(r?.adv.kpis.minBusC ?? 0) || 0, 0)} °C: the lander gets through the night.`,
+        `¡Salvados del congelamiento! En el mástil los paneles captan ${fmtEnergy(r?.kpis.energyWh ?? 0)} en la ventana (${fmtEnergy(c.memo.e2 || 0)} sobre la cubierta) y el bus no baja de ${fmtNum(Math.round(r?.adv.kpis.minBusC ?? 0) || 0, 0)} °C: la nave resiste la noche.`,
       );
     },
   },
@@ -365,17 +366,17 @@ export const SCRIPT: Step[] = [
   {
     id: 'm5-brief', mission: 5, focus: '[data-testid="subsys-terrain"]', click: '[data-testid="subsys-terrain"]',
     enter: () => { scenario(SC.m5); s0().setAttitude({ gimbalRangeDeg: 0 }); },
-    say: (_c, t) => t('Even with the best plan, real landings can go wrong. This lander has its antenna fixed (gimbal 0°). Click "Terrain / landing" to open "Attitude and tip-over".', 'Incluso con el mejor plan, los alunizajes reales pueden salir mal. Esta nave tiene la antena fija (cardán en 0°). Haz clic en «Terreno / alunizaje» para abrir «Actitud y vuelco».'),
+    say: (c, t) => t(`Even with the best plan, real landings can go wrong. This lander has its antenna fixed (gimbal range ${fmtNum(c.app.attitude.gimbalRangeDeg, 0)}°). Click "Terrain / landing" to open "Attitude and tip-over".`, `Incluso con el mejor plan, los alunizajes reales pueden salir mal. Esta nave tiene la antena fija (rango del cardán ${fmtNum(c.app.attitude.gimbalRangeDeg, 0)}°). Haz clic en «Terreno / alunizaje» para abrir «Actitud y vuelco».`),
   },
   {
     id: 'm5-preset', mission: 5, focus: '[data-testid="preset-im1"]',
     enter: (c) => { c.memo.rf0 = c.A.result?.adv.kpis.rfAvailabilityPct ?? 0; if (s0().panels.leftTab !== 'contingency') s0().openPanel('contingency'); },
-    say: (_c, t) => t('On IM-1 Odysseus the lander hit the ground and came to rest tilted about 30°. Click the "IM-1 Odysseus" preset to simulate it.', 'En IM-1 Odysseus la nave golpeó el suelo y quedó inclinada unos 30°. Haz clic en el preset «IM-1 Odysseus» para simular el incidente.'),
-    until: (c) => c.app.attitude.rollDeg === 30,
+    say: (_c, t) => t(`On IM-1 Odysseus the lander hit the ground and came to rest tilted about ${fmtNum(im1Attitude().rollDeg, 0)}°. Click the "IM-1 Odysseus" preset to simulate it.`, `En IM-1 Odysseus la nave golpeó el suelo y quedó inclinada unos ${fmtNum(im1Attitude().rollDeg, 0)}°. Haz clic en el preset «IM-1 Odysseus» para simular el incidente.`),
+    until: (c) => c.app.attitude.rollDeg === im1Attitude().rollDeg,
   },
   {
     id: 'm5-lost', mission: 5, auto: 6500, alert: true, sfx: 'error',
-    until: (c) => ready(c) && (c.A.input?.attitude?.rollDeg ?? 0) === 30,
+    until: (c) => ready(c) && (c.A.input?.attitude?.rollDeg ?? 0) === im1Attitude().rollDeg,
     say: (c, t) => {
       const a = c.A.result?.adv.kpis;
       return t(`The tilted antenna points away from the Earth: the downlink closes ${fmtNum(a?.rfAvailabilityPct ?? 0, 0)} % of the time (it was ${fmtNum(c.memo.rf0 || 0, 0)} % level), mean pointing loss ${fmtNum(a?.meanPointingLossDb ?? 0, 1)} dB.`, `La antena inclinada apunta lejos de la Tierra: la descarga cierra el ${fmtNum(a?.rfAvailabilityPct ?? 0, 0)} % del tiempo (nivelada era el ${fmtNum(c.memo.rf0 || 0, 0)} %), pérdida media de apuntamiento ${fmtNum(a?.meanPointingLossDb ?? 0, 1)} dB.`);
@@ -443,6 +444,8 @@ export const SCRIPT: Step[] = [
   },
   {
     id: 'm6-done', mission: 6, cont: true, seal: true,
+    // The validated destination is kept when the training ends.
+    enter: () => useBeginner.getState().set({ validated: { ...s0().scenarios.A } }),
     say: (c, t) => t(`Science site validated: ${site(c)}.`, `Sitio científico validado: ${site(c)}.`),
   },
 
@@ -467,9 +470,12 @@ export const SCRIPT: Step[] = [
   },
   {
     id: 'm7-exit', mission: 7, focus: '[data-testid="exit-block"]', click: '[data-testid="exit-move"]',
-    say: (c, t) => {
-      const m = SC.m7.move;
-      return t(`The way-out search found light and safe ground ${fmtNum(m?.distanceM ?? 0, 0)} m to the ${cardinal(Math.atan2(m?.eastM ?? 0, m?.northM ?? 1) * 57.29578)}. Click "Run this way out" to save the lander${c.A.result ? '' : ''}.`, `El algoritmo encontró luz y terreno seguro a ${fmtNum(m?.distanceM ?? 0, 0)} m al ${cardinal(Math.atan2(m?.eastM ?? 0, m?.northM ?? 1) * 57.29578)}. Haz clic en «Ejecutar esta salida» para salvar el módulo.`);
+    // The way out the app computed (the button runs exactly this one).
+    until: () => Boolean(document.querySelector('[data-testid="exit-move"]')),
+    say: (_c, t) => {
+      const btn = document.querySelector('[data-testid="exit-move"]');
+      const d = Number(btn?.getAttribute('data-distance-m') ?? 0), az = Number(btn?.getAttribute('data-azimuth-deg') ?? 0);
+      return t(`The way-out search found light and safe ground ${fmtNum(d, 0)} m to the ${cardinal(az)}. Click "Run this way out" to save the lander.`, `El algoritmo encontró luz y terreno seguro a ${fmtNum(d, 0)} m al ${cardinal(az)}. Haz clic en «Ejecutar esta salida» para salvar el módulo.`);
     },
   },
   {

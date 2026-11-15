@@ -14,6 +14,7 @@ From left to right:
 |---|---|
 | Brand | Name of the application and of the team. |
 | Planner / Emergency | Switches the application mode (sections 2 and 10). |
+| Switch version | Back to the entry question: Beginner (guided 8-mission training) or Mission Leader (this console). |
 | UTC clock and T+ | Date and time of the time cursor, and the time elapsed since touchdown. |
 | Mission guide | Starts the tutorial mode (section 8). A notice with Start / Cancel comes first. |
 | Export CSV | One click downloads the simulated telemetry of the mission on screen: 26 columns in SI units, one row per hour. |

@@ -1,4 +1,4 @@
-# CLPS Lunar Mission Browser v2.1
+# CLPS Lunar Mission Browser v3.0
 
 Navegador de sitios de alunizaje del Polo Sur lunar. GISAT UdeC, NASA Space
 Apps Challenge 2026.
@@ -8,6 +8,11 @@ Tierra respecto del horizonte topográfico local, y qué significa eso para la
 energía y para el enlace directo a la Tierra (DTE).
 
 ![Mission Planner](docs/img/planner.png)
+
+Al abrirla, una puerta pregunta si ya la usaste. **Principiante** es un
+entrenamiento guiado de ocho misiones, con narración, sonido y consolas que se
+desbloquean una a una. **Mission Leader** es la consola completa (la interfaz
+v2.1). Para saltar la puerta: `?mode=leader` o `?mode=beginner`.
 
 ## Cómo ejecutarlo
 
@@ -89,7 +94,8 @@ enunciado; el porqué está en la sección 4.2 de [ARCHITECTURE.md](ARCHITECTURE
 | `npm test` | 147 tests del motor, el catálogo de sitios, la emergencia, la exportación y la interfaz (vitest) |
 | `npm run guide` | toma las capturas reales de la app (`npm run guide-shots`, ES y EN) y regenera `public/guide/guia-interfaz-es.pdf` y `-en.pdf` desde `docs/guia-interfaz*.md` |
 | `npm run measure-micro` | mide el costo del peligro bajo el píxel en los cinco sitios |
-| `npm run e2e` | verificación en navegador con Playwright (requiere `npm run build`) |
+| `npm run e2e` | verificación en navegador con Playwright de Mission Leader y del Principiante (requiere `npm run build`); por separado `e2e:leader` y `e2e:beginner` |
+| `npm run find-scenarios` | busca con el motor los escenarios del entrenamiento y escribe `src/beginner/scenarios.ts` |
 | `npm run perf` | medición de cuadros por segundo |
 | `npm run build-dem` | regenera las mallas LOLA de `public/dem/` (requiere `pip install rasterio numpy`) |
 | `python scripts/fetch_science_layers.py` | regenera las capas orbitales de `public/science/` (PSR, Diviner, FeO, gravedad) |
@@ -126,8 +132,8 @@ Para añadir una estación, agrega una entrada a `GROUND_STATIONS`.
 ## Documentación
 
 [ARCHITECTURE.md](ARCHITECTURE.md): modelo físico, decisiones, calibración del
-terreno, resultados de verificación y límites conocidos. Las secciones 6.6 y
-6.7 resumen las interfaces v2.0 y v2.1; [CHANGELOG.md](CHANGELOG.md) lista los
+terreno, resultados de verificación y límites conocidos. Las secciones 6.6,
+6.7 y 6.8 resumen las interfaces v2.0, v2.1 y v3.0 (puerta y Principiante); [CHANGELOG.md](CHANGELOG.md) lista los
 cambios.
 
 [Guía de la interfaz](docs/guia-interfaz.md) ([English](docs/guia-interfaz.en.md)):

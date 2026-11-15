@@ -14,6 +14,7 @@ De izquierda a derecha:
 |---|---|
 | Marca | Nombre de la aplicación y del equipo. |
 | Planificador / Emergencia | Cambia el modo de la aplicación (sección 2 y 10). |
+| Cambiar de versión | Vuelve a la pregunta de entrada: Principiante (entrenamiento guiado de 8 misiones) o Mission Leader (esta consola). |
 | Reloj UTC y T+ | Fecha y hora del cursor de tiempo, y el tiempo transcurrido desde el alunizaje. |
 | Guía de misión | Activa el modo tutorial (sección 8). Antes de empezar muestra un aviso con Iniciar / Cancelar. |
 | Exportar CSV | Descarga con un clic la telemetría simulada de la misión en pantalla: 26 columnas en unidades SI, una fila por hora. |

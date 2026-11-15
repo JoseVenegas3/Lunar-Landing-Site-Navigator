@@ -15,7 +15,8 @@ import { fmtLat, fmtLon, fmtNum, fmtSigned, useT } from '../../lib/format';
 import { DteBeam, FarSkyline, HorizonRing, Lander, RelaySats, RelocationPad, SkyBodies, SunVector } from './SceneObjects';
 import { Terrain } from './Terrain';
 import { DoubleClickLand, EscapeArrow, LandmarkLabels, SiteMarkers, SunBeam } from './SceneExtras';
-import { MISSION_SITES } from '../../engine';
+import { MISSION_SITES, STATE_RF_PHYSICAL } from '../../engine';
+import { BeginnerFx } from '../../beginner/fx';
 import { Transport } from './Transport';
 import { terrainStatusText } from '../triage/TriageLayout';
 import { LiveSky, RING_ELEVATION_GAIN, camProbe, dirToScene, hudTags, makeLiveSky, makeSceneFrame, updateLiveSky, useSceneUi } from './sceneMath';
@@ -124,6 +125,7 @@ function CameraRig({ live, result, siteKey }: { live: LiveSky; result: MissionRe
 
 function SceneContents({ dem, result, overlay, scenarioKey }: { dem: DemStack; result: MissionResult; overlay: OverlayKind; scenarioKey: ScenarioKey }) {
   const focus = useApp(sceneFocus);
+  const beginner = useApp((s) => s.experience === 'beginner');
   const t = useT();
   const dblText = useMemo(() => ({
     move: (m: number) => t(`Move the lander (${m} m)`, `Mover el lander (${m} m)`),
@@ -207,6 +209,12 @@ function SceneContents({ dem, result, overlay, scenarioKey }: { dem: DemStack; r
       {(focus === 'triage' || focus === 'terrain') && <EscapeArrow result={result} frame={frame} dem={dem} scenarioKey={scenarioKey} />}
       {focus === 'power' && <SunBeam live={live} />}
       <DoubleClickLand result={result} frame={frame} scenarioKey={scenarioKey} text={dblText} />
+      {beginner && (
+        <BeginnerFx live={live} linkOpen={() => {
+          const i = Math.max(0, Math.min(result.count - 1, Math.round(useApp.getState().cursorHours / result.stepHours)));
+          return (result.state[i] & STATE_RF_PHYSICAL) !== 0;
+        }} />
+      )}
     </>
   );
 }

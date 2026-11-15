@@ -19,7 +19,8 @@ import { Page, chromium } from 'playwright';
 
 const root = process.cwd();
 const PORT = 4180;
-const URL = `http://127.0.0.1:${PORT}/`;
+// Mission Leader, past the entry gate of v3.0.
+const URL = `http://127.0.0.1:${PORT}/?mode=leader`;
 const W = 1440, H = 900;
 const NOW = new Date('2027-09-01T00:00:00Z');
 
@@ -125,7 +126,7 @@ async function shots(lang: 'es' | 'en'): Promise<void> {
 
 const server = spawn(process.execPath, [join(root, 'node_modules', 'vite', 'bin', 'vite.js'), '--port', String(PORT), '--strictPort', '--host', '127.0.0.1'], { cwd: root, stdio: 'ignore' });
 try {
-  await waitForServer(URL);
+  await waitForServer(`http://127.0.0.1:${PORT}/`);
   await shots('es');
   await shots('en');
 } finally {

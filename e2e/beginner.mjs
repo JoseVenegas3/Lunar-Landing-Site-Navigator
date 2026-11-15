@@ -100,6 +100,8 @@ try {
   const p = await newPage();
   await p.goto(`${URL}?mode=beginner&tutorialSpeed=fast`);
   await p.waitForSelector('[data-testid="beginner"]', { timeout: 90000 });
+  // The training runs in Spanish (the narration is kept as the final script, docs/guion-principiante.md).
+  await p.click('[data-testid="lang-es"]');
   const seen = [];
   let lockedChecked = false, doItUsed = 0, last = '', sameSince = Date.now();
   const t0 = Date.now();

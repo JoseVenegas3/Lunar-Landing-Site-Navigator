@@ -23,8 +23,11 @@ export function finishTraining(): void {
   if (s.compare) s.setCompare(false);
   s.setMode('planner');
   s.setOverlay('none');
+  // Keep the site the user validated (mission 6), with its window, starting from its nominal point.
+  const v = useBeginner.getState().validated;
+  if (v) { s.updateScenario('A', { siteId: v.siteId, startMs: v.startMs, days: v.days }); s.setRelocation('A', v.dxM, v.dyM); s.setCursor(0); }
   s.setExperience('leader'); // frees every subsystem and clears nowOverride
-  useBeginner.getState().set({ step: -1, reveal: [], fresh: null, nudge: null, caption: null, stuck: 0 });
+  useBeginner.getState().set({ step: -1, reveal: [], fresh: null, nudge: null, caption: null, stuck: 0, validated: null });
   closeAudio();
 }
 
