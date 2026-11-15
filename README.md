@@ -32,6 +32,8 @@ v2.1). Para saltar la puerta: `?mode=leader` o `?mode=beginner`.
 
 Para el pitch de la hackathon hay una presentación de 7 diapositivas con capturas reales de la app y notas del orador ([docs/pitch-gisat-lunar-navigator.pptx](docs/pitch-gisat-lunar-navigator.pptx)) y una grabación de 3 minutos de la app ([docs/video/gisat-lunar-navigator-3min.mp4](docs/video/gisat-lunar-navigator-3min.mp4)). Ninguna forma parte de la app.
 
+**Presentación animada para el escenario** (3D en vivo, sin conexión): `npm run pitch-deck` abre <http://localhost:5175/pitch-deck/>. Siete actos con la Luna real (mapas LRO) y un módulo 3D que se inclina, se congela y se rescata. Teclas: → / Espacio avanzar, ← volver, N notas del orador con indicaciones escénicas, T reinicia el cronómetro de 3:00, F pantalla completa. Para el envío oficial están las versiones PowerPoint de 7 diapositivas en inglés y español (`node scripts/build-pitch-pptx.mjs`).
+
 ## Cómo ejecutarlo
 
 Ver **Quick Start** arriba. En Windows también vale doble clic en
