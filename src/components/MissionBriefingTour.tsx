@@ -118,8 +118,8 @@ export const TUTORIAL: Step[] = [
   {
     title: ['Terrain / landing', 'Terreno / alunizaje'],
     body: [
-      'The slopes are coloured on the ground. On the right, the emergency survival flow: give the position and the energy left, and it answers, from now, how long the lander has and where to move within 200 m.',
-      'Las pendientes se colorean sobre el suelo. A la derecha, el flujo de supervivencia de emergencia: indica la posición y la energía restante, y responde, desde ahora, cuánto tiempo le queda al lander y hacia dónde moverse a 200 m.',
+      'The slopes are coloured on the ground. On the right, the landing dispersion: 25 full missions within 200 m of the aim point, the best cell with its escape vector, and how much the answer depends on the error of the terrain model. The emergency flow is in the Emergency mode.',
+      'Las pendientes se colorean sobre el suelo. A la derecha, la dispersión de alunizaje: 25 misiones completas a 200 m del punto de mira, la mejor celda con su vector de escape y cuánto depende la respuesta del error del modelo de terreno. El flujo de emergencia está en el modo Emergencia.',
     ],
     target: () => union(rectOf('[data-testid="subsys-terrain"]'), rectOf('[data-testid="drawer-right"]')),
     apply: () => plannerOn('terrain'),

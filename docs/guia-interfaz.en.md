@@ -44,7 +44,7 @@ Five tabs span the whole width. Each brings its panels, its colour and what the 
 | Overview | emerald | Sites and dates | Vitals, Landing windows | Mission windows | Shadows |
 | Power / thermal | amber | Hardware: power and thermal | Energy and survival | Power and temperature, Mission windows | Sun hours, Sun shaft |
 | Comms / RF | cyan | Hardware: radio and relays | Link budget | Horizon 360°, Mission windows | Earth view, Earth beam in focus |
-| Terrain / landing | light grey | Attitude and tip-over | Emergency: survival | Horizon 360°, Mission windows | Slopes, escape arrow |
+| Terrain / landing | light grey | Attitude and tip-over | Dispersion and escape | Horizon 360°, Mission windows | Slopes, escape arrow |
 | Science | violet | Sites and dates | Suitability index, Engineering view | Detailed timeline | Shadows |
 
 Every tray has a **(?)** with a one-sentence explanation and a **—** button that minimises it; the tab left on the edge opens it again.
@@ -127,7 +127,7 @@ Each row is the whole window: day/night, Earth visible and both at once (the "go
 ## 6. Terrain / landing
 
 * **Attitude and tip-over**: presets (nominal, IM-1, IM-2, SLIM, resting on the slope), roll, pitch, yaw, antenna beamwidth and gimbal range, and their penalties. Tip-over probability over the ellipse against touchdown speed. **Replay a real landing**: always warns that the model does not reproduce the loss of IM-2 Athena (it came to rest in a small crater in shadow that the 20 m terrain does not contain). **Neighbouring asset**: plume keep-out radius and mutual shadowing.
-* **Emergency: survival**: the same flow as the Emergency mode (section 10). No date: **Evaluate from now** (or any value entered) sets the start to the current hour for one lunar night (15 days; also 3 or 7).
+* **Dispersion and escape**: the grid of 25 touchdown points within 200 m (each cell is a full mission), the best cell with its escape vector and the uncertainty of the LOLA terrain. The emergency flow lives in the Emergency mode only (section 10).
 
 ![](img/en/06-terreno.png)
 
@@ -170,7 +170,7 @@ It answers first with a plain-language headline: **SURVIVES**, **SURVIVES IF…*
 
 **Public and teachers.** The tutorial and the site cards explain the physics of the south pole without jargon: the grazing Sun, the long shadows, the Earth hiding behind the mountains and why a few hundred metres change a lander's fate.
 
-**Team in an emergency.** Emergency mode (or Terrain > Emergency: survival) answers in order: where we are, how long we have and where to move, from now.
+**Team in an emergency.** Emergency mode answers in order: where we are, how long we have and where to move, from now.
 
 ## 12. Sources and limits
 

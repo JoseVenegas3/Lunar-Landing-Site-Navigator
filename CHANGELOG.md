@@ -1,5 +1,25 @@
 # Cambios
 
+## v3.1 (2026-11-15)
+
+Detalle en la sección 6.9 de ARCHITECTURE.md.
+
+- Misión 0 sin sombreado sobre la vista 3D; bloqueo estricto de acciones
+  (puntero y teclado) en el resto.
+- El flujo de emergencia sale de Terreno / alunizaje (también en Mission
+  Leader): esa bandeja pasa a «Dispersión y escape» (malla 5 × 5, vector de
+  escape, incertidumbre LOLA). En el Principiante, Emergencia aparece recién
+  en la misión 7.
+- Insignias por subsistema en lugar de estrellas y XP, con una fila de ocho
+  insignias en la barra superior.
+- Desplazamiento automático al objetivo y rueda redirigida al panel.
+- Ventanas de cristal esmerilado; animaciones de actitud, seguidor solar,
+  antena, salto de reubicación con polvo, pulsos solares y ondas de radio.
+- Guion expandido: rumbo de aproximación y deslumbramiento, Vista lander,
+  dispersión e incertidumbre LOLA, línea de tiempo, montura y batería,
+  difracción, banda, estaciones, telemetría, activo vecino y pluma, Optimizar,
+  supuestos y exportación, apoyo en la pendiente y peligros bajo el píxel.
+
 ## v3.0 (2026-11-14)
 
 Dos experiencias en una app, detrás de una puerta de entrada. Detalle en la

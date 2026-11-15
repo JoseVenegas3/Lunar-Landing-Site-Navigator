@@ -7,6 +7,7 @@ import { buildTelemetryCsv, downloadText, exportStem } from '../lib/export';
 import { useState } from 'react';
 import { reopenGate } from '../beginner/lifecycle';
 import { BeginnerHud } from '../beginner/Hud';
+import { useBeginner } from '../beginner/state';
 
 export function TopBar() {
   const t = useT();
@@ -21,6 +22,7 @@ export function TopBar() {
   const startMs = data.result?.eph.startMs ?? null;
   const experience = useApp((s) => s.experience);
   const [sure, setSure] = useState(false);
+  const reveal = useBeginner((s) => s.reveal);
 
   const switchMode = (m: AppMode): void => {
     if (m !== 'planner') setActive('A');
@@ -66,7 +68,7 @@ export function TopBar() {
       >
         {t('Mission guide', 'Guía de misión')}
       </button>}
-      {experience !== 'beginner' && <button
+      {(experience !== 'beginner' || reveal.includes('export')) && <button
         type="button" className="btn btn-verif btn-export" data-testid="export-csv" disabled={!data.result}
         onClick={() => { if (data.result) downloadText(`${exportStem(data.name, data.result)}_telemetry.csv`, buildTelemetryCsv(data.result, { site: data.name, scenario: data.key }), 'text/csv;charset=utf-8'); }}
         title={t('Download the simulated telemetry of the mission on screen: CSV, 26 columns in SI units, one row per hour', 'Descarga la telemetría simulada de la misión en pantalla: CSV, 26 columnas en unidades SI, una fila por hora')}

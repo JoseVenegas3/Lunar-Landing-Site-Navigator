@@ -8,7 +8,10 @@
  * patch, goal and reward), the transmission panel for every step
  * (typewriter text the user reads at their own pace, then "Continue" or the
  * objective to carry out), and the celebration of each finished mission
- * (stitched patch, stars, points, the console unlocked and what comes next).
+ * (its subsystem badge snapping into the rack, the console unlocked and what
+ * comes next). v3.1: no dimming on the free 3-D steps of mission 0, strict
+ * action locking (pointer and keyboard) everywhere else, and the target is
+ * scrolled into view and followed while its panel scrolls.
  * After 15 s without progress the target pulses; after 45 s "Do it for me"
  * appears. The dimmed area outside the target catches the pointer and
  * answers with a nudge; on the 3-D view only the gestures of the step pass.
@@ -25,10 +28,18 @@ import { applyVolume, blip, play } from './audio';
 import { nudge, useBeginner } from './state';
 import { Intro } from './Intro';
 import { Patch } from './Patch';
+import { BADGES, Badge } from './Badges';
 
 const HINT_MS = 15_000, HELP_MS = 45_000;
 const endIntro = (): void => { if (useBeginner.getState().phase === 'intro') useBeginner.getState().set({ phase: 'splash' }); };
-const XP_PER_MISSION = 100;
+
+/** Scroll the panel that holds the target (the wheel over the locked area still scrolls it). */
+function scrollTargetPanel(focus: string | 'canvas' | null | undefined, dy: number): void {
+  if (!focus || focus === 'canvas') return;
+  let el = document.querySelector(focus)?.parentElement ?? null;
+  while (el && !(el.scrollHeight > el.clientHeight + 2 && /(auto|scroll)/.test(getComputedStyle(el).overflowY))) el = el.parentElement;
+  el?.scrollBy({ top: dy, behavior: 'auto' });
+}
 
 const rectOf = (focus: string | 'canvas' | null | undefined): DOMRect | null => {
   if (!focus) return null;
@@ -61,7 +72,6 @@ export function Beginner() {
   const { A, B } = useMission();
   const b = useBeginner();
   const memo = useRef<Record<string, number>>({});
-  const helped = useRef<number[]>(Array(8).fill(0));
   const [rect, setRect] = useState<DOMRect | null>(null);
   const [ready, setReady] = useState(false);
   const clicked = useRef(false);
@@ -77,7 +87,7 @@ export function Beginner() {
     s.setBriefing('off');
     landerAnim.deploy = 0;
     landerAnim.drop = DESCENT_KM;
-    useBeginner.getState().set({ step: 0, stepAt: performance.now(), stuck: 0, reveal: [], done: 0, fresh: null, phase: 'intro', xp: 0 });
+    useBeginner.getState().set({ step: 0, stepAt: performance.now(), stuck: 0, reveal: [], done: 0, fresh: null, phase: 'intro' });
     return () => { landerAnim.deploy = 1; landerAnim.drop = 0; landerAnim.size = landerAnim.sizeTarget = 1; };
   }, []);
 
@@ -110,9 +120,9 @@ export function Beginner() {
         useApp.getState().setUnlocked([...new Set([...useApp.getState().unlocked, u])]);
         st.set({ fresh: u });
       }
-      st.set({ phase: 'celebrate', done: Math.max(st.done, cur.mission + 1), xp: st.xp + XP_PER_MISSION });
+      st.set({ phase: 'celebrate', done: Math.max(st.done, cur.mission + 1) });
       play('fanfare', useApp.getState().lang);
-      window.setTimeout(() => play('xp', useApp.getState().lang), 900);
+      window.setTimeout(() => play('xp', useApp.getState().lang), 700);
       return;
     }
     if (st.step + 1 >= SCRIPT.length) return;
@@ -128,6 +138,34 @@ export function Beginner() {
     const onClick = (e: MouseEvent): void => { if ((e.target as Element | null)?.closest(sel)) clicked.current = true; };
     document.addEventListener('click', onClick, true);
     return () => document.removeEventListener('click', onClick, true);
+  }, [step, b.phase]);
+
+  // The target is brought into view (centred) and keeps the focus; the keyboard cannot reach anything else.
+  useEffect(() => {
+    if (!step || b.phase !== 'step' || !step.focus || step.focus === 'canvas') return;
+    const sel = step.focus;
+    const bring = (): void => {
+      const el = document.querySelector(sel) as HTMLElement | null;
+      if (!el) return;
+      el.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'center', inline: 'nearest' });
+    };
+    const ids = [window.setTimeout(bring, 120), window.setTimeout(bring, 1300)];
+    const inTarget = (n: EventTarget | null): boolean => {
+      const el = n as Element | null;
+      return Boolean(el && (el.closest(sel) || el.closest('.beg, .beg-hud, .beg-confirm')));
+    };
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.key === 'Tab') {
+        const target = document.querySelector(sel) as HTMLElement | null;
+        const focusable = target?.matches('button, input, select, a, [tabindex]') ? target : target?.querySelector('button, input, select, a, [tabindex]') as HTMLElement | null;
+        if (focusable && !inTarget(document.activeElement)) { e.preventDefault(); focusable.focus(); }
+        else if (!inTarget(document.activeElement)) e.preventDefault();
+        return;
+      }
+      if ((e.key === 'Enter' || e.key === ' ') && !inTarget(document.activeElement)) { e.preventDefault(); e.stopPropagation(); }
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => { ids.forEach((i) => window.clearTimeout(i)); window.removeEventListener('keydown', onKey, true); };
   }, [step, b.phase]);
 
   // Gestures on the 3-D view: only those of the step get through.
@@ -211,7 +249,6 @@ export function Beginner() {
 
   const doIt = (): void => {
     if (!step) return;
-    helped.current[step.mission]++;
     const c: Ctx = { app: useApp.getState(), A, B, memo: memo.current };
     if (step.doIt) step.doIt(c);
     else if (step.click) (document.querySelector(step.click) as HTMLElement | null)?.click();
@@ -219,7 +256,6 @@ export function Beginner() {
 
   const text = step ? step.say(ctx, t) : '';
   const [typed, typedAll, finishTyping] = useTypewriter(text, b.fast ? 400 : 55, `${b.step}-${b.phase}-${lang}`);
-  const stars = step ? Math.max(1, 3 - helped.current[step.mission]) : 3;
   const panelAtTop = useMemo(() => Boolean(rect && rect.bottom > window.innerHeight - 280 && rect.top > 200), [rect]);
 
   if (!step) return null;
@@ -238,6 +274,7 @@ export function Beginner() {
   const pad = 8;
   // The top bar (training controls, sound, exit) always stays usable.
   const topH = Math.round(document.querySelector('.topbar')?.getBoundingClientRect().bottom ?? 48);
+  const onCanvas = step.focus === 'canvas';
   const spot = rect && b.phase === 'step' && !step.cont ? { left: rect.left - pad, top: rect.top - pad, width: rect.width + 2 * pad, height: rect.height + 2 * pad } : null;
   const unlockName = info.unlocks ? subsystemLabel(info.unlocks, t) : null;
   const nextTitle = MISSION_TITLES[m + 1]?.[li];
@@ -252,9 +289,12 @@ export function Beginner() {
             { left: 0, top: spot.top, width: spot.left, height: spot.height },
             { left: spot.left + spot.width, top: spot.top, right: 0, height: spot.height },
           ].map((s, i) => (
-            <div key={i} className="beg-dim" style={s as CSSProperties} onPointerDown={() => { play('error', lang); nudge(lang === 'es' ? 'Usa la zona iluminada' : 'Use the highlighted area'); }} />
+            // Everything outside the target is locked; on the free 3-D steps the blockers are clear (no dimming).
+            <div key={i} className={`beg-dim${onCanvas ? ' is-clear' : ''}`} style={s as CSSProperties}
+              onPointerDown={() => { play('error', lang); nudge(lang === 'es' ? 'Usa la zona indicada' : 'Use the highlighted area'); }}
+              onWheel={(e) => scrollTargetPanel(step.focus, e.deltaY)} />
           ))}
-          <div className={`beg-spot${b.stuck >= 1 ? ' is-pulse' : ''}`} style={spot} aria-hidden="true" />
+          {!onCanvas && <div className={`beg-spot${b.stuck >= 1 ? ' is-pulse' : ''}`} style={spot} aria-hidden="true" />}
         </>
       ) : b.phase !== 'step' || step.cont || step.diploma ? <div className="beg-dim beg-dim-all" style={{ top: topH }} /> : null}
       {step.alert && b.phase === 'step' && <div className={`beg-alert${reducedMotion() ? ' is-static' : ''}`} aria-hidden="true" />}
@@ -280,13 +320,9 @@ export function Beginner() {
       {b.phase === 'celebrate' && (
         <section className="beg-celebrate" role="dialog" aria-modal="true" aria-labelledby="beg-cel-h" data-testid="beg-big">
           {!reducedMotion() && <div className="beg-confetti" aria-hidden="true">{Array.from({ length: 26 }, (_, k) => <i key={k} style={{ '--k': k } as CSSProperties} />)}</div>}
-          <Patch n={m} size={160} stitched />
+          <div className="beg-badge-big"><Badge i={m} earned fresh size={150} /></div>
+          <p className="beg-badge-name" data-testid="beg-badge">{t(`Badge ${m}: ${BADGES[m].name[0]}`, `Insignia ${m}: ${BADGES[m].name[1]}`)}</p>
           <h2 id="beg-cel-h">{text}</h2>
-          <div className="beg-stars" aria-label={t(`${stars} of 3 stars`, `${stars} de 3 estrellas`)}>
-            {[0, 1, 2].map((k) => <span key={k} className={k < stars ? 'is-on' : ''} style={{ '--k': k } as CSSProperties}>★</span>)}
-          </div>
-          <p className="beg-xp mono">+{XP_PER_MISSION} XP · {t('total', 'total')} {b.xp}</p>
-          {stars < 3 && <p className="beg-cel-note">{t('Three stars: finish a mission without "Do it for me".', 'Tres estrellas: completa una misión sin «Hazlo por mí».')}</p>}
           {info.unlocks && info.unlocks !== 'overview' && (
             <p className="beg-unlock" data-testid="beg-unlock">
               <svg viewBox="0 0 20 20" width="26" height="26" aria-hidden="true">{SUB_ICON[info.unlocks]}</svg>
@@ -310,8 +346,7 @@ export function Beginner() {
           {!reducedMotion() && <div className="beg-confetti" aria-hidden="true">{Array.from({ length: 40 }, (_, k) => <i key={k} style={{ '--k': k } as CSSProperties} />)}</div>}
           <img src={`${import.meta.env.BASE_URL}brand/logo-gisat.png`} alt="GISAT UDEC" width="110" height="110" />
           <h2 id="beg-dip-h">{t('Training complete: graduated as Flight Director', 'Entrenamiento completado: graduado como Flight Director')}</h2>
-          <div className="beg-dip-patches" aria-hidden="true">{MISSION_TITLES.map((_, k) => <Patch key={k} n={k} size={44} stitched />)}</div>
-          <p className="mono beg-xp">{b.xp + XP_PER_MISSION} XP</p>
+          <div className="beg-dip-patches" aria-hidden="true">{BADGES.map((_, k) => <Badge key={k} i={k} earned size={54} />)}</div>
           <p>{text}</p>
           <button type="button" className="btn beg-pro" onClick={finishTraining} data-testid="beg-to-pro" autoFocus>{t('Open the Pro console (Mission Leader)', 'Acceder a la consola Pro (Mission Leader)')}</button>
         </div>
@@ -320,6 +355,7 @@ export function Beginner() {
       {b.phase === 'step' && !step.cont && !step.diploma && (
         <section className={`capcom${panelAtTop ? ' is-top' : ''}${isAction ? ' is-action' : ''}`} role="status" aria-live="polite" data-testid="beg-card">
           <header className="capcom-head">
+            <svg className="capcom-role" viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><path d="M4 11V9a6 6 0 0 1 12 0v2M4 11h2.5v4H4zM13.5 11H16v4h-2.5zM16 15c0 1.5-2 2.5-5 2.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
             <span className={`capcom-wave${typedAll ? '' : ' is-live'}`} aria-hidden="true">{Array.from({ length: 7 }, (_, k) => <i key={k} style={{ '--k': k } as CSSProperties} />)}</span>
             <span className="capcom-where">{t('Mission', 'Misión')} {m} · {MISSION_TITLES[m][li]}</span>
           </header>

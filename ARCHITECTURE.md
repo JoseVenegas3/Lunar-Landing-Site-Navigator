@@ -1023,6 +1023,45 @@ Valores medidos (narrados en vivo, no copiados):
 - `data-testid` en las capas de la vista 3D y en el cardán.
 - `camProbe` (adónde mira la cámara) en `sceneMath.ts`.
 
+## 6.9 v3.1: guion expandido, bloqueo de acciones, insignias y animaciones (2026-11-15)
+
+**Correcciones obligatorias.**
+1. **Misión 0 sin sombreado.** En los pasos de cámara libre (buscar el Sol, zoom, buscar la Tierra) la vista 3D queda limpia. Lo que rodea al lienzo se bloquea con paneles transparentes, sin oscurecer. El foco oscuro aparece por primera vez con el control de tiempo.
+2. **Bloqueo de acciones.**
+   - Puntero: fuera del objetivo, cuatro paneles reciben el puntero y responden con una microayuda; en la vista 3D solo pasan los gestos del paso.
+   - Teclado: Tab devuelve el foco al objetivo; Enter y Espacio fuera de él se anulan.
+   - La barra de entrenamiento (sonido, salir) sigue usable.
+3. **Emergencia aislada.** La bandeja derecha de Terreno / alunizaje ya no contiene el flujo de emergencia. Ahora es **Dispersión y escape**: la malla 5 × 5 a 200 m con su vector de escape (`DispersionBlock`, compartido con el paso 3 del modo Emergencia) y la incertidumbre del terreno LOLA. Esto aplica también a Mission Leader, cuyo tutorial y guía se actualizaron. En el Principiante, el selector de modo (y con él Emergencia) solo se revela al iniciar la misión 7.
+4. **Sin estrellas ni XP.** Cada misión entrega una **insignia con el ícono de su subsistema** (`Badges.tsx`). La fila de insignias de la barra superior parte con ocho siluetas tenues, y cada insignia encaja con un brillo metálico al ganarla. El diploma reúne las ocho.
+5. **Desplazamiento.**
+   - Al empezar un paso, su objetivo se centra con `scrollIntoView({ block: 'center' })`.
+   - La rueda sobre la zona bloqueada desplaza el panel que contiene el objetivo.
+   - El halo sigue al objetivo en cada cuadro, aunque el panel se desplace o la ventana cambie de tamaño.
+6. **Ventanas y animaciones.**
+   - Ventanas de cristal esmerilado (`backdrop-filter`) con brillo cian en la narración y ámbar en las acciones, ícono de Flight Director y entradas con curva elástica.
+   - En 3D: la actitud (presets y deslizadores 6-DOF) se interpola, y el seguidor solar y el plato de antena giran con suavidad.
+   - Toda reubicación (arrastre, doble clic, mejor celda, «Ejecutar esta salida») es un salto propulsado en arco con anillo de polvo al tocar suelo.
+   - Pulsos de luz bajan por la dirección del Sol hasta el panel, y las ondas de radio salen hacia la Tierra y, con relevo, también hacia la órbita.
+   - Con `prefers-reduced-motion`, todo es inmediato.
+
+**Guion expandido (Anexo A) sobre los controles reales.**
+
+| Misión | Subtareas |
+|---|---|
+| 1 | Fecha inviable; búsqueda de 60 días; motivos de rechazo (deslumbramiento y lavado, contados por el motor); rumbo de aproximación y nueva búsqueda; la narración dice si el rumbo mejoró o empeoró; Vista lander y signos vitales. |
+| 2 | Mapa de pendientes y reubicación; malla de dispersión 5 × 5; error de altura RMS y variantes de terreno; mejor celda. |
+| 3 | Cursor de la línea de tiempo hasta el primer tramo oscuro; mástil de 10 m; montura de seguidor de 1 eje (la nave parte con panel horizontal); capacidad de batería y nota de hibernación. |
+| 4 | Horizonte 360° y paso del cursor; difracción Deygout y pérdida extra (valores del motor); banda X; estación terrena; telemetría; relevo orbital. |
+| 5 | Preset IM-1; cardán de antena (y guiñada); activo vecino y distancia hasta salir del radio de exclusión de la pluma. |
+| 6 | Índice de aptitud y sus rangos; Comparar con Malapert; Adoptar este sitio; Optimizar sitio y fecha (solo si el veredicto no está en verde); tabla de supuestos y Exportar CSV. |
+| 7 | «Quedamos apoyados en la pendiente»; peligros bajo el píxel; titular y bloque Salida; Ejecutar esta salida. |
+
+**Adaptaciones del guion a la app real.**
+- Los modos «Engineering first / Science first» y el botón «Engineering on» no existen desde la v2.0. El paso de pesos se cambió por los rangos anclados del índice (en el tooltip), y «Engineering on» por la telemetría.
+- «Mons Mouton Plateau» no tiene relieve de 20 m sin red, así que se usa Malapert Massif.
+- Las cifras del guion (110°, 1,0 m, 5000 Wh, 35°, 2100 m, 41 y 87/100) se sustituyen por condiciones y valores que da el motor.
+- En la misión 1, el rumbo que el usuario elija puede empeorar el deslumbramiento, y la narración lo dice.
+
 ## 7. Interfaz
 
 **Paleta y tipografía** según el enunciado: fondo `#080B11`, paneles `#111827`,

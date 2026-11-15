@@ -42,6 +42,8 @@ interface CommonProps {
  * Dragging it runs the micro-relocation: the pointer ray is intersected with
  * the DEM and the offset is clamped to the +-500 m pad.
  */
+const REDUCED_MOTION = (): boolean => typeof window !== 'undefined' && Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
+
 export function Lander({ result, frame, live, dem }: CommonProps & { dem: DemStack }) {
   const group = useRef<Group>(null);
   const tracker = useRef<Group>(null);
@@ -52,22 +54,52 @@ export function Lander({ result, frame, live, dem }: CommonProps & { dem: DemSta
   const mount = result.input.power.mount;
   const active = useApp((s) => s.active);
   const dragging = useRef(false);
+  // v3.1 reactive motion: a relocation is a short propelled hop, attitude and pointing changes are eased.
+  const anim = useRef({ init: false, hopFrom: new Vector3(), hopTo: new Vector3(), hopAt: -1, hopDur: 900, q: new Quaternion(), dishQ: new Quaternion(), trackY: 0 });
 
   useFrame(() => {
     const g = group.current;
     if (!g || !live.valid) return;
+    const a = anim.current;
+    const now = performance.now();
     g.visible = useApp.getState().view !== 'eye';
-    g.position.copy(live.lander);
+    if (!a.init) { a.hopTo.copy(live.lander); a.hopFrom.copy(live.lander); }
+    const held = dragging.current || useSceneUi.getState().dragging;
+    // A new landing point that is not being dragged: hop there along a short arc.
+    if (!held && a.hopTo.distanceTo(live.lander) > 0.004) {
+      a.hopFrom.copy(g.position).setY(g.position.y - landerAnim.drop);
+      a.hopTo.copy(live.lander);
+      a.hopAt = now;
+      a.hopDur = REDUCED_MOTION() ? 1 : 900;
+    } else if (held) { a.hopTo.copy(live.lander); a.hopAt = -1; }
+    const e = a.hopAt < 0 ? 1 : Math.min(1, (now - a.hopAt) / a.hopDur);
+    if (e < 1) {
+      const k = e * e * (3 - 2 * e);
+      g.position.lerpVectors(a.hopFrom, a.hopTo, k);
+      g.position.y += Math.sin(Math.PI * e) * Math.min(0.06, 0.25 * a.hopFrom.distanceTo(a.hopTo) + 0.01);
+    } else {
+      if (a.hopAt >= 0) { a.hopAt = -1; landerAnim.dustAt = now; }
+      g.position.copy(live.lander);
+    }
     g.position.y += landerAnim.drop;
+    landerAnim.drawn.copy(g.position);
+    landerAnim.hasDrawn = true;
     const dist = camera.position.distanceTo(live.lander);
     // The training shows the lander bigger while it lands and unfolds (landerAnim.size), then eases back.
     landerAnim.size += (landerAnim.sizeTarget - landerAnim.size) * 0.03;
     g.scale.setScalar(Math.max(0.001, dist * 0.0075 * landerAnim.size));
     // The model tilts with the landing attitude; array and antenna are then steered in the body frame.
-    bodyQuaternion(result.adv.attitude, result.observer.lonDeg, g.quaternion);
+    bodyQuaternion(result.adv.attitude, result.observer.lonDeg, a.q);
+    if (!a.init || REDUCED_MOTION()) g.quaternion.copy(a.q); else g.quaternion.slerp(a.q, 0.07);
     LANDER_QINV.copy(g.quaternion).invert();
     LANDER_TMP.copy(live.sunDir).applyQuaternion(LANDER_QINV);
-    if (tracker.current) tracker.current.rotation.y = Math.atan2(LANDER_TMP.x, LANDER_TMP.z);
+    if (tracker.current) {
+      // the array turns towards the Sun smoothly (shortest way round)
+      const target = Math.atan2(LANDER_TMP.x, LANDER_TMP.z);
+      const d = Math.atan2(Math.sin(target - a.trackY), Math.cos(target - a.trackY));
+      a.trackY = !a.init ? target : a.trackY + d * 0.08;
+      tracker.current.rotation.y = a.trackY;
+    }
     // Mast and array follow the configuration: a 10 m mast raises the array, folded arrays open (v3.0).
     const mastTarget = result.input.mastM > 2 ? 1 : 0;
     landerAnim.mastK += (mastTarget - landerAnim.mastK) * 0.04;
@@ -81,8 +113,10 @@ export function Lander({ result, frame, live, dem }: CommonProps & { dem: DemSta
     if (dish.current) {
       const steered = steeredBoresightEnu(result.adv.attitude, result.adv.boresightBody, enuFromAzEl(live.earthAz, live.earthEl));
       enuToScene(result.observer.lonDeg, steered, LANDER_TMP).normalize().applyQuaternion(LANDER_QINV);
-      dish.current.quaternion.setFromUnitVectors(UP, LANDER_TMP);
+      a.dishQ.setFromUnitVectors(UP, LANDER_TMP);
+      if (!a.init || REDUCED_MOTION()) dish.current.quaternion.copy(a.dishQ); else dish.current.quaternion.slerp(a.dishQ, 0.08);
     }
+    a.init = true;
   });
 
   useEffect(() => {

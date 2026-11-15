@@ -1121,3 +1121,40 @@ input[type="range"] { width: 100%; accent-color: var(--rock); height: 18px; marg
 .beg-xp-chip { color: var(--gold); font-size: 12.5px; white-space: nowrap; }
 .beg-vol input { width: 64px; }
 .beg-seals li { width: 20px; height: 20px; font-size: 10.5px; }
+
+/* ===================================================== v3.1: aerospace glass windows, badge rack, clear locks */
+.capcom {
+  background: linear-gradient(180deg, rgba(16, 26, 44, 0.78), rgba(8, 13, 24, 0.82));
+  -webkit-backdrop-filter: blur(12px) saturate(1.2); backdrop-filter: blur(12px) saturate(1.2);
+  border: 1px solid rgba(6, 182, 212, 0.55);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55), 0 0 22px rgba(6, 182, 212, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  animation: glass-in 380ms cubic-bezier(0.2, 0.9, 0.25, 1.15) both;
+}
+.capcom.is-action { border-color: rgba(245, 158, 11, 0.75); box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55), 0 0 26px rgba(245, 158, 11, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.06); }
+.capcom-role { color: var(--capcom); flex: none; }
+.capcom.is-action .capcom-role { color: var(--sun); }
+@keyframes glass-in { from { opacity: 0; transform: translate(-50%, 14px) scale(0.98); } to { opacity: 1; transform: translate(-50%, 0) scale(1); } }
+.beg-splash, .beg-celebrate, .beg-diploma {
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  background: radial-gradient(120% 90% at 50% 0%, rgba(30, 48, 86, 0.92) 0%, rgba(10, 16, 30, 0.94) 65%);
+  animation: glass-pop 460ms cubic-bezier(0.2, 0.9, 0.25, 1.2) both;
+}
+@keyframes glass-pop { from { opacity: 0; transform: translate(-50%, -46%) scale(0.94); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+.beg-dim.is-clear { background: transparent; }
+
+/* Badge rack in the top bar: faint silhouettes that snap in, metallic, when earned. */
+.beg-rack { list-style: none; display: flex; gap: 3px; margin: 0; padding: 0; }
+.beg-rack li { display: grid; place-items: center; color: #4a5875; }
+.beg-rack li.is-now { color: #9fb0cc; filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.5)); }
+.badge-ic.is-earned { filter: drop-shadow(0 0 5px currentColor); }
+.badge-ic.is-fresh { animation: badge-snap 900ms cubic-bezier(0.2, 0.9, 0.25, 1.3) both; }
+.badge-ic.is-fresh .badge-shine { animation: badge-shine 1.2s 0.5s ease-out both; }
+@keyframes badge-snap { 0% { transform: translateY(-14px) scale(1.6); opacity: 0; } 60% { transform: translateY(2px) scale(0.95); opacity: 1; } 100% { transform: none; } }
+@keyframes badge-shine { 0% { opacity: 0; transform: translateX(-30px); } 40% { opacity: 0.55; } 100% { opacity: 0; transform: translateX(30px); } }
+.beg-badge-big { filter: drop-shadow(0 0 22px rgba(255, 255, 255, 0.18)); }
+.beg-badge-name { margin: 0; font: 600 16px var(--ui); color: #f6d9a8; }
+@media (prefers-reduced-motion: reduce) {
+  .capcom, .beg-splash, .beg-celebrate, .beg-diploma, .badge-ic.is-fresh, .badge-ic.is-fresh .badge-shine { animation: none; }
+}
+/* the panel that holds a target always scrolls, with a visible bar */
+.tray-body, .drawer-body { scrollbar-width: thin; scrollbar-color: rgba(245, 158, 11, 0.55) transparent; }

@@ -36,7 +36,7 @@ describe('Beginner script', () => {
 
   it('no number is typed by hand in a narration (only names and labels of the interface)', () => {
     // Names and interface labels that contain digits: preset and mission names, the mast option, the 60-day search span of the guion.
-    const allowed = /[−+]1 h|IM-1|IM-2|Chang'e 7|10 m|2 m|360°|60 days|60 días|\(2 m\)|Artemis III\/IV|Comms \/ RF/g;
+    const allowed = /20 m pixel|píxel de 20 m|P10 · P50 · P90|(Step|Paso) \d|February 2024|febrero de 2024|1-axis|de 1 eje|[−+]1 h|IM-1|IM-2|Chang'e 7|10 m|2 m|360°|60 days|60 días|\(2 m\)|Artemis III\/IV|Comms \/ RF/g;
     for (const [en, es] of ps) {
       for (const s of [en, es]) expect(strip(s).replace(allowed, ''), s).not.toMatch(/\d/);
     }
@@ -46,7 +46,7 @@ describe('Beginner script', () => {
     for (const s of SCRIPT) {
       const ways = [s.click, s.until, s.auto, s.cont, s.diploma].filter((x) => x !== undefined && x !== false).length;
       expect(ways, s.id).toBeGreaterThan(0);
-      if (!s.auto && !s.cont && !s.diploma) expect(Boolean(s.click || s.until), s.id).toBe(true);
+      if (s.auto === undefined && !s.cont && !s.diploma && !s.cine) expect(Boolean(s.click || s.until), s.id).toBe(true);
     }
   });
 

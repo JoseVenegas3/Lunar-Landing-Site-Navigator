@@ -170,9 +170,7 @@ export function EmergencyResult({ data, clocksTestId = 'emg-clocks', extra }: { 
   const k = data.key;
   const cfg = useApp((s) => s.scenarios[k]);
   const plan = useExitPlan(data);
-  const { result: grid, progress } = useDispersion(data, true);
   const r = data.result;
-  const escape = grid?.escape ?? null;
   const moveTo = (eastM: number, northM: number): void => {
     useApp.getState().setRelocation(k, clamp(cfg.dxM + eastM, -RELOCATION_LIMIT_M, RELOCATION_LIMIT_M), clamp(cfg.dyM + northM, -RELOCATION_LIMIT_M, RELOCATION_LIMIT_M));
   };
@@ -204,6 +202,29 @@ export function EmergencyResult({ data, clocksTestId = 'emg-clocks', extra }: { 
       </Step>
 
       <Step n={3} title={t('Where can we go?', '¿Hacia dónde podemos ir?')} testId="tri-step-3">
+        <DispersionBlock data={data} />
+      </Step>
+    </div>
+  );
+}
+
+
+/**
+ * The 5 x 5 touchdown grid within 200 m and the escape vector: shared by the
+ * emergency flow (step 3) and, since v3.1, the "Dispersion and escape" tray
+ * of the Terrain console (which no longer shows the emergency flow).
+ */
+export function DispersionBlock({ data }: { data: ScenarioData }) {
+  const t = useT();
+  const k = data.key;
+  const cfg = useApp((s) => s.scenarios[k]);
+  const { result: grid, progress } = useDispersion(data, true);
+  const escape = grid?.escape ?? null;
+  const moveTo = (eastM: number, northM: number): void => {
+    useApp.getState().setRelocation(k, clamp(cfg.dxM + eastM, -RELOCATION_LIMIT_M, RELOCATION_LIMIT_M), clamp(cfg.dyM + northM, -RELOCATION_LIMIT_M, RELOCATION_LIMIT_M));
+  };
+  return (
+    <div className="disp-block" data-testid="dispersion-block">
         {grid ? (
           <>
             <div className="disp-wrap emg-grid">
@@ -215,7 +236,7 @@ export function EmergencyResult({ data, clocksTestId = 'emg-clocks', extra }: { 
                       const isBest = c === grid.best, isCentre = c === grid.centre;
                       return (
                         <button
-                          key={i} type="button" role="gridcell" className={`disp-cell${isBest ? ' is-best' : ''}${isCentre ? ' is-centre' : ''}`}
+                          key={i} type="button" role="gridcell" className={`disp-cell${isBest ? ' is-best' : ''}${isCentre ? ' is-centre' : ''}`} data-testid={isBest ? 'disp-best' : undefined}
                           style={{ background: c.lost ? `rgba(239,68,68,${0.25 + 0.55 * (1 - c.merit)})` : `rgba(16,185,129,${0.2 + 0.65 * c.merit})` }}
                           onClick={() => moveTo(c.eastM, c.northM)}
                           title={`E ${c.eastM > 0 ? '+' : ''}${c.eastM} m, N ${c.northM > 0 ? '+' : ''}${c.northM} m · ${fmtDuration(c.survivalHours)} · ${fmtNum(c.linkPct, 0)} %`}
@@ -263,12 +284,11 @@ export function EmergencyResult({ data, clocksTestId = 'emg-clocks', extra }: { 
           </div>
         )}
         <p className="kpi-note pad0">{t('Each cell is a full mission from that touchdown point. The green arrow on the terrain shows the same vector.', 'Cada celda es una misión completa desde ese punto de contacto. La flecha verde sobre el terreno muestra el mismo vector.')}</p>
-      </Step>
     </div>
   );
 }
 
-/** Both halves stacked, for the survival tab of the Terrain console. */
+/** Both halves stacked (the Emergency mode uses the two halves around the 3-D view). */
 export function EmergencyFlow({ data }: { data: ScenarioData }) {
   return (
     <div className="emg-flow" data-testid="emergency-flow">

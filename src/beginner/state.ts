@@ -8,7 +8,7 @@ import { create } from 'zustand';
 import { ScenarioCfg, Subsystem } from '../state/store';
 
 /** Parts of the interface the training reveals one by one. */
-export type Reveal = 'transport' | 'subsys' | 'trays' | 'verdict' | 'telemetry' | 'mode';
+export type Reveal = 'transport' | 'subsys' | 'trays' | 'verdict' | 'telemetry' | 'mode' | 'export';
 
 const SOUND_KEY = 'clps.beginner.sound';
 interface SoundPrefs { muted: boolean; volume: number; subtitles: boolean; music: boolean }
@@ -45,15 +45,14 @@ export interface BeginnerState extends SoundPrefs {
    * or the celebration of a finished mission.
    */
   phase: 'intro' | 'splash' | 'step' | 'celebrate';
-  /** Points earned (stars and XP of the celebration cards). */
-  xp: number;
+
   set: (p: Partial<BeginnerState>) => void;
   setSound: (p: Partial<SoundPrefs>) => void;
 }
 
 export const useBeginner = create<BeginnerState>((set, get) => ({
   ...readPrefs(),
-  step: -1, stepAt: 0, stuck: 0, reveal: [], fresh: null, nudge: null, caption: null, done: 0, validated: null, phase: 'intro', xp: 0,
+  step: -1, stepAt: 0, stuck: 0, reveal: [], fresh: null, nudge: null, caption: null, done: 0, validated: null, phase: 'intro',
   fast: typeof location !== 'undefined' && new URLSearchParams(location.search).get('tutorialSpeed') === 'fast',
   set: (p) => set(p),
   setSound: (p) => {

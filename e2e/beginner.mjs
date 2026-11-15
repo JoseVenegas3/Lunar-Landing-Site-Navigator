@@ -139,14 +139,21 @@ try {
     // Real clicks where the step asks for one; "Do it for me" otherwise once it appears.
     const target = await p.evaluate(() => {
       const id = document.querySelector('[data-testid="beginner"]')?.getAttribute('data-step') ?? '';
-      const map = { 'm1-overview': 'subsys-overview', 'm2-brief': 'subsys-terrain', 'm2-overlay': 'seg-slope', 'm3-brief': 'subsys-power', 'm4-brief': 'subsys-comms', 'm4-horizon': 'bottom-horizon', 'm5-brief': 'subsys-terrain', 'm5-preset': 'preset-im1', 'm6-brief': 'subsys-science', 'm6-adopt': 'adopt-b', 'm7-exit': 'exit-move', 'm3-mast': 'mast', 'm4-relay': 'relay-enable' };
+      const map = {
+        'm1-overview': 'subsys-overview', 'm1-search': 'win-run', 'm1-research': 'win-run', 'm1-eye': 'seg-eye', 'm2-brief': 'subsys-terrain', 'm2-overlay': 'seg-slope',
+        'm2-variants': 'unc-run', 'm2-best': 'disp-best', 'm3-brief': 'subsys-power', 'm3-mast': 'mast', 'm3-mount': 'mount', 'm4-brief': 'subsys-comms', 'm4-horizon': 'bottom-horizon',
+        'm4-band': 'band', 'm4-telemetry': 'dock-telemetry', 'm4-relay': 'relay-enable', 'm5-brief': 'subsys-terrain', 'm5-preset': 'preset-im1', 'm5-asset': 'asset-enable',
+        'm6-brief': 'subsys-science', 'm6-adopt': 'adopt-b', 'm7-slope': 'tri-slope', 'm7-exit': 'exit-move',
+      };
       return map[id] ?? null;
     });
     if (target && Date.now() - sameSince > 1500) {
       const sel = `[data-testid="${target}"]`;
       if (await p.locator(sel).count()) {
         if (target === 'mast') await p.selectOption(sel, '10');
-        else if (target === 'relay-enable') await p.check(sel);
+        else if (target === 'mount') await p.selectOption(sel, 'tracker1axis');
+        else if (target === 'band') await p.selectOption(sel, 'X');
+        else if (target === 'relay-enable' || target === 'asset-enable') await p.check(sel);
         else await p.click(sel);
         sameSince = Date.now();
         await p.waitForTimeout(400);
@@ -160,11 +167,12 @@ try {
   const ids = seen.map((s) => s.id);
   check('the training opens with the cinematic, then runs from mission 0 to the diploma', ['intro', 'splash'].includes(ids[0]) && ids.includes('m0-approach') && ids.includes('m7-diploma') && ids.includes('celebrate'), ids.join(' > '));
   const bad = seen.filter((s) => /NaN|undefined|Infinity|null/.test(s.text));
-  check('missions open with a splash and end with a celebration (stars, points, what comes next)', ids.filter((x) => x === 'splash').length >= 7 && ids.filter((x) => x === 'celebrate').length >= 7, '');
+  check('missions open with a splash and end with a celebration that hands over the subsystem badge', ids.filter((x) => x === 'splash').length >= 7 && ids.filter((x) => x === 'celebrate').length >= 7, '');
   check('no narration shows NaN, undefined or a missing value', bad.length === 0, bad.map((s) => `${s.id}: ${s.text}`).join(' | '));
   check('"Do it for me" appears when the user is stuck and performs the action', doItUsed > 0, `${doItUsed} times`);
   await p.waitForSelector('[data-testid="planner"]');
   await p.waitForTimeout(800);
+  const rack = await p.evaluate(() => document.querySelectorAll('[data-testid="beg-rack"] [data-earned]').length).catch(() => -1);
   const after = await p.evaluate(() => ({
     beginner: Boolean(document.querySelector('[data-testid="beginner"]')), locked: document.querySelectorAll('[data-locked]').length,
     site: document.querySelector('.hud-title')?.textContent ?? '', mode: document.querySelector('.app')?.getAttribute('data-experience'),

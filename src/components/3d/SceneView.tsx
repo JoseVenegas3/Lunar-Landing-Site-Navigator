@@ -19,7 +19,7 @@ import { MISSION_SITES, STATE_RF_PHYSICAL } from '../../engine';
 import { BeginnerFx } from '../../beginner/fx';
 import { Transport } from './Transport';
 import { terrainStatusText } from '../triage/TriageLayout';
-import { LiveSky, RING_ELEVATION_GAIN, camProbe, dirToScene, hudTags, makeLiveSky, makeSceneFrame, updateLiveSky, useSceneUi } from './sceneMath';
+import { LiveSky, RING_ELEVATION_GAIN, camProbe, landerAnim, dirToScene, hudTags, makeLiveSky, makeSceneFrame, updateLiveSky, useSceneUi } from './sceneMath';
 import { ScenarioBadge } from '../ScenarioBadge';
 
 declare global {
@@ -181,7 +181,8 @@ function SceneContents({ dem, result, overlay, scenarioKey }: { dem: DemStack; r
       frames: 0,
       landerScreen: () => {
         if (!live.valid) return null;
-        v.copy(live.lander).project(camera);
+        // where the model is drawn (it may be mid-hop towards a new point)
+        v.copy(landerAnim.hasDrawn ? landerAnim.drawn : live.lander).project(camera);
         const r = gl.domElement.getBoundingClientRect();
         return { x: r.left + ((v.x + 1) / 2) * r.width, y: r.top + ((1 - v.y) / 2) * r.height };
       },

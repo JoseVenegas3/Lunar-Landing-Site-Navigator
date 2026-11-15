@@ -22,7 +22,7 @@ function Band({ label, q, unit, digits = 0 }: { label: string; q: { p10: number;
 }
 
 /** How much the answer depends on the error of the elevation model (ensemble of perturbed terrains). */
-function UncertaintyBlock() {
+export function UncertaintyBlock() {
   const t = useT();
   const data = useActiveScenario();
   const unc = useUncertainty(data);

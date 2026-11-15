@@ -9,6 +9,7 @@ import { useT } from '../lib/format';
 import { finishTraining } from './lifecycle';
 import { MISSION_TITLES, SCRIPT } from './script';
 import { useBeginner } from './state';
+import { BADGES, Badge } from './Badges';
 
 function IconBtn({ label, d, onClick, testId, pressed }: { label: string; d: string; onClick: () => void; testId: string; pressed?: boolean }) {
   return (
@@ -34,15 +35,14 @@ export function BeginnerHud() {
   return (
     <>
       <header className="beg-hud" data-testid="beg-hud" role="toolbar" aria-label={t('Training', 'Entrenamiento')}>
-        <ol className="beg-seals" aria-label={t('Missions', 'Misiones')}>
-          {MISSION_TITLES.map((m, i) => (
-            <li key={i} className={i < b.done ? 'is-done' : i === step.mission ? 'is-now' : ''} title={m[lang === 'es' ? 1 : 0]} data-testid={`seal-${i}`}>
-              <span aria-hidden="true">{i < b.done ? '★' : i + 1}</span>
-              <span className="sr-only">{m[lang === 'es' ? 1 : 0]}{i < b.done ? t(' (done)', ' (completada)') : ''}</span>
+        <ol className="beg-rack" aria-label={t('Mission badges', 'Insignias de misión')} data-testid="beg-rack">
+          {BADGES.map((bd, i) => (
+            <li key={i} className={i < b.done ? 'is-earned' : i === step.mission ? 'is-now' : ''} title={`${MISSION_TITLES[i][lang === 'es' ? 1 : 0]} · ${bd.name[lang === 'es' ? 1 : 0]}`} data-testid={`seal-${i}`} data-earned={i < b.done ? '1' : undefined}>
+              <Badge i={i} earned={i < b.done} fresh={i === b.done - 1} size={26} />
+              <span className="sr-only">{bd.name[lang === 'es' ? 1 : 0]}{i < b.done ? t(' (earned)', ' (obtenida)') : ''}</span>
             </li>
           ))}
         </ol>
-        <span className="beg-xp-chip mono" title={t('Points', 'Puntos')}>{b.xp} XP</span>
         <IconBtn label={b.muted ? t('Sound off: turn on', 'Sonido apagado: activar') : t('Sound on: mute', 'Sonido activo: silenciar')} pressed={b.muted} onClick={() => b.setSound({ muted: !b.muted })} testId="beg-mute"
           d={b.muted ? 'M3 8h3l4-3v10l-4-3H3zM13 8l4 4M17 8l-4 4' : 'M3 8h3l4-3v10l-4-3H3zM13 7.5a3.5 3.5 0 0 1 0 5M15 5.5a6.5 6.5 0 0 1 0 9'} />
         <label className="beg-vol">

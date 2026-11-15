@@ -44,7 +44,7 @@ Cinco pestañas ocupan todo el ancho. Cada una trae sus paneles, su color y lo q
 | Resumen | esmeralda | Sitios y fechas | Signos vitales, Ventanas de aterrizaje | Ventanas de misión | Sombras |
 | Energía / térmico | ámbar | Equipo: energía y térmico | Energía y supervivencia | Potencia y temperatura, Ventanas de misión | Horas de sol, haz solar |
 | Comunicaciones / RF | cian | Equipo: radio y relays | Presupuesto de enlace | Horizonte 360°, Ventanas de misión | Vista de la Tierra, haz a la Tierra destacado |
-| Terreno / alunizaje | gris claro | Actitud y vuelco | Emergencia: supervivencia | Horizonte 360°, Ventanas de misión | Pendientes, flecha de escape |
+| Terreno / alunizaje | gris claro | Actitud y vuelco | Dispersión y escape | Horizonte 360°, Ventanas de misión | Pendientes, flecha de escape |
 | Ciencia | violeta | Sitios y fechas | Índice de aptitud, Vista de ingeniería | Línea de tiempo detallada | Sombras |
 
 Cada bandeja tiene un **(?)** con una explicación de una frase y un botón **—** para minimizarla; la pestaña que queda en el borde la vuelve a abrir.
@@ -127,7 +127,7 @@ Cada fila es la ventana completa: día/noche, Tierra visible y ambos a la vez (l
 ## 6. Terreno / alunizaje
 
 * **Actitud y vuelco**: presets (nominal, IM-1, IM-2, SLIM, apoyado en la pendiente), alabeo, cabeceo, guiñada, ancho de haz y cardán de la antena, y sus penalizaciones. Probabilidad de vuelco sobre la elipse según la velocidad de contacto. **Reproducir un alunizaje real**: siempre advierte que el modelo no reproduce la pérdida de IM-2 Athena (quedó en un cráter pequeño en sombra que el terreno de 20 m no contiene). **Activo vecino**: radio de exclusión del penacho y sombreado mutuo.
-* **Emergencia: supervivencia**: el mismo flujo que el modo Emergencia (sección 10). Sin fecha: **Evaluar desde ahora** (o cualquier dato ingresado) fija el inicio en la hora actual durante una noche lunar (15 días; también 3 o 7).
+* **Dispersión y escape**: la malla de 25 puntos de contacto a 200 m (cada celda es una misión completa), la mejor celda con su vector de escape y la incertidumbre del terreno LOLA. El flujo de emergencia está solo en el modo Emergencia (sección 10).
 
 ![](img/es/06-terreno.png)
 
@@ -170,7 +170,7 @@ Responde primero con un titular en lenguaje llano: **SOBREVIVE**, **SOBREVIVE SI
 
 **Público y docentes.** El modo tutorial y las fichas de sitios cuentan la física del polo sur sin jerga: el Sol rasante, las sombras largas, la Tierra que se esconde tras las montañas y por qué unos cientos de metros cambian el destino de un lander.
 
-**Equipo ante una emergencia.** El modo Emergencia (o Terreno > Emergencia: supervivencia) responde en orden: dónde estamos, cuánto tiempo queda y hacia dónde movernos, desde ahora.
+**Equipo ante una emergencia.** El modo Emergencia responde en orden: dónde estamos, cuánto tiempo queda y hacia dónde movernos, desde ahora.
 
 ## 12. Fuentes y límites
 

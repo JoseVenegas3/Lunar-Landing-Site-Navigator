@@ -309,7 +309,7 @@ try {
   const EXPECT = {
     power: { accent: '#F59E0B', overlay: 'Sun hours', left: 'Power system', right: 'thermal-kpis', bottom: 'thermal-chart' },
     comms: { accent: '#06B6D4', overlay: 'Earth view', left: 'DTE radio link', right: 'link-budget', bottom: 'panorama' },
-    terrain: { accent: '#E2E8F0', overlay: 'Slope', left: 'Landing attitude', right: 'emergency-flow', bottom: 'panorama' },
+    terrain: { accent: '#E2E8F0', overlay: 'Slope', left: 'Landing attitude', right: 'dispersion-block', bottom: 'panorama' },
     science: { accent: '#B49CFF', overlay: 'Shadows', left: 'Landing site', right: 'score-A', bottom: 'timeline' },
   };
   await goSub('overview');
@@ -611,25 +611,20 @@ try {
   await page.waitForTimeout(400);
   await shot('22a-power-console-thermal.png');
 
-  // the survival panel is the shared emergency flow: position, energy, optional tilt; no date
+  // v3.1: the Terrain console shows the landing dispersion and the terrain uncertainty; the emergency flow lives in the Emergency mode only
   await openPanel('survival');
-  await page.waitForSelector('[data-testid="emergency-flow"] [data-testid="dispersion-grid"]', { timeout: 120000 });
+  await page.waitForSelector('[data-testid="drawer-right"] [data-testid="dispersion-grid"]', { timeout: 120000 });
   const flow = await page.evaluate(() => {
-    const f = document.querySelector('[data-testid="emergency-flow"]');
+    const f = document.querySelector('[data-testid="drawer-right"]');
     return {
       cells: f.querySelectorAll('[data-testid="dispersion-grid"] [role="gridcell"]').length,
       escape: f.querySelector('[data-testid="tri-escape"]')?.textContent ?? '',
-      map: Boolean(f.querySelector('[data-testid="polar-map"]')), coords: Boolean(f.querySelector('[data-testid="tri-coords"]')),
-      energy: Boolean(f.querySelector('[data-testid="emg-energy"]')) && Boolean(f.querySelector('[data-testid="emg-load"]')),
-      tiltFolded: !f.querySelector('.emg-tilt')?.open,
-      date: f.querySelectorAll('input[type="date"]').length,
-      removed: ['unc-sigma', 'unc-run', 'unc-cells', 'escape-go'].filter((id) => document.querySelector(`[data-testid="${id}"]`)).length,
-      bands: /P10/.test(f.textContent), freeze: Boolean(f.querySelector('[data-vital="freeze"]')), verdict: f.querySelector('[data-testid="surv-head"]')?.textContent ?? '',
-      exit: f.querySelector('[data-testid="exit-block"]')?.textContent ?? '',
+      unc: Boolean(f.querySelector('[data-testid="unc-sigma"]')) && Boolean(f.querySelector('[data-testid="unc-run"]')),
+      emergency: ['emergency-flow', 'emg-inputs', 'exit-block', 'surv-head', 'polar-map'].filter((id) => document.querySelector(`[data-testid="planner"] [data-testid="${id}"]`)),
     };
   });
-  check('survival panel = emergency flow: position and energy (tilt folded), no date, 5 x 5 grid, escape and time to freeze; RMS sliders, per-cell P and bands removed',
-    flow.cells === 25 && flow.escape.length > 10 && flow.map && flow.coords && flow.energy && flow.tiltFolded && flow.date === 0 && flow.removed === 0 && !flow.bands && flow.freeze && /SURVIVE/.test(flow.verdict) && /Way out/.test(flow.exit), JSON.stringify({ ...flow, escape: flow.escape.slice(0, 60), exit: flow.exit.slice(0, 80) }));
+  check('Terrain console: dispersion (5 x 5, escape) and terrain uncertainty; no emergency flow inside any subsystem',
+    flow.cells === 25 && flow.escape.length > 10 && flow.unc && flow.emergency.length === 0, JSON.stringify({ ...flow, escape: flow.escape.slice(0, 60) }));
   await page.waitForTimeout(600);
   await shot('22-terrain-console-emergency-flow.png');
   lay = await overlaps();
